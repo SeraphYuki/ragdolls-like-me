@@ -160,10 +160,10 @@ void Response(PhysicsFigure_t *figure, PhysicsConstraint_t *constraint){
 
 	int j;
 	// for(j = 0; j < tree->nBodies; j++){
-	for(j = tree->nBodies-1; j >= 0; j--){
-		Bone *bone = tree->bodies[j];
+	// for(j = tree->nBodies-1; j >= 0; j--){
+	// 	Bone *bone = tree->bodies[j];
 		
-		// Bone *bone = constraint->body2;
+		Bone *bone = constraint->body2;
 		Vec3 rhs = (Vec3){0,0,0};
 		rhs = Math_Vec3MultVec3(constraint->J1[0][0], bone->linVel);
 
@@ -176,7 +176,7 @@ void Response(PhysicsFigure_t *figure, PhysicsConstraint_t *constraint){
 		rhs = Math_Vec3AddVec3(rhs, constraint->c1[1]);
 
 		bone->angVel = rhs;//Math_Vec3AddVec3(bone->angVel, rhs);
-	}
+	// }
 }
 
 
