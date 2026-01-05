@@ -12,12 +12,15 @@
 #define MODEL_MAX_BOUNDING_BOXES 16
 
 typedef struct Bone Bone;
+typedef struct FigureTree_t FigureTree_t;
 struct Bone {
 	u8 				index;
 	u8 				nChildren;
 	Bone 			*parent;
+	FigureTree_t *tree;
 	Vec3 			pos;
 	Quat 			rot;
+	Vec3			 posDisplacement;
 	Vec3 			absPos;
 	Quat 			absRot;
 	Vec3 			linVel;
@@ -94,6 +97,7 @@ typedef struct {
 	BoundingShape 	bb[MODEL_MAX_BOUNDING_BOXES];
 } Model;
 
+void Skeleton_Apply(Skeleton *skeleton);
 void Animation_Load(Animation *animation, const char *path);
 void Animation_Free(Animation animation);
 void RiggedModel_Free(Model *model);
@@ -105,6 +109,6 @@ void Model_Load(Model *model, const char *path);
 void Model_DeleteTextures(Model *model);
 void Skeleton_BlendAnims(PlayingAnimation *anims, int nAnims, float dt);
 void Model_LoadCollisions(Model *model, const char *path);
-
+void Skeleton_UpdateVelocities(Skeleton *skeleton);
 
 #endif

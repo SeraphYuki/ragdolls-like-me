@@ -58,6 +58,7 @@ void Object_UpdateSkeleton(Object *obj, Skeleton *skel){
 		for(m = 0; m < 8; m++){
 			Vec3 pos = skel->bones[k].points[m];
 			pos = Math_Vec3MultVec3(skel->bones[k].points[m], obj->bb.scale);
+			pos = Math_Rotate(pos, obj->bb.rot);
 			pos = Math_Vec3AddVec3(pos, obj->bb.pos);
 			child.points[m] = pos;
 
@@ -76,12 +77,13 @@ void Object_UpdateSkeleton(Object *obj, Skeleton *skel){
 	            cube.d = pos.z;
 		}
 		for(m = 0; m < 3; m++){
-			child.axes[m] = skel->bones[k].axes[m];
+			child.axes[m] = Math_Vec3Normalize(Math_Rotate(skel->bones[k].axes[m],obj->bb.rot));
 		}
-		BoundingBox_AddChild(&obj->skelBb,  &child);
 		BoundingBox_UpdateWorldSpaceCube(&child);
+		BoundingBox_AddChild(&obj->skelBb,  &child);
 	 
     }
+	obj->bb.noCollisions = 1;
 	cube.w -= cube.x;
     cube.h -= cube.y;
     cube.d -= cube.z;
@@ -95,9 +97,9 @@ void Object_UpdateSkeleton(Object *obj, Skeleton *skel){
     obj->bb.points[7] = (Vec3){cube.x+cube.w, cube.y, cube.z};
 	memcpy(&obj->skelBb.points[0].x, &obj->bb.points[0].x, sizeof(Vec3)*8);
 	BoundingBox_UpdateWorldSpaceCube(&obj->skelBb);
-	// BoundingBox_UpdateWorldSpaceCube(&obj->bb);
-	// obj->skelBb.cube = obj->skelBb.wsCube;
-	// obj->bb.cube = obj->bb.wsCube;
+	BoundingBox_UpdateWorldSpaceCube(&obj->bb);
+	obj->skelBb.cube = obj->skelBb.wsCube;
+	obj->bb.cube = obj->bb.wsCube;
 }
 void Object_SetModel(Object *obj, Model *model){
 	obj->model= model; 

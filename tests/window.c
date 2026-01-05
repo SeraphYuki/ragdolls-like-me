@@ -137,6 +137,7 @@ void Window_MainLoop(void (*Update)(), void (*Event)(SDL_Event ), char (*Draw)()
             }
 
             Event(event);
+            SDL_WarpMouseInWindow(window, windowSize.x/2, windowSize.y/2);
         }
 
         if(!breakLoop) break;
@@ -152,9 +153,10 @@ void Window_MainLoop(void (*Update)(), void (*Event)(SDL_Event ), char (*Draw)()
         if(deltaTime > 0){
             lastTime = currTime;
             Update();
+            if(Draw()) SDL_GL_SwapWindow(window);
         }
-    
-        if(Draw()) SDL_GL_SwapWindow(window);
+
+
 
         frames++;
 

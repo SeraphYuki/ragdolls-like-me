@@ -2,7 +2,7 @@ CC=gcc
 
 # debugging on, source compiled into exe currently
 
-CFLAGS  = -g $(shell pkg-config --cflags freetype2)
+CFLAGS  = -Wall -g $(shell pkg-config --cflags freetype2) -m64
 LFLAGS = -g
 
 # CFLAGS   = -m64 -pipe
@@ -16,7 +16,7 @@ LIBS=  $(SDL_LDFLAGS) $(GLEW_LDFLAGS) -lfreetype -lpng -lz -lm
 
 
 SOURCES=main.c image_loader.c math.c shaders.c window.c mesh.c \
-bounding_box.c octree.c physics.c world.c skybox.c object.c log.c memory.c lcp.c
+bounding_box.c octree.c world.c skybox.c hash_table.c object.c deflate.c log.c memory.c lcp.c physics.c
 
 
 OBJECTS=$(SOURCES:.c=.o)

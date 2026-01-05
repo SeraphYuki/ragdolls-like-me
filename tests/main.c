@@ -46,10 +46,10 @@ static void onCube(Object *obj, Object *obj2, BoundingBox *bb, BoundingBox *bb2,
 }
 static void Update(){
 
-    cubeAnims[0].into += Window_GetDeltaTime() / 10.1f;
+    cubeAnims[0].into += Window_GetDeltaTime() / 100.1f;
 
-    if(cubeAnims[0].into > cubeAnim.length/1.5){
-	      cubeAnims[0].into = cubeAnim.length/8;
+    if(cubeAnims[0].into > cubeAnim.length){
+	      cubeAnims[0].into = 0;
 	}
 
     cubeObj->bb.pos.y -= Window_GetDeltaTime() / 1000.0f;
@@ -57,13 +57,8 @@ static void Update(){
 	      cubeObj->bb.pos.y = 0;
 	}
 
-	Skeleton_Update(&cubeSkel, cubeAnims, 1);
 	Object_UpdateSkeleton(cubeObj, &cubeSkel);
 	figure.skel = &cubeSkel;	
-	ConeConstraint_Create(&figure.constraints[0], &cubeSkel.bones[10], 
-		&cubeSkel.bones[11],
-	Math_Vec3Normalize(cubeSkel.bones[10].pos), 1.1);
-
 	Vec3 moveVec = {0,0,0};
 
     if(movingDirs[4]) moveVec.y += 1;
@@ -257,8 +252,18 @@ static char Draw(){
 		World_DrawSkeleton(&cubeObj->skelBb.children[k]);
 	}
 	
-Shaders_SetModelMatrix(cubeObj->bb.matrix);
+	Skeleton_Update(&cubeSkel, cubeAnims, 1);
+
+	ConeConstraint_Create(&figure.constraints[0], &cubeSkel.bones[4], 
+		&cubeSkel.bones[5],
+			(Vec3){0,1,0},0.1);
+
+	Shaders_UseProgram(TEXTURELESS_SHADER);
+	Shaders_SetModelMatrix(cubeObj->bb.matrix);
 	 Physics_ApplyForces(&figure);
+
+	Skeleton_Apply(&cubeSkel);
+
 	  World_Render(1);
 	  return 1;
 }
@@ -313,13 +318,12 @@ int main(int argc, char **argv){
 	  memset(&cubeAnim, 0, sizeof(Animation));
 	  Animation_Load(&cubeAnim, "Resources/figure_ArmatureAction.anm");
 
-	cubeModel.materials[0].diffuse = (Vec4){0,0,1,1};
 	Object_SetModel(cubeObj, &cubeModel);
 	  cubeObj->Draw = DrawRigged;
 	  cubeObj->AddUser(cubeObj);
 	  cubeObj->bb.pos.y = 1;
-	  cubeObj->bb.scale = (Vec3){0.1,0.1,0.1};
-	  cubeObj->bb.rot = (Vec3){0,0,0};
+	  cubeObj->bb.scale = (Vec3){0.3,0.3,0.3};
+	  cubeObj->bb.rot = (Vec3){0,-3.14/2,0};
 	  World_UpdateObjectInOctree(cubeObj);
 
 	groundObj = Object_Create();
@@ -336,7 +340,6 @@ int main(int argc, char **argv){
 	throwObj->bb.pos = position;
 	  throwObj->AddUser(throwObj);
 	  World_UpdateObjectInOctree(throwObj);
-	throwModel.materials[0].diffuse = (Vec4){1,0,1,1};
 	  cubeAnims[0] = (PlayingAnimation){
 	      .active = 1,
 	      .weight = 1,

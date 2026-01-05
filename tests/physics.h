@@ -8,7 +8,9 @@
 #define MAX_CONSTRAINTS 128
 
 
-typedef struct {
+typedef struct PhysicsConstraint_t PhysicsConstraint_t;
+
+struct PhysicsConstraint_t {
 
 
 
@@ -20,7 +22,7 @@ typedef struct {
 
 	Vec3 J1[6][2];
 	Vec3 J2[6][2];
-	void (*Evaluate)();
+	void (*Evaluate)( PhysicsConstraint_t *);
 	void *data;
 
 	Vec3 offset;
@@ -36,12 +38,12 @@ typedef struct {
 	} cone;
 
 	
-} PhysicsConstraint_t;
+} ;
 
-typedef struct {
+struct FigureTree_t{
 	Bone *bodies[MAX_BODIES];
 	int nBodies;	
-} FigureTree_t;
+};
 
 typedef struct {
 	Bone *bone; 
