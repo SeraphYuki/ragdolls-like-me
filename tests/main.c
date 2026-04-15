@@ -21,9 +21,11 @@ static PlayingAnimation cubeAnims[1];
 
 static float mouseSensitivity = 0.001;
 static float moveSpeed = 0.005;
-
+float invPersp[16];
+ float persp[16], view[16], model[16];
 static Vec2 rotation = {0,0};
-static Vec3 position = {2,1,5};
+static Vec2 mousepos = {0,0};
+static Vec3 position = {2,4,5};
 
 static char movingDirs[5];
 static PhysicsFigure_t figure;
@@ -46,57 +48,58 @@ static void onCube(Object *obj, Object *obj2, BoundingBox *bb, BoundingBox *bb2,
 }
 static void Update(){
 
-    cubeAnims[0].into += Window_GetDeltaTime() / 100.1f;
+	 cubeAnims[0].into += Window_GetDeltaTime() / 100.1f;
 
-    if(cubeAnims[0].into > cubeAnim.length){
-	      cubeAnims[0].into = 0;
+	 if(cubeAnims[0].into > cubeAnim.length){
+	    cubeAnims[0].into = 0;
 	}
 
-    cubeObj->bb.pos.y -= Window_GetDeltaTime() / 1000.0f;
-	  if(cubeObj->bb.pos.y < 0){
-	      cubeObj->bb.pos.y = 0;
+	 cubeObj->bb.pos.y -= Window_GetDeltaTime() / 1000.0f;
+	if(cubeObj->bb.pos.y < 0){
+	    cubeObj->bb.pos.y = 0;
 	}
 
 	Object_UpdateSkeleton(cubeObj, &cubeSkel);
 	figure.skel = &cubeSkel;	
 	Vec3 moveVec = {0,0,0};
 
-    if(movingDirs[4]) moveVec.y += 1;
+	if(movingDirs[4]) moveVec.y += 1;
 	if(movingDirs[0]) moveVec.z -= 1;
 	if(movingDirs[1]) moveVec.z += 1;
 	if(movingDirs[2]) moveVec.x -= 1;
 	if(movingDirs[3]) moveVec.x += 1;
-	  
-	  if(Math_Vec3Magnitude(moveVec)){
 
-        moveVec = Math_Vec3Normalize(moveVec);
+	if(Math_Vec3Magnitude(moveVec)){
 
-        moveVec = Math_Rotate(moveVec, (Vec3){-rotation.y, -rotation.x, 0});
+	     moveVec = Math_Vec3Normalize(moveVec);
 
-        moveVec = Math_Vec3MultFloat(moveVec, Window_GetDeltaTime() * moveSpeed);
+	     moveVec = Math_Rotate(moveVec, (Vec3){-rotation.y, -rotation.x, 0});
 
-        // position.x += moveVec.x;
-	      // position.z += moveVec.z;
-	      cubeObj->bb.pos.x += moveVec.x;
-	      cubeObj->bb.pos.z += moveVec.z;
-	      cubeObj->bb.pos.y += moveVec.y;
-	  }
+	     moveVec = Math_Vec3MultFloat(moveVec, Window_GetDeltaTime() * moveSpeed);
 
-    cubeObj->ObjUpdate(cubeObj);
+	     // position.x += moveVec.x;
+	    // position.z += moveVec.z;
+	    cubeObj->bb.pos.x += moveVec.x;
+	    cubeObj->bb.pos.z += moveVec.z;
+	    cubeObj->bb.pos.y += moveVec.y;
+	}
+
+	cubeObj->ObjUpdate(cubeObj);
 	cubeObj->OnCollision = onCube;
-	  World_UpdateObjectInOctree(cubeObj);
-	  World_ResolveCollisions(cubeObj, &cubeObj->bb);
-	  cubeObj->ObjUpdate(cubeObj);
+	World_UpdateObjectInOctree(cubeObj);
+	World_ResolveCollisions(cubeObj, &cubeObj->bb);
+	cubeObj->ObjUpdate(cubeObj);
+
 
 	float thrown = GetDeltaTime() / 500.0f;
-	  Vec3 forward = Math_Rotate((Vec3){0,0,-1}, (Vec3){-rotation.y, -rotation.x, 0});
+	Vec3 forward = Math_Rotate((Vec3){0,0,-1}, (Vec3){-rotation.y, -rotation.x, 0});
 	throwObj->bb.pos.x += thrown * forward.x;
 	throwObj->bb.pos.y += thrown * forward.y;
 	throwObj->bb.pos.z += thrown * forward.z;
-	if(Math_Vec3Magnitude(Math_Vec3SubVec3(throwObj->bb.pos,position)) > 5) throwObj->bb.pos = position;
-	  throwObj->OnCollision = onThrow;
-	  throwObj->ObjUpdate(throwObj);
-	  World_ResolveCollisions(throwObj, &throwObj->bb);
+	if(Math_Vec3Magnitude(Math_Vec3SubVec3(throwObj->bb.pos,position)) > 5) throwObj->bb.pos = (Vec3){0,0,0};
+	throwObj->OnCollision = onThrow;
+	throwObj->ObjUpdate(throwObj);
+	World_ResolveCollisions(throwObj, &throwObj->bb);
 }
 
 static void Event(SDL_Event ev){
@@ -111,16 +114,47 @@ static void Event(SDL_Event ev){
     //     Thoth_Resize(thoth, w/4, 0, (w/2) + (w/4), h);
 	  // }
 
-	if(ev.type == SDL_MOUSEMOTION){
+	if(ev.type == SDL_MOUSEBUTTONUP){
 
-		rotation.x += mouseSensitivity * ev.motion.xrel;
-		rotation.y += mouseSensitivity * ev.motion.yrel;
+		if(ev.button.button == SDL_BUTTON_LEFT){
 
-        while(rotation.x > PI*2) rotation.x -= PI*2;
-	      while(rotation.x < 0) rotation.x += PI*2;
+			throwObj->model->materials[0].diffuse = (Vec4){0.8,0.8,0.8,1};
+			cubeObj->model->materials[0].diffuse = (Vec4){0.8,0.8,0.8,1};
+			groundObj->model->materials[0].diffuse = (Vec4){0.8,0.8,0.8,1};
 
-        if(rotation.y < -PI/2.5) rotation.y = -PI/2.5;
-	      if(rotation.y > PI/3) rotation.y = PI/3;
+			float invView[16];
+			memcpy(invView, view, sizeof(view));
+			Math_InverseMatrix(invView);
+			
+			Vec4 rayWorld = (Vec4){
+				(2.0 * (mousepos.x / WINDOW_WIDTH)) - 1.0, 
+				1.0 - (2.0 * (mousepos.y / WINDOW_HEIGHT)), -1.0,1};
+
+			rayWorld = Math_MatrixMult4(rayWorld, invPersp);
+			rayWorld.z = -1;
+			rayWorld.w = 0;
+			rayWorld = Math_MatrixMult4(rayWorld, invView);
+			
+			Vec3 ray = (Vec3){rayWorld.x, rayWorld.y, rayWorld.z};
+			
+			ray = Math_Vec3Normalize(ray);
+
+			float distance = HUGE_VAL;
+			Object *collisionObj = NULL;
+			BoundingBox *collision = NULL;
+	
+			World_GetAllCollisionsRay((Ray){position, ray}, &distance, &collision, &collisionObj);
+			if(collisionObj){
+				collisionObj->model->materials[0].diffuse = (Vec4){1,0,0,1};
+			}
+		}
+
+	} else if(ev.type == SDL_MOUSEMOTION){
+
+		mousepos.x = ev.motion.x;
+		mousepos.y = ev.motion.y;
+
+
 
 	} else if(ev.type == SDL_KEYDOWN){
 
@@ -223,14 +257,13 @@ static char Draw(){
 
 	  float persp[16];
 
-    Vec3 forward = Math_Rotate((Vec3){0,0,-1}, (Vec3){-rotation.y, -rotation.x, 0});
-	  float view[16];
+    Vec3 forward = (Vec3){0,-0.8,-1};//Math_Rotate((Vec3){0,0,-1}, (Vec3){-rotation.y, -rotation.x, 0});
+	  //float view[16];
 	  Math_LookAt(view, position, Math_Vec3AddVec3(position, forward), (Vec3){0,1,0});
 	  Shaders_SetViewMatrix(view);
 
     Math_Perspective(persp, 60.0f*(3.1415/180), (float)1920 / (float)1080, 0.1f, 50.0f);
 	  Shaders_SetProjectionMatrix(persp);
-
 
 	  Shaders_UseProgram(SKELETAL_ANIMATION_SHADER);
 	  Shaders_UpdateViewMatrix();
@@ -264,16 +297,15 @@ static char Draw(){
 
 	Skeleton_Apply(&cubeSkel);
 
-	  World_Render(1);
-	  return 1;
+	  World_Render(0);
+
+	return 1;
 }
 
 static void OnResize(){
-//         Thoth_Render(thoth); stencil buffer/framebuffer access todo
+	//Thoth_Render(thoth); stencil buffer/framebuffer access todo
 
 }
-//
-
 
 int main(int argc, char **argv){
 
@@ -297,9 +329,11 @@ int main(int argc, char **argv){
     glClearColor(0,0,0,1);
 
 
-	  float persp[16], view[16], model[16];
 	  Math_Perspective(persp, 60.0f*(3.1415/180), (float)1920 / (float)1080, 0.1f, 100.0f);
-	  Math_LookAt(view, (Vec3){0,0,-5}, (Vec3){0,0,0}, (Vec3){0,1,0});
+	 memcpy(invPersp, persp, sizeof(persp));
+		Math_InverseMatrix(invPersp);
+		 
+		Math_LookAt(view, (Vec3){0,0,-5}, (Vec3){0,0,0}, (Vec3){0,1,0});
 	  Math_Identity(model);
 	  Shaders_UseProgram(SKELETAL_ANIMATION_SHADER);
 	  Shaders_SetProjectionMatrix(persp);
@@ -307,7 +341,7 @@ int main(int argc, char **argv){
 	  Shaders_SetModelMatrix(model);
 	  Shaders_UpdateModelMatrix();
 	  Shaders_SetViewMatrix(view);
-	  Shaders_UpdateViewMatrix(view);
+	  Shaders_UpdateViewMatrix();
 	  Shaders_UpdateProjectionMatrix();
 	  memset(&cubeSkel, 0, sizeof(Skeleton));
 
@@ -322,7 +356,7 @@ int main(int argc, char **argv){
 	  cubeObj->Draw = DrawRigged;
 	  cubeObj->AddUser(cubeObj);
 	  cubeObj->bb.pos.y = 1;
-	  cubeObj->bb.scale = (Vec3){0.3,0.3,0.3};
+	  cubeObj->bb.scale = (Vec3){0.2,0.2,0.2};
 	  cubeObj->bb.rot = (Vec3){0,-3.14/2,0};
 	  World_UpdateObjectInOctree(cubeObj);
 
@@ -337,7 +371,7 @@ int main(int argc, char **argv){
 	  Model_Load(&throwModel, "Resources/cube.yuk");
 	Object_SetModel(throwObj, &throwModel);
 	  throwObj->Draw = DrawModel;
-	throwObj->bb.pos = position;
+	throwObj->bb.pos = (Vec3){0,0,0};
 	  throwObj->AddUser(throwObj);
 	  World_UpdateObjectInOctree(throwObj);
 	  cubeAnims[0] = (PlayingAnimation){

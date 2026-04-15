@@ -60,23 +60,23 @@ int OctreeLeaf_Insert(OctreeLeaf *o, Object *obj){
 void OctreeLeaf_Remove(OctreeLeaf *o, Object *obj){
 
     int k;
-    for(k = 0; k < o->numObjects; k++){
-        if(o->objects[k] == obj){
+	 for(k = 0; k < o->numObjects; k++){
+	     if(o->objects[k] == obj){
 
             int f;
-            for(f = k; f < o->numObjects-1; f++)
-                o->objects[f] = o->objects[f+1];
+	         for(f = k; f < o->numObjects-1; f++)
+	             o->objects[f] = o->objects[f+1];
 
             --o->numObjects;
-            
-            o->objects = (Object **)realloc(o->objects, sizeof(Object *) * o->numObjects);
+	         
+	         o->objects = (Object **)realloc(o->objects, sizeof(Object *) * o->numObjects);
 
             break;
-        }
-    }
+	     }
+	 }
 
 	obj->inOctant = NULL;
-    obj->RemoveUser(obj);
+	 obj->RemoveUser(obj);
 
 }
 
@@ -165,27 +165,32 @@ void OctreeLeaf_Free(OctreeLeaf *o){
 	}
 }
 
-void OctreeLeaf_ResolveCollisionsRay(OctreeLeaf *o, Ray ray, float *dist,  BoundingBox **closest){
+void OctreeLeaf_ResolveCollisionsRay(OctreeLeaf *o, Ray ray, float *dist,  BoundingBox **closest,
+	 Object **collisionObj){
 
 	if(Math_CubeCheckCollisionRay(o->cube, ray) == HUGE_VAL)
 		return;
 
 	int k;
 	for(k = 0; k < o->numObjects; k++){
+		float tmpDist = HUGE_VAL;
+		BoundingBox *tmpClosest;
 
-		BoundingBox *bb;
+		if(o->objects[k]->skeleton)
+			BoundingBox_CheckCollisionRay(&o->objects[k]->skelBb, ray, &tmpClosest, &tmpDist);
+		else
+			BoundingBox_CheckCollisionRay(&o->objects[k]->bb, ray, &tmpClosest, &tmpDist);
 
-		float distance = BoundingBox_CheckCollisionRay(&o->objects[k]->bb, ray, &bb);
-
-		if(distance < *dist){
-			*dist = distance;
-			*closest = bb;
+		if(tmpDist < *dist ){
+			*collisionObj = o->objects[k];
+			*dist = tmpDist;
+			*closest = tmpClosest;
 		}
 	}
 
 	if(o->children[0])
 		for(k = 0; k < 8; k++)
-			OctreeLeaf_ResolveCollisionsRay(o->children[k], ray, dist, closest);
+			OctreeLeaf_ResolveCollisionsRay(o->children[k], ray, dist, closest, collisionObj);
 }
 
 static void FindViewCollisions(OctreeLeaf *o, Object ***ret, int *nObjects, Plane *frustumPlanes){

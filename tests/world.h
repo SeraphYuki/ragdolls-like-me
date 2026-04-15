@@ -28,5 +28,6 @@ void World_DrawObject(Object *object);
 void World_AddOffScreenUpdatedObject(Object *obj);
 void World_RemoveOffScreenUpdatedObject(Object *obj);
 void World_DrawOctree();
+void World_GetAllCollisionsRay(Ray ray, float *ret, BoundingBox **closest, Object **collisionObj);
 
 #endif

@@ -43,8 +43,8 @@ typedef struct {
 } Quat;
 
 typedef struct {
-	  Vec2 pos;
-	  Vec2 line;
+	  Vec3 pos;
+	  Vec3 line;
 } Ray;
 
 typedef struct {

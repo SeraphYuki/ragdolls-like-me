@@ -48,7 +48,7 @@ int BoundingBox_ResolveCollision(Object *obj1, BoundingBox *bb, Object *obj2, Bo
 
 Vec3 BoundingBox_GetPosition(BoundingBox *bb);
 
-float BoundingBox_CheckCollisionRay(BoundingBox *bb, Ray ray, BoundingBox **closest);
+ int BoundingBox_CheckCollisionRay(BoundingBox *bb, Ray r, BoundingBox **b, float *dist);
 
 BoundingBox *BoundingBox_GetTop(BoundingBox *bb);
 

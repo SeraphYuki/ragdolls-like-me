@@ -25,7 +25,8 @@ void OctreeLeaf_MoveInto(OctreeLeaf *into, OctreeLeaf *oct);
 void OctreeLeaf_ResolveCollisions(OctreeLeaf *o, Object *obj, BoundingBox *box, Cube minCube);
 void OctreeLeaf_Clear(OctreeLeaf *o);
 void OctreeLeaf_Free(OctreeLeaf *o);
-void OctreeLeaf_ResolveCollisionsRay(OctreeLeaf *o, Ray ray, float *dist,  BoundingBox **closest);
+void OctreeLeaf_ResolveCollisionsRay(OctreeLeaf *o, Ray ray, float *dist,  BoundingBox **closest, 
+Object **collisionObj);
 void OctreeLeaf_GetVisibleObjects(OctreeLeaf *octant, Object ***ret, int *nObjects);
 
 #endif

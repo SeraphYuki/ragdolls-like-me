@@ -128,12 +128,10 @@ void World_UpdateObjectInOctree(Object *obj){
 	OctreeLeaf_Insert(octree, obj);
 }
 
-// int World_GetAllCollisionsRay(Ray ray, float *ret, BoundingBox **closest, Vec2 *normal, IgnoredTypes &ignored){
+void World_GetAllCollisionsRay(Ray ray, float *ret, BoundingBox **closest, Object **collisionObj){
 
-// 	octree->CheckForCollisionRay(ray, ret, closest, normal, ignored);
-
-// 	return 1;
-// }
+ 	OctreeLeaf_ResolveCollisionsRay(octree, ray, ret, closest, collisionObj);
+}
 
 // int World_GetAllCollisionsRect(cube cube, std::vector<BoundingBox::BoundingBoxObject> *ret){
 

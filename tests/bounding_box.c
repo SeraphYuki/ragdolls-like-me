@@ -8,40 +8,40 @@
 static float GetOverlap(float minA, float maxA, float minB, float maxB){
 
     if(minA > maxB || minB > maxA)
-        return 0; 
+	     return 0; 
 
     double smallest = HUGE_VAL;
-    double max0min1 = maxA - minB;
-    double max1min0 = maxB - minA;
-    double min0max1 = minA - maxB;
+	 double max0min1 = maxA - minB;
+	 double max1min0 = maxB - minA;
+	 double min0max1 = minA - maxB;
 
     if(minA < minB){
-        if(maxA < maxB)
-            smallest = maxA - minB;
-        else
-            if(maxA - minB < maxB - minA) 
-            	smallest = max0min1; 
-            else 
+	     if(maxA < maxB)
+	         smallest = maxA - minB;
+	     else
+	         if(maxA - minB < maxB - minA) 
+	         	smallest = max0min1; 
+	         else 
 	            smallest = -max1min0;
-    } else {
-        if(maxA > maxB)
-            smallest = min0max1;            
-        else
-            if(max0min1 < max1min0) 
-            	smallest = max0min1; 
-            else 
+	 } else {
+	     if(maxA > maxB)
+	         smallest = min0max1;            
+	     else
+	         if(max0min1 < max1min0) 
+	         	smallest = max0min1; 
+	         else 
 	            smallest = -max1min0;
-    }
+	 }
 
     return smallest;
  }
 
-static int CheckCollision(Vec3 *axes, Vec3 *pointsA, int nPointsA, Vec3 *pointsB, int nPointsB, 
+static int CheckCollision(Vec3 *axes,int nAxes, Vec3 *pointsA, int nPointsA, Vec3 *pointsB, int nPointsB, 
 	float *minOverlap, Vec3 *minAxis){
 
 	*minOverlap = HUGE_VAL;
 	int k;
-	for(k = 0; k < 15; k++){
+	for(k = 0; k < nAxes; k++){
 
 		float minA = HUGE_VAL, maxA = -HUGE_VAL, minB = HUGE_VAL, maxB = -HUGE_VAL;
 
@@ -83,12 +83,15 @@ static int CheckCollision(Vec3 *axes, Vec3 *pointsA, int nPointsA, Vec3 *pointsB
 float SAT_Collision(Vec3 *pointsA, Vec3 *pointsB, Vec3 *axesA, Vec3 *axesB, float *overlap, Vec3 *axis){
 
 		Vec3 axes[] = {
+
 			axesA[0],
 			axesA[1],
 			axesA[2],
+
 			axesB[0],
 			axesB[1],
 			axesB[2],
+
 			Math_Vec3Cross(axesA[0], axesB[0]),
 			Math_Vec3Cross(axesA[0], axesB[1]),
 			Math_Vec3Cross(axesA[0], axesB[2]),
@@ -102,11 +105,63 @@ float SAT_Collision(Vec3 *pointsA, Vec3 *pointsB, Vec3 *axesA, Vec3 *axesB, floa
 			Math_Vec3Cross(axesA[2], axesB[2])
 		};
 
-		if(CheckCollision(axes, pointsA,8,pointsB, 8, overlap, axis))
+		if(CheckCollision(axes,15, pointsA,8,pointsB, 8, overlap, axis))
 			return 1;
 
-
 		return 0;
+}
+float SAT_CollisionRay(Vec3 *pointsA, Ray ray, Vec3 *axesA, Vec3 *axis){
+
+	float ret = HUGE_VAL;
+
+    Vec3 rayLine = ray.line;
+	Vec3 rayPos = ray.pos;
+	float minOverlap = HUGE_VAL;
+	Vec3 minAxis;
+	
+	 int k;
+	for(k = 0; k < 3; k++){
+
+		Vec3 norm = Math_Vec3Normalize(axesA[k]);
+		//if(norm.x == 0 && norm.y == 0 && norm.z == 0 ) return 0;
+
+		float d = Math_Vec3Dot(Math_Vec3SubVec3(pointsA[k], rayPos), norm) 
+		/ Math_Vec3Dot(rayLine, norm);
+
+		if(d < 0) continue;
+
+		Vec3 collisionPoint = Math_Vec3AddVec3(rayPos, Math_Vec3MultFloat(rayLine,d));
+
+		float minA = HUGE_VAL, maxA = -HUGE_VAL, minB = HUGE_VAL, maxB = -HUGE_VAL;
+
+		float dot = Math_Vec3Dot(axesA[k], collisionPoint);
+		if(dot < minB)
+			minB = dot;
+		if(dot > maxB)
+			maxB = dot;
+
+		int j;
+		for(j = 0; j < 8; j++){
+			float dot = Math_Vec3Dot(axesA[k], pointsA[j]);
+			if(dot < minA)
+				minA = dot;
+			if(dot > maxA)
+				maxA = dot;
+		}
+
+		float overlap = GetOverlap(minA, maxA,minB,maxB);
+		if(fabs(overlap) < minOverlap){
+			minOverlap = fabs(overlap);
+			if(overlap > 0)
+				minAxis = axesA[k];
+			else
+				minAxis = (Vec3){-axesA[k].x,-axesA[k].y,-axesA[k].z};
+		}
+
+		if(overlap == 0) return 0;
+	}
+
+    return minOverlap;
 }
 
 int BoundingBox_SATCollision(BoundingBox *bb1, BoundingBox *bb2, float *overlap, Vec3 *axis){
@@ -249,11 +304,11 @@ int BoundingBox_CheckCollision(BoundingBox *bb, BoundingBox *bb2){
 	if(!Math_CheckCollisionCube(bb->wsCube, bb2->wsCube)) return ret;
 
 	int k;
-    for(k = 0; k < bb->numChildren; k++){
-    	ret += BoundingBox_CheckCollision(&bb->children[k], bb2);
+	 for(k = 0; k < bb->numChildren; k++){
+	 	ret += BoundingBox_CheckCollision(&bb->children[k], bb2);
 	}
-    for(k = 0; k < bb2->numChildren; k++){
-    	ret += BoundingBox_CheckCollision(bb, &bb2->children[k]);
+	 for(k = 0; k < bb2->numChildren; k++){
+	 	ret += BoundingBox_CheckCollision(bb, &bb2->children[k]);
 	}
 
 	return ret+1;
@@ -269,11 +324,11 @@ int BoundingBox_ResolveCollision(Object *obj1, BoundingBox *bb, Object *obj2, Bo
 		return ret;
 
 	int k;
-    for(k = 0; k < bb->numChildren; k++){
-    	ret += BoundingBox_ResolveCollision(obj1, &bb->children[k], obj2, bb2);
+	 for(k = 0; k < bb->numChildren; k++){
+	 	ret += BoundingBox_ResolveCollision(obj1, &bb->children[k], obj2, bb2);
 	}
-    for(k = 0; k < bb2->numChildren; k++){
-    	ret += BoundingBox_ResolveCollision(obj1, bb, obj2, &bb2->children[k]);
+	 for(k = 0; k < bb2->numChildren; k++){
+	 	ret += BoundingBox_ResolveCollision(obj1, bb, obj2, &bb2->children[k]);
 	}
 
 
@@ -312,64 +367,64 @@ void BoundingBox_UpdateWorldSpaceCube(BoundingBox *bb){
 	int k;
 	for(k = 0; k < 8; k++){
 		Vec3 pos = bb->points[k];
-        if(pos.x < bb->wsCube.x)
-            bb->wsCube.x = pos.x;
-        if(pos.x > bb->wsCube.w)
-            bb->wsCube.w = pos.x;
-        if(pos.y < bb->wsCube.y)
-            bb->wsCube.y = pos.y;
-        if(pos.y > bb->wsCube.h)
-            bb->wsCube.h = pos.y;
-        if(pos.z < bb->wsCube.z)
-            bb->wsCube.z = pos.z;
-        if(pos.z >  bb->wsCube.d)
-            bb->wsCube.d = pos.z;
-    }
+	     if(pos.x < bb->wsCube.x)
+	         bb->wsCube.x = pos.x;
+	     if(pos.x > bb->wsCube.w)
+	         bb->wsCube.w = pos.x;
+	     if(pos.y < bb->wsCube.y)
+	         bb->wsCube.y = pos.y;
+	     if(pos.y > bb->wsCube.h)
+	         bb->wsCube.h = pos.y;
+	     if(pos.z < bb->wsCube.z)
+	         bb->wsCube.z = pos.z;
+	     if(pos.z >  bb->wsCube.d)
+	         bb->wsCube.d = pos.z;
+	 }
  
 	bb->wsCube.w -= bb->wsCube.x;
-    bb->wsCube.h -= bb->wsCube.y;
-    bb->wsCube.d -= bb->wsCube.z;
+	 bb->wsCube.h -= bb->wsCube.y;
+	 bb->wsCube.d -= bb->wsCube.z;
 }
 
 void BoundingBox_UpdatePoints(BoundingBox *bb){
 
     bb->points[0] = (Vec3){bb->cube.x, bb->cube.y+bb->cube.h, bb->cube.z+bb->cube.d};
-    bb->points[1] = (Vec3){bb->cube.x, bb->cube.y, bb->cube.z+bb->cube.d};
-    bb->points[2] = (Vec3){bb->cube.x, bb->cube.y+bb->cube.h, bb->cube.z};
-    bb->points[3] = (Vec3){bb->cube.x, bb->cube.y, bb->cube.z};
-    bb->points[4] = (Vec3){bb->cube.x+bb->cube.w, bb->cube.y+bb->cube.h, bb->cube.z+bb->cube.d};
-    bb->points[5] = (Vec3){bb->cube.x+bb->cube.w, bb->cube.y, bb->cube.z+bb->cube.d};
-    bb->points[6] = (Vec3){bb->cube.x+bb->cube.w, bb->cube.y+bb->cube.h, bb->cube.z};
-    bb->points[7] = (Vec3){bb->cube.x+bb->cube.w, bb->cube.y, bb->cube.z};
+	 bb->points[1] = (Vec3){bb->cube.x, bb->cube.y, bb->cube.z+bb->cube.d};
+	 bb->points[2] = (Vec3){bb->cube.x, bb->cube.y+bb->cube.h, bb->cube.z};
+	 bb->points[3] = (Vec3){bb->cube.x, bb->cube.y, bb->cube.z};
+	 bb->points[4] = (Vec3){bb->cube.x+bb->cube.w, bb->cube.y+bb->cube.h, bb->cube.z+bb->cube.d};
+	 bb->points[5] = (Vec3){bb->cube.x+bb->cube.w, bb->cube.y, bb->cube.z+bb->cube.d};
+	 bb->points[6] = (Vec3){bb->cube.x+bb->cube.w, bb->cube.y+bb->cube.h, bb->cube.z};
+	 bb->points[7] = (Vec3){bb->cube.x+bb->cube.w, bb->cube.y, bb->cube.z};
 
     float rmatrix[16];
-    Math_RotateMatrix(rmatrix,bb->rot);
+	 Math_RotateMatrix(rmatrix,bb->rot);
 
     bb->axes[0] = (Vec3){1,0,0};
-    bb->axes[1] = (Vec3){0,1,0};
-    bb->axes[2] = (Vec3){0,0,1};
-    bb->axes[0] = Math_Vec3Normalize(Math_MatrixMult(bb->axes[0], rmatrix));
-    bb->axes[1] = Math_Vec3Normalize(Math_MatrixMult(bb->axes[1], rmatrix));
-    bb->axes[2] = Math_Vec3Normalize(Math_MatrixMult(bb->axes[2], rmatrix));
+	 bb->axes[1] = (Vec3){0,1,0};
+	 bb->axes[2] = (Vec3){0,0,1};
+	 bb->axes[0] = Math_Vec3Normalize(Math_MatrixMult(bb->axes[0], rmatrix));
+	 bb->axes[1] = Math_Vec3Normalize(Math_MatrixMult(bb->axes[1], rmatrix));
+	 bb->axes[2] = Math_Vec3Normalize(Math_MatrixMult(bb->axes[2], rmatrix));
 
 	Math_ScalingMatrixXYZ(bb->matrix, bb->scale);
-    Math_MatrixMatrixMult(bb->matrix, rmatrix, bb->matrix);	
+	 Math_MatrixMatrixMult(bb->matrix, rmatrix, bb->matrix);	
 
     float matrix[16];
-    Math_TranslateMatrix(matrix, bb->pos);
-    Math_MatrixMatrixMult(bb->matrix, matrix, bb->matrix);
+	 Math_TranslateMatrix(matrix, bb->pos);
+	 Math_MatrixMatrixMult(bb->matrix, matrix, bb->matrix);
 
    if(bb->parent)
-       Math_MatrixMatrixMult(bb->matrix, bb->parent->matrix, bb->matrix); 
+	    Math_MatrixMatrixMult(bb->matrix, bb->parent->matrix, bb->matrix); 
 
     bb->points[0] = Math_MatrixMult(bb->points[0], bb->matrix);
-    bb->points[1] = Math_MatrixMult(bb->points[1], bb->matrix);
-    bb->points[2] = Math_MatrixMult(bb->points[2], bb->matrix);
-    bb->points[3] = Math_MatrixMult(bb->points[3], bb->matrix);
-    bb->points[4] = Math_MatrixMult(bb->points[4], bb->matrix);
-    bb->points[5] = Math_MatrixMult(bb->points[5], bb->matrix);
-    bb->points[6] = Math_MatrixMult(bb->points[6], bb->matrix);
-    bb->points[7] = Math_MatrixMult(bb->points[7], bb->matrix);
+	 bb->points[1] = Math_MatrixMult(bb->points[1], bb->matrix);
+	 bb->points[2] = Math_MatrixMult(bb->points[2], bb->matrix);
+	 bb->points[3] = Math_MatrixMult(bb->points[3], bb->matrix);
+	 bb->points[4] = Math_MatrixMult(bb->points[4], bb->matrix);
+	 bb->points[5] = Math_MatrixMult(bb->points[5], bb->matrix);
+	 bb->points[6] = Math_MatrixMult(bb->points[6], bb->matrix);
+	 bb->points[7] = Math_MatrixMult(bb->points[7], bb->matrix);
 
 	BoundingBox_UpdateWorldSpaceCube(bb);
 
@@ -388,23 +443,62 @@ int BoundingBox_IsSAT(BoundingBox *bb){
 	return 1;
 }
 
-float BoundingBox_CheckCollisionRay(BoundingBox *bb, Ray ray, BoundingBox **closest){
 
-	float ret = HUGE_VAL;
+static int SameSide(Vec3 p, Vec3 a, Vec3 b, Vec3 c){
+	Vec3 cp0 = Math_Vec3Cross(Math_Vec3SubVec3(b,a),Math_Vec3SubVec3(p,a));
+	Vec3 cp1 = Math_Vec3Cross(Math_Vec3SubVec3(b,a),Math_Vec3SubVec3(c,a));
+	if(Math_Vec3Dot(cp0,cp1) >= 0) return 1;
+	return 0;
+}
+
+ int BoundingBox_CheckCollisionRay(BoundingBox *bb, Ray r, BoundingBox **b, float *dist){
+	*b = NULL;
+
+	Vec3 planes[6][4] = {
+		{bb->points[0],bb->points[1],bb->points[2],bb->points[3]},
+		{bb->points[4],bb->points[5],bb->points[1],bb->points[0]},
+		{bb->points[3],bb->points[2],bb->points[6],bb->points[7]},
+		{bb->points[5],bb->points[4],bb->points[7],bb->points[6]},
+		{bb->points[1],bb->points[5],bb->points[6],bb->points[2]},
+		{bb->points[4],bb->points[0],bb->points[3],bb->points[7]},
+	};
 
 	int k;
+	for(k = 0; k < 6; k++){
 
-	for(k = 0; k < bb->numChildren; k++){
+		Vec3 v0 = Math_Vec3SubVec3(planes[k][0], planes[k][1]);
+		Vec3 v1 = Math_Vec3SubVec3(planes[k][0], planes[k][2]);
+		Vec3 n = Math_Vec3Normalize(Math_Vec3Cross(v0,v1));
 
-		BoundingBox *tBb;
+		float d = Math_Vec3Dot( Math_Vec3SubVec3(planes[k][0], r.pos), n) / Math_Vec3Dot(r.line, n);
+		if(d < 0) continue;
 
-		float d = BoundingBox_CheckCollisionRay(&bb->children[k], ray, &tBb);
+		Vec3 collisionPoint = Math_Vec3AddVec3(r.pos, Math_Vec3MultFloat(r.line,d));
+
+		if( SameSide(collisionPoint, (planes[k][1]), (planes[k][2]),(planes[k][3])) &&
+			SameSide(collisionPoint, (planes[k][2]), (planes[k][3]),(planes[k][0])) &&
+			SameSide(collisionPoint, (planes[k][3]), (planes[k][0]),(planes[k][1])) &&
+			SameSide(collisionPoint, (planes[k][0]), (planes[k][1]), (planes[k][2]))){
 	
-		if(d < ret){
-			*closest = tBb;
-			ret = d;
+			if(bb->noCollisions == 0){
+				*b = bb;
+				*dist = d;
+			}
+			
+			if(bb->numChildren){
+				int k;
+				for(k = 0; k < bb->numChildren; k++){
+					BoundingBox *child = NULL;
+					float distance = HUGE_VAL;
+					BoundingBox_CheckCollisionRay(&bb->children[k],r, &child, &distance);
+					if(child && (distance < *dist || !*b) && bb->children[k].noCollisions == 0){
+						*dist = distance;
+						*b = child;
+					}
+				}
+			}
 		}
 	}
 
-	return Math_CubeCheckCollisionRay(bb->wsCube, ray);
+	return 1;
 }

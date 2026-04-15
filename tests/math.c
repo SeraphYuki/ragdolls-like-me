@@ -215,8 +215,8 @@ float Math_CubeCheckCollisionRay(Cube r, Ray ray){
 	  points[6] = (Vec3){r.x+r.w, r.y+r.h, r.z+r.d};
 	  points[7] = (Vec3){r.x, r.y+r.h, r.z+r.d};
 
-    Vec3 rayLine = (Vec3){ray.line.x, ray.line.y, 0};
-	  Vec3 rayPos = (Vec3){ray.pos.x, ray.pos.y, 0};
+    Vec3 rayLine = ray.line;
+	  Vec3 rayPos = ray.pos;
 
     int k;
 	  for(k = 0; k < 8; k++){
@@ -945,7 +945,7 @@ Vec3 Math_QuatToAxisAngle(Quat quat, float *angle){
 	  if(s < 0.001)
 	      return (Vec3){quat.x, quat.y, quat.z};
 	
-      return (Vec3){quat.x / s, quat.y / s, quat.z / s};
+	   return (Vec3){quat.x / s, quat.y / s, quat.z / s};
 }
 
 Vec3 Math_AxisAngleToEuler(Vec3 axis, float angle) {
