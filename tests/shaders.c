@@ -143,7 +143,7 @@ static const char *textured2DFSource = "#version 120\n"
 "void main(){\n"
 	 "vec4 t = texture2D(tex, TexCoord);\n"
 	 "if(t.a == 0) discard;"
-	 "gl_FragColor = t * uniColor;"
+	 "gl_FragColor = t;"
 "}\n"
 "\n";
 
@@ -154,7 +154,7 @@ static const char *textured2DVSource = "#version 120\n"
 "uniform vec2 invViewport;\n"
 "varying vec2 TexCoord;\n"
 "void main(){\n"
-	 "gl_Position = vec4((invViewport * pos * 2) - 1,1,1);\n"
+	 "gl_Position = vec4((invViewport * pos * 2) - 1,-1,1);\n"
 	 "TexCoord = coord;"
 "}\n";
 
@@ -661,7 +661,9 @@ static const char *particleFSource = "#version 120\n"
 "uniform vec4 uniColor = vec4(1,1,1,1);\n"
 "varying vec4 colorFromVertShader;\n"
 "void main(){\n"
-	 "gl_FragColor = colorFromVertShader * texture2D(tex, TexCoord);\n"
+	"vec4 texcolor = texture2D(tex, TexCoord);\n"
+	"if(texcolor.a < 0.1) discard;\n"
+	 "gl_FragColor = colorFromVertShader * texcolor;\n"
 "}";
 
 static const char *waterVSource = "#version 120\n"
@@ -763,7 +765,7 @@ unsigned int Shaders_GetUniColorLocation(){
 	return shaders[activeProgram].uniColorLoc;	
 }
 unsigned int Shaders_GetInvViewportLocation(){
-	return shaders[activeProgram].invViewLoc;	
+	return shaders[activeProgram].invViewportLoc;	
 }
 unsigned int Shaders_GetBonesLocation(){
 	 return shaders[activeProgram].bonesLoc;

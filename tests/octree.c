@@ -113,8 +113,8 @@ void OctreeLeaf_ResolveCollisions(OctreeLeaf *o, Object *obj, BoundingBox *box, 
 
 
 		BoundingBox *bb = &o->objects[k]->bb;
-		if(!Math_CheckCollisionCube(bb->wsCube, minCube) || bb == box || 
-		obj == o->objects[k]) continue;
+		if(bb == box || 
+		obj == o->objects[k] || !Math_CheckCollisionCube(bb->wsCube, minCube)) continue;
 
 		BoundingBox_ResolveCollision(obj, box, o->objects[k], bb);
 	}

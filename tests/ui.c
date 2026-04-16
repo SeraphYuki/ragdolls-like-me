@@ -115,7 +115,7 @@ void UI_Render(UI *ui){
 
 	Shaders_UseProgram(QUAD_SHADER);
 
-	//glUniform2f(Shaders_GetInvViewportLocation(), 1.0f, 1.0f);
+	glUniform2f(Shaders_GetInvViewportLocation(), 1.0f, 1.0f);
 
 	glCullFace(GL_FRONT);
 	glBindTexture(GL_TEXTURE_2D, ui->fbTexture);

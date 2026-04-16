@@ -15,6 +15,7 @@ typedef struct {
 	Vec3 	pos;
 	Vec2 	size;
 	Vec4 	color;
+	Vec3 	vel;
 } Particle;
 
 typedef struct {

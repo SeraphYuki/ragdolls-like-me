@@ -18,6 +18,7 @@ typedef struct _BoundingBox {
 	int noCollisions;
 	char **types;
 	int nTypes;
+	int renderDebug;
 } BoundingBox;
 
 typedef struct Object Object;

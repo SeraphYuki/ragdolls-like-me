@@ -14,7 +14,9 @@ static void RemoveUser(Object *obj){
 }
 
 static void ObjUpdate(Object *obj){
- 	BoundingBox_UpdatePoints(&obj->bb);
+	BoundingBox_UpdatePoints(&obj->bb);
+ 	//if(obj->model->numBB > 1)
+		//Object_SetModel(obj, obj->model);
  }
 
 
@@ -91,15 +93,15 @@ void Object_UpdateSkeleton(Object *obj, Skeleton *skel){
 	cube.w -= cube.x;
 	 cube.h -= cube.y;
 	 cube.d -= cube.z;
-	 obj->bb.points[0] = (Vec3){cube.x, cube.y+cube.h, cube.z+cube.d};
-	 obj->bb.points[1] = (Vec3){cube.x, cube.y, cube.z+cube.d};
-	 obj->bb.points[2] = (Vec3){cube.x, cube.y+cube.h, cube.z};
-	 obj->bb.points[3] = (Vec3){cube.x, cube.y, cube.z};
-	 obj->bb.points[4] = (Vec3){cube.x+cube.w, cube.y+cube.h, cube.z+cube.d};
-	 obj->bb.points[5] = (Vec3){cube.x+cube.w, cube.y, cube.z+cube.d};
-	 obj->bb.points[6] = (Vec3){cube.x+cube.w, cube.y+cube.h, cube.z};
-	 obj->bb.points[7] = (Vec3){cube.x+cube.w, cube.y, cube.z};
-	memcpy(&obj->skelBb.points[0].x, &obj->bb.points[0].x, sizeof(Vec3)*8);
+	 obj->skelBb.points[0] = (Vec3){cube.x, cube.y+cube.h, cube.z+cube.d};
+	 obj->skelBb.points[1] = (Vec3){cube.x, cube.y, cube.z+cube.d};
+	 obj->skelBb.points[2] = (Vec3){cube.x, cube.y+cube.h, cube.z};
+	 obj->skelBb.points[3] = (Vec3){cube.x, cube.y, cube.z};
+	 obj->skelBb.points[4] = (Vec3){cube.x+cube.w, cube.y+cube.h, cube.z+cube.d};
+	 obj->skelBb.points[5] = (Vec3){cube.x+cube.w, cube.y, cube.z+cube.d};
+	 obj->skelBb.points[6] = (Vec3){cube.x+cube.w, cube.y+cube.h, cube.z};
+	 obj->skelBb.points[7] = (Vec3){cube.x+cube.w, cube.y, cube.z};
+	//memcpy(&obj->skelBb.points[0].x, &obj->bb.points[0].x, sizeof(Vec3)*8);
 	BoundingBox_UpdateWorldSpaceCube(&obj->skelBb);
 	//BoundingBox_UpdateWorldSpaceCube(&obj->bb);
 	obj->skelBb.cube = obj->skelBb.wsCube;

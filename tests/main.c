@@ -16,7 +16,7 @@
 
 static ParticleSystem ps;
 static Particle particles[100];
-
+static Image particleImg, billboardImg;
 static Object *rotatingObj = NULL;
 static Object *cubeObj, *groundObj, *throwObj;
 static Model cubeModel, groundModel, throwModel;
@@ -24,7 +24,7 @@ static Animation cubeAnim;
 static Skeleton cubeSkel;
 static PlayingAnimation cubeAnims[1];
 static Skybox skybox;
-static float mouseSensitivity = 0.001;
+static float mouseSensitivity = 0.0005;
 static float moveSpeed = 0.005;
 float invPersp[16];
 float persp[16], view[16], model[16];
@@ -48,7 +48,7 @@ static void onThrow(Object *obj, Object *obj2, BoundingBox *bb, BoundingBox *bb2
 	obj->ObjUpdate(obj);
 }
 static void onCube(Object *obj, Object *obj2, BoundingBox *bb, BoundingBox *bb2, Vec3 axis, float overlap){
-	obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,Math_Vec3MultFloat(axis, -overlap));
+	obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,Math_Vec3MultFloat(Math_Vec3MultFloat(axis,-1), overlap));
 	obj->ObjUpdate(obj);	
 }
 static void Update(){
@@ -80,6 +80,11 @@ static void Update(){
 			rotatingObj->bb.rot.y += GetDeltaTime() * mouseSensitivity;
 			rotatingObj->ObjUpdate(rotatingObj);
 			World_UpdateObjectInOctree(rotatingObj);
+			cubeObj->bb.rot.y += GetDeltaTime() * mouseSensitivity;
+			cubeObj->ObjUpdate(cubeObj);
+			cubeObj->bb.pos = Math_Rotate(cubeObj->bb.pos, 
+			(Vec3){0, GetDeltaTime() * mouseSensitivity,0});
+			World_UpdateObjectInOctree(cubeObj);
 		}	
 				
 		if(Math_Vec3Magnitude(moveVec)){
@@ -160,7 +165,7 @@ static void Event(SDL_Event ev){
 	
 			World_GetAllCollisionsRay((Ray){position, ray}, &distance, &collision, &collisionObj);
 			if(collisionObj){
-				collisionObj->model->materials[0].diffuse = (Vec4){1,0,0,1};
+				collisionObj->model->materials[0].diffuse = (Vec4){0.8,0.6,0.6,1};
 				
 				rotatingObj = collisionObj;
 
@@ -307,11 +312,18 @@ static char Draw(){
 
 	//Skeleton_Apply(&cubeSkel);
 
-	World_Render(0);
-	Particles_DrawBillboard(skybox.img,&ps, (Vec3){-5,5,0}, (Vec2){2,2}, 
-	(Vec4){1,1,1,1}, (Rect2D){0,0,1,1});
+	cubeObj->bb.renderDebug = 1;
+	World_Render(1);
+
+
+	Particles_DrawBillboard(billboardImg, &ps, Math_Rotate((Vec3){4,0,5}, groundObj->bb.rot), 
+	(Vec2){1,1},(Vec4){1,1,1,1}, (Rect2D){
+	0,0,1,1});
+	//Particles_DrawParticles(particleImg, &ps, particles, 100, 50, forward, position, 0);
 
 	Skybox_Draw(&skybox);
+
+
 	UI_Clear(&ui);
 	UI_RenderRectTex(&ui, 0,0, 200,200, 0,0,ui.test.w,ui.test.h,255,255,255,255);
 	UI_Render(&ui);
@@ -338,13 +350,32 @@ int main(int argc, char **argv){
 	glCullFace(GL_BACK);
 	Memory_Init((0x01 << 20) * 64);
 	
-	Text_Init();
-	UI_Init(&ui, WINDOW_WIDTH, WINDOW_HEIGHT);
 	
 	glClearColor(0,0,0,1);
 	Shaders_Init();
 
+	Text_Init();
+	UI_Init(&ui, WINDOW_WIDTH, WINDOW_HEIGHT);
+
 	Particles_Init(&ps);
+	
+	
+	particleImg = ImageLoader_CreateImage("Resources/smoke.png",1);
+	particleImg.nFramesX = 5;
+	particleImg.nFramesY = 5;
+	billboardImg = ImageLoader_CreateImage("Resources/tex.png",1);	
+	
+	int j;
+	for(j = 0; j < 100; j++){
+		particles[j].createTime = SDL_GetTicks();
+		particles[j].lifeTime = 10000;
+		particles[j].pos = (Vec3){ (rand()%100)/90.0f,(rand()%100)/90.0f,(rand()%100)/90.0f};
+		particles[j].size = (Vec2){1,1};
+		particles[j].color = (Vec4){0.4,0.4,0.4,0.4};
+		particles[j].vel = (Vec3){(-5 + (rand()%10))/10000.0f,(-5 + (rand()%10))/10000.0f,
+		(-5 + (rand()%10))/10000.0f};
+	}
+	
 	World_InitOctree((Vec3){-100, -100, -100}, 200, 25);
 
 	glClearColor(0,0,0,1);
@@ -379,7 +410,8 @@ int main(int argc, char **argv){
 	cubeObj->AddUser(cubeObj);
 	cubeObj->bb.pos.y = 1;
 	cubeObj->bb.scale = (Vec3){0.2,0.2,0.2};
-	cubeObj->bb.rot = (Vec3){0,0,0};
+	cubeObj->bb.rot = (Vec3){0,1,0};
+	cubeObj->bb.cube = (Cube){-2.5,0,-2.5,5,10,5};
 	World_UpdateObjectInOctree(cubeObj);
 
 	groundObj = Object_Create();
@@ -388,6 +420,8 @@ int main(int argc, char **argv){
 	Object_SetModel(groundObj, &groundModel);
 	groundObj->Draw = DrawModel;
 	groundObj->AddUser(groundObj);
+	groundObj->bb.rot = (Vec3){0,1,0};
+	groundObj->ObjUpdate(groundObj);
 	World_UpdateObjectInOctree(groundObj);
 	throwObj = Object_Create();
 	Model_Load(&throwModel, "Resources/cube.yuk");

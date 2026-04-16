@@ -32,22 +32,26 @@ void Particles_DrawParticles(Image img, ParticleSystem *ps,Particle *particles, 
 	int k;
 	for(k = 0; k < nParticles; k++){
 
-		if(particles[k].createTime <= 0 || currTime - particles[k].createTime > particles[k].lifeTime){
-			particles[k].distFromEye = -HUGE_VAL;
-			continue;
-		}
+		//if(particles[k].createTime <= 0 || currTime - particles[k].createTime > particles[k].lifeTime){
+			//particles[k].distFromEye = -HUGE_VAL;
+			//continue;
+		//}
 
 		// particles[k].distFromEye = Math_Vec3Magnitude(Math_Vec3SubVec3(particles[k].pos, camPos));
-		particles[k].distFromEye = -Math_Vec3Dot(camForward, Math_Vec3SubVec3(particles[k].pos, camPos));
+		//particles[k].distFromEye = -Math_Vec3Dot(camForward, Math_Vec3SubVec3(particles[k].pos, camPos));
+
+	particles[k].pos = Math_Vec3AddVec3(particles[k].pos,
+	 Math_Vec3MultFloat(particles[k].vel, Window_GetDeltaTime()));
+
 		++num;
 	}
 
-	qsort(particles, nParticles, sizeof(Particle), SortParticles);
+	//qsort(particles, nParticles, sizeof(Particle), SortParticles);
 
 	for(k = 0; k < nParticles; k++){
 
-		if(particles[k].distFromEye < 0)
-			continue;
+		//if(particles[k].distFromEye < 0)
+			//continue;
 
 		Vec3 pos = particles[k].pos;
 		Vec4 color = particles[k].color;
@@ -63,12 +67,12 @@ void Particles_DrawParticles(Image img, ParticleSystem *ps,Particle *particles, 
 			{ -size.x/2, size.y/2 },
 		};
 
-		int onFrame = (currTime - particles[k].createTime) / animSpeed;
+		int onFrame = (currTime - particles[k].createTime) / 50.0f;
 
 		onFrame %= img.nFramesX * img.nFramesY;
 
 		float tsx = 1.0 / img.nFramesX;
-		float tsy = 1.0 / img.nFramesX;
+		float tsy = 1.0 / img.nFramesY;
 
 		float tx = (onFrame % img.nFramesX) * tsx;
 		float ty = (onFrame / img.nFramesX) * tsy;
@@ -95,11 +99,14 @@ void Particles_DrawParticles(Image img, ParticleSystem *ps,Particle *particles, 
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, img.glTexture);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, depthTexture);
-	
-	glDrawElements(GL_TRIANGLES, num * 6, GL_UNSIGNED_SHORT, NULL);
+	//glActiveTexture(GL_TEXTURE1);
+	//glBindTexture(GL_TEXTURE_2D, depthTexture);
 
+	glBlendFunc(GL_ONE,GL_ONE);	
+	glDisable(GL_DEPTH_TEST);
+	glDrawElements(GL_TRIANGLES, num * 6, GL_UNSIGNED_SHORT, NULL);
+	glEnable(GL_DEPTH_TEST);
+	glBlendFunc(GL_ONE,GL_ONE_MINUS_SRC_ALPHA);	
 	glBindVertexArray(0);
 }
 
