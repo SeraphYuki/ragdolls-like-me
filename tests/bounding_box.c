@@ -45,7 +45,7 @@ static int CheckCollision(Vec3 *axes,int nAxes, Vec3 *pointsA, int nPointsA, Vec
 
 		float minA = HUGE_VAL, maxA = -HUGE_VAL, minB = HUGE_VAL, maxB = -HUGE_VAL;
 
-		if(axes[k].x == 0 && axes[k].y == 0 && axes[k].z == 0 ) return 0;
+		if(axes[k].x == 0 && axes[k].y == 0 && axes[k].z == 0 ) continue;
 
 		axes[k] = Math_Vec3Normalize(axes[k]);
 
@@ -330,6 +330,7 @@ int BoundingBox_ResolveCollision(Object *obj1, BoundingBox *bb, Object *obj2, Bo
 	 for(k = 0; k < bb2->numChildren; k++){
 	 	ret += BoundingBox_ResolveCollision(obj1, bb, obj2, &bb2->children[k]);
 	}
+
 
 
 	Vec3 axis;

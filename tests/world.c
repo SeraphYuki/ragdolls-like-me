@@ -155,6 +155,8 @@ void World_DrawLines(Vec3 *lines, int num){
 
 	glBindVertexArray(vao);
 
+	float identity[16] = {1,0,0,0, 0,1,0,0, 0,0,1,0 ,0,0,0,1};
+	Shaders_SetModelMatrix(identity);
 	Shaders_UpdateViewMatrix();
 	Shaders_UpdateModelMatrix();
 	Shaders_UpdateProjectionMatrix();
@@ -363,11 +365,11 @@ static void DrawBoundingBoxes(BoundingBox *bb){
 	Shaders_SetUniformColor((Vec4){0,1,0,1});
 	
 	// if(BoundingBox_IsSAT(bb)){
-		World_DrawSAT(bb);
+		//World_DrawSAT(bb);
 	// 	return;
 	// }
 	
-	// World_DrawCube(bb->wsCube);
+	 World_DrawCube(bb->wsCube);
 }
 
 void World_Free(){

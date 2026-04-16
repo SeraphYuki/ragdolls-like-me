@@ -12,17 +12,25 @@
 #define SHADERS_BONES_ATTRIB "boneIndices"
 #define SHADERS_BITAN_ATTRIB "bitangent"
 enum {
-    TEXTURELESS_SHADER = 0,
-    TEXTURED_SHADER,
-    SKELETAL_ANIMATION_SHADER,
-	NUM_SHADERS,
-    PARTICLE_SHADER,
-    WATER_SHADER,
+	POS_LOC = 0,
+	UV_LOC,
+	COLORFG_LOC,
+	COLORBG_LOC,
+};
+
+enum {
+	 TEXTURELESS_SHADER = 0,
+	 TEXTURED_SHADER,
+	 SKELETAL_ANIMATION_SHADER,
 	TEXT_2D_SHADER,
-	TEXT_3D_SHADER,
 	TEXTURELESS_2D_SHADER,
-	POST_PROCESSING_SHADER,
 	TEXTURED_2D_SHADER,
+	QUAD_SHADER,
+	NUM_SHADERS,
+	TEXT_3D_SHADER,
+	 PARTICLE_SHADER,
+	 WATER_SHADER,
+	POST_PROCESSING_SHADER,
 };
 
 void Shaders_SetLightPos(Vec3 pos);
@@ -59,6 +67,7 @@ void Shaders_SetLightInvDir(Vec3 dir);
 unsigned int Shaders_GetBonesLocation();
 unsigned int Shaders_GetDiffuseLocation();
 unsigned int Shaders_GetSpecularLocation();
-void Shaders_SetUseFlashlight(int use);
+unsigned int Shaders_GetUniColorLocation();
+unsigned int Shaders_GetInvViewportLocation();
 
 #endif

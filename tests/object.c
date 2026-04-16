@@ -44,8 +44,10 @@ int Object_SkeletonCollision(BoundingBox *bb1, BoundingBox *bb2, Vec3 *axis, flo
 }
 
 void Object_UpdateSkeleton(Object *obj, Skeleton *skel){
-	obj->skeleton = skel;
+
 	BoundingBox_FreeData(&obj->skelBb);
+	obj->skeleton = skel;
+
 	Cube cube;
 	cube.x = cube.y = cube.z = HUGE_VAL;
 	cube.w = cube.h = cube.d = -HUGE_VAL;
@@ -61,9 +63,10 @@ void Object_UpdateSkeleton(Object *obj, Skeleton *skel){
 			pos = Math_Rotate(pos, obj->bb.rot);
 			pos = Math_Vec3AddVec3(pos, obj->bb.pos);
 			child.points[m] = pos;
-
-			pos = skel->bones[k].points[m];
-	        if(pos.x < cube.x)
+			//pos = skel->bones[k].points[m];
+			//pos = Math_Rotate(pos, obj->bb.rot);			
+	  
+	      if(pos.x < cube.x)
 	            cube.x = pos.x;
 	        if(pos.x > cube.w)
 	            cube.w = pos.x;
@@ -98,10 +101,11 @@ void Object_UpdateSkeleton(Object *obj, Skeleton *skel){
 	 obj->bb.points[7] = (Vec3){cube.x+cube.w, cube.y, cube.z};
 	memcpy(&obj->skelBb.points[0].x, &obj->bb.points[0].x, sizeof(Vec3)*8);
 	BoundingBox_UpdateWorldSpaceCube(&obj->skelBb);
-	BoundingBox_UpdateWorldSpaceCube(&obj->bb);
+	//BoundingBox_UpdateWorldSpaceCube(&obj->bb);
 	obj->skelBb.cube = obj->skelBb.wsCube;
-	obj->bb.cube = obj->bb.wsCube;
+	//obj->bb.cube = obj->bb.wsCube;
 }
+
 void Object_SetModel(Object *obj, Model *model){
 	obj->model= model; 
 	memset(&obj->bb, 0, sizeof(BoundingBox));
@@ -135,15 +139,23 @@ void Object_SetModel(Object *obj, Model *model){
 		BoundingBox_AddChild(&obj->bb,  &child);
 		BoundingBox_UpdatePoints(&child);
  
-		if(child.wsCube.x < cube.x) cube.x = child.wsCube.x;       
-		if(child.wsCube.y < cube.y) cube.y = child.wsCube.y;       
-		if(child.wsCube.z < cube.z) cube.z = child.wsCube.z;
-		if(child.wsCube.w+child.wsCube.z > cube.w) 
-			cube.w = child.wsCube.w+child.wsCube.z;
-		if(child.wsCube.h+child.wsCube.y > cube.h)
-			cube.h = child.wsCube.h+child.wsCube.y;       
-		if(child.wsCube.d+child.wsCube.z > cube.d)
-			cube.d = child.wsCube.d+child.wsCube.z;
+		int m;
+		for(m = 0; m < 8; m++){
+			Vec3 pos = child.points[m];
+
+	        if(pos.x < cube.x)
+	            cube.x = pos.x;
+	        if(pos.x > cube.w)
+	            cube.w = pos.x;
+	        if(pos.y < cube.y)
+	            cube.y = pos.y;
+	        if(pos.y > cube.h)
+	            cube.h = pos.y;
+	        if(pos.z < cube.z)
+	            cube.z = pos.z;
+	        if(pos.z >  cube.d)
+	            cube.d = pos.z;
+		}
 	 }
 
 	cube.w -= cube.x;

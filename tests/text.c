@@ -1,342 +1,179 @@
+#ifdef WINDOWS_COMPILE
+#define GLEW_STATIC
+#endif
 #include <GL/glew.h>
-#include "math.h"
-#include "shaders.h"
 #include <stdio.h>
-// #include "text.h"
+#include "types.h"
+#include "shaders.h"
+#include "text.h"
+#include "log.h"
+#include "window.h"
+#include "freetype.h"
 
-static unsigned int coordVbo, colorVbo, posVbo, vao;
+#define MINFONTSIZE 6
+#define MAXFONTSIZE 70
+#define FONT_SIZE_BITS 4
+#define FONT_SIZE_MASK ((1 << FONT_SIZE_BITS)-1)
+#define FONTSIZE 32
+#define MAXTEXTHEIGHT 130
+#define MAXTEXTWIDTH 130
+#define RENDER_VRAM_SIZE THOTH_MAX_TEXT_CHARS*6// idk most text characters on screen possible
+#define TAB_SPACING 4
+#define SS_CHAR_SIZE 0.0625f
 
-static float rgbToGL(float rgb){ return rgb / 255.0; }
-static FT_Library  ftLibrary;
+const static u8 RectTriangleVerts[] = {0,0,1,0,1,1,1,1,0,1,0,0};
 
-int FontFace_LoadFont(FontFace *font, const char *path){
+void FontRenderer_Init(FontRenderer *fr, int w, int h){
 
-    font->fontFace = NULL;
-    font->fontTexture = 0;
+	memset(fr, 0, sizeof(FontRenderer));
+	fr->fontSize = FONTSIZE;
 
-    if(FT_New_Face(ftLibrary, path, 0, &font->fontFace)){
-        printf("FontFace_LoadFont: Could not load font.\n");
-        return 0;
-    }
 
-    return 1;
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_POLYGON_SMOOTH);
+		
+	
+	Text_Init();
+	
+	 //textures
+
+	 //Utils_LoadImage(&fr->font_g, FONT_PATH);
+	FontFace_LoadFont(&fr->fontTTF, "Resources/font.ttf");
+	FontFace_SetSize(&fr->fontTTF, fr->fontSize);
+	 //int k;
+	 //int x = 0;
+	 //for(k = 0; k < 128; k++){
+	     //fr->fontTTF.fontCharacters[k] = {
+	         //.ax = 0,
+	         //.ay = 0,
+	         //.bw = fr->fontSize,
+	         //.bh = fr->fontSize,
+	         //.bl = 0,
+	         //.bt = 0,
+	         //.tx = (float)x%16 * fr->fontTTF.atlasWidth;
+	         //.ty = (float)x/16 * fr->fontTTF.atlasHeight;
+	     //}
+	     //x += fr->bitmap.width;
+	 //}
+
+	glGenVertexArrays(1, &fr->vao);
+	glBindVertexArray(fr->vao);
+
+	glGenBuffers(1, &fr->posVbo);
+	glBindBuffer(GL_ARRAY_BUFFER, fr->posVbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(u16)*2*RENDER_VRAM_SIZE, NULL, GL_DYNAMIC_DRAW);
+	glEnableVertexAttribArray(POS_LOC);
+	glVertexAttribPointer(POS_LOC, 2, GL_SHORT, GL_FALSE, 0, 0);
+
+	glGenBuffers(1, &fr->uvVbo);
+	glBindBuffer(GL_ARRAY_BUFFER, fr->uvVbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*2*RENDER_VRAM_SIZE, NULL, GL_DYNAMIC_DRAW);
+	glEnableVertexAttribArray(UV_LOC);
+	glVertexAttribPointer(UV_LOC, 2, GL_FLOAT, GL_FALSE, 0, 0);
 }
 
-int FontFace_SetSize(FontFace *font, int size){
+void FontRenderer_Close(FontRenderer *fr){
 
-    font->fontSize = size;
+	FontFace_Delete(&fr->fontTTF);
+	Text_Close();
 
-    FT_Set_Pixel_Sizes(font->fontFace, 0, size);
-    // FT_Set_Char_Size(font->fontFace, size << 6, size << 6, 96, 96);
 
-    glActiveTexture(GL_TEXTURE0);
-    glGenTextures(1, &font->fontTexture);
-    glBindTexture(GL_TEXTURE_2D, font->fontTexture);
-    glPixelStorei(GL_UNPACK_ALIGNMENT,1);
+	glDeleteVertexArrays(1, &fr->vao);
+	glDeleteBuffers(1, &fr->uvVbo);
+	glDeleteBuffers(1, &fr->posVbo);
 
-    int w = 0, h = 0, i = 0, x = 0;
-
-    FT_GlyphSlot g = font->fontFace->glyph;
-
-    for(i = 32; i < 128; i++){
-        if(FT_Load_Char(font->fontFace, i, FT_LOAD_RENDER)){
-            printf("FontFace_SetSize: Error \n");
-            continue;
-        }
-        w += g->bitmap.width;
-        h  = h > g->bitmap.rows ? h : g->bitmap.rows;
-    }
-
-    font->fontHeight = h;
-
-    font->atlasWidth  = w;
-    font->atlasHeight = h;
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
-
-    glTexImage2D(GL_TEXTURE_2D,0,GL_RED,w,h,0,GL_RED,GL_UNSIGNED_BYTE,0);
-
-    for(i = 32; i < 128; i++){
-
-        if(FT_Load_Char(font->fontFace, i, FT_LOAD_RENDER)){
-            printf("FontFace_SetSize: Error \n");
-            continue;
-        }
-
-        // unsigned char data[g->bitmap.width * g->bitmap.rows];
-
-        // int y, b;
-        // for(y = 0; y < g->bitmap.rows; y++){
-        //     for(b = 0; b < g->bitmap.pitch; b++){
-
-        //         int val = g->bitmap.buffer[(y * g->bitmap.pitch) + b];
-
-        //         int len = g->bitmap.width - (b * 8);
-
-        //         int rowStart = (y * g->bitmap.width) + (b * 8);
-
-        //         int k;
-
-        //         for(k = 0; k < (len > 8 ? 8: len); k++){
-
-        //             int bit = val & (1 << (7 - k));
-
-        //             data[(rowStart + k)] = bit > 0 ? 255 : 0;
-        //         }
-        //     }
-        // }
-
-        // glTexSubImage2D(GL_TEXTURE_2D,0,x,0,g->bitmap.width,g->bitmap.rows,GL_RED,GL_UNSIGNED_BYTE,data);
-
-        glTexSubImage2D(GL_TEXTURE_2D,0,x,0,g->bitmap.width,g->bitmap.rows,GL_RED,GL_UNSIGNED_BYTE,g->bitmap.buffer);
-
-        font->fontCharacters[i].ax = g->advance.x >> 6;
-        font->fontCharacters[i].ay = g->advance.y >> 6;
-        font->fontCharacters[i].bw = g->bitmap.width;
-        font->fontCharacters[i].bh = g->bitmap.rows;
-        font->fontCharacters[i].bl = g->bitmap_left;
-        font->fontCharacters[i].bt = g->bitmap_top;
-        font->fontCharacters[i].tx = ((float)x / (float)w);
-        x += g->bitmap.width;
-    }
-    return 1;
 }
 
-int Text_DrawText(Text *text){
-
-    Shaders_UseProgram(TEXT_2D_SHADER);
-
-    glBindVertexArray(vao);
-
-    Shaders_UpdateProjectionMatrix();
-    Shaders_UpdateViewMatrix();
-    Shaders_UpdateModelMatrix();
-
-    Shaders_SetUniformColor(text->color);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, text->fontFace->fontTexture);
-
-    if(text->numVerts > 0){
-
-        glBindBuffer(GL_ARRAY_BUFFER, posVbo);
-        glBufferData(GL_ARRAY_BUFFER, text->numVerts*sizeof(Vec3), &text->verts[0], GL_STATIC_DRAW);
-
-        glBindBuffer(GL_ARRAY_BUFFER, coordVbo);
-        glBufferData(GL_ARRAY_BUFFER, text->numVerts*sizeof(Vec2), &text->texCoords[0], GL_STATIC_DRAW);
-
-        glBindBuffer(GL_ARRAY_BUFFER, colorVbo);
-        glBufferData(GL_ARRAY_BUFFER, text->numVerts*sizeof(Vec4), &text->colors[0], GL_STATIC_DRAW);
-
-        glDrawArrays(GL_TRIANGLES, 0, text->numVerts);
-    }
-
-    return 1;
-}
-
-Vec2 FontFace_GetCursorPos(FontFace *font, const char *text, int len, float sx, float sy){
-
-    if(!text) return (Vec2){0,0};
-
-    Vec2 cursorPos = (Vec2){0,0};
-
-    int k;
-    for(k = 0; k < len; k++){
-
-        char p = text[k];
-
-        if(text[k] == '\n'){
-            cursorPos.y += font->fontSize * sy;
-            cursorPos.x = 0;
-            continue;
-        }
-        
-        if(p == '\t' ){
-            cursorPos.x += font->fontCharacters[(int)' '].ax * sx * TAB_SPACING;
-            continue;
-        }
-
-        cursorPos.x += sx * font->fontCharacters[(int)text[k]].ax;
-    }
-
-    return cursorPos;
+void FontRenderer_Zoom(FontRenderer *fr, int by){
+	if(by < 0 && fr->fontSize > MINFONTSIZE) fr->fontSize += by;
+	if(by > 0 && fr->fontSize < MAXFONTSIZE) fr->fontSize += by;
+	FontFace_SetSize(&fr->fontTTF, fr->fontSize);
 }
 
 
-Vec2 FontFace_GetTextSize(FontFace *font, const char *text, int len, float sx, float sy){
-
-    if(!text) return (Vec2){0,font->fontSize * sy};
-
-    Vec2 cursorPos = (Vec2){0,font->fontSize * sy};
-
-    float lineWidth = 0;
-
-    int k;
-    for(k = 0; k < len; k++){
-
-        char p = text[k];
-
-        if(text[k] == '\n'){
-            cursorPos.y += font->fontSize * sy;
-            if(lineWidth > cursorPos.x) cursorPos.x = lineWidth;
-            lineWidth = 0;
-            continue;
-        }
-        
-        if(p == '\t' ){
-            lineWidth += font->fontCharacters[(int)' '].ax * sx * TAB_SPACING;
-            continue;
-        }
-
-        lineWidth += sx * font->fontCharacters[(int)text[k]].ax;
-    }
-
-    if(lineWidth > cursorPos.x) cursorPos.x = lineWidth;
-
-    return cursorPos;
+void FontRenderer_SetFontSize(FontRenderer *fr, u8 fs){
+	fr->fontSize = fs;
 }
 
-void Text_AddText(Text *textData, const char *text, float x, float y, float z, float sx, float sy){
+void FontRenderer_RenderString(FontRenderer *fr, float x, float y, char *str,
+	u8 r, u8 g, u8 b, u8 a){
 
-    float startX = x;
+	Shaders_UseProgram(TEXT_2D_SHADER);
+	glUniform4f(Shaders_GetUniColorLocation(), r/255.0f,g/255.0f,b/255.0f,a/255.0f); 
 
-    Vec4 currColor = (Vec4){1,1,1,1};
+	int strLen = strlen(str);
 
-    y += textData->fontFace->fontSize*sy;
+	float fontSizeX = fr->fontSize;//FontRenderer_FontWidth(fr);
+	float fontSizeY = fr->fontSize;//FontRenderer_FontHeight(fr);
+	u32 k;
 
-    int m;
-    for(m = 0; m < (int)strlen(text); m++){
+	y += fontSizeY;
 
-        char p = text[m];
+	char p;
 
-        if(p == '\n'){
-            y += textData->fontFace->fontSize*sy;
-            x = startX;
-            continue;
-        }
+	int j;
+	for(j = 0; j < strLen && fr->stringOffset < THOTH_MAX_TEXT_CHARS*6; j++){
 
-        if(p == '\t' ){
-            x += textData->fontFace->fontCharacters[(int)' '].ax * sx * TAB_SPACING;
-            continue;
-        }
 
-        else if(p == (char)COLOR_CHAR1){ currColor = (Vec4){rgbToGL(248),rgbToGL(248),rgbToGL(242),1}; continue; }
-        else if(p == (char)COLOR_CHAR2){ currColor = (Vec4){rgbToGL(255),rgbToGL(102),rgbToGL(0),  1}; continue; }
-        else if(p == (char)COLOR_CHAR3){ currColor = (Vec4){rgbToGL(102),rgbToGL(255),rgbToGL(0),1}; continue; }
-        else if(p == (char)COLOR_CHAR4){ currColor = (Vec4){rgbToGL(204),rgbToGL(255),rgbToGL(51),1}; continue; }
-        else if(p == (char)COLOR_CHAR5){ currColor = (Vec4){rgbToGL(125),rgbToGL(193),rgbToGL(207),1}; continue; }
-        else if(p == (char)COLOR_CHAR6){ currColor = (Vec4){rgbToGL(153),rgbToGL(51),rgbToGL(204),1}; continue; }
-        else if(p == (char)COLOR_CHAR7){ currColor = (Vec4){rgbToGL(170),rgbToGL(255),rgbToGL(255),1}; continue; }
-        else if(p == (char)COLOR_CHAR8){ currColor = (Vec4){rgbToGL(0),rgbToGL(0),rgbToGL(0),1}; continue; }
+		p = str[j];
 
-        FontCharacter charac = textData->fontFace->fontCharacters[(int)p];
+		FontCharacter fc = fr->fontTTF.fontCharacters[(int)p];
 
-        float x2 =  x + charac.bl * sx;
-        float y2 = -y + charac.bt * sy;
-        float w = charac.bw * sx;
-        float h = charac.bh * sy;
+		float x2 = x + fc.bl;
+		float y2 = y - fc.bt;
+		float w = fc.bw;
+		float h = fc.bh;
 
-        x += charac.ax * sx;
-        y += charac.ay * sy;
 
-        if(!w || !h) continue;
+		x += fontSizeX;
 
-        textData->numVerts += 6;
+		if(!w || !h) continue;
 
-        textData->verts = (Vec3 *)realloc(textData->verts, sizeof(Vec3) * textData->numVerts);
-        textData->texCoords = (Vec2 *)realloc(textData->texCoords, sizeof(Vec2) * textData->numVerts);
-        textData->colors = (Vec4 *)realloc(textData->colors, sizeof(Vec4) * textData->numVerts);
+		float tX = fc.tx;
+		float tY = 0;
 
-        int f;
-        for(f = 0; f < 6; f++)
-            textData->colors[textData->colorsIndex++] = currColor;
+		float ah = fr->fontTTF.atlasHeight;
+		float aw = fr->fontTTF.atlasWidth;
+	
+		float coord[2];
+		short pos[2];
 
-        textData->verts[textData->vertIndex++] = (Vec3){ x2,     -y2    , z};
-        textData->verts[textData->vertIndex++] = (Vec3){ x2,     -y2 + h, z};
-        textData->verts[textData->vertIndex++] = (Vec3){ x2 + w, -y2    , z};
-        textData->verts[textData->vertIndex++] = (Vec3){ x2 + w, -y2    , z};
-        textData->verts[textData->vertIndex++] = (Vec3){ x2,     -y2 + h, z};
-        textData->verts[textData->vertIndex++] = (Vec3){ x2 + w, -y2 + h, z};
+		for(k = 0; k < 12; k+=2){
 
-        int ah = textData->fontFace->atlasHeight;
-        int aw = textData->fontFace->atlasWidth;
+				coord[0] = ((RectTriangleVerts[k] * (fc.bw / aw)) + tX);
+				coord[1] = (((1-RectTriangleVerts[k+1]) * ((float)fc.bh / ah)) + tY);
 
-        textData->texCoords[textData->coordIndex++] = (Vec2){ charac.tx, 0};
-        textData->texCoords[textData->coordIndex++] = (Vec2){ charac.tx, (charac.bh / ah) };
-        textData->texCoords[textData->coordIndex++] = (Vec2){ charac.tx + (charac.bw / aw),  0 };
-        textData->texCoords[textData->coordIndex++] = (Vec2){ charac.tx + (charac.bw / aw),  0 };
-        textData->texCoords[textData->coordIndex++] = (Vec2){ charac.tx,  (charac.bh / ah) };
-        textData->texCoords[textData->coordIndex++] = (Vec2){ charac.tx + (charac.bw / aw),(charac.bh / ah)};
-    }
+				pos[0] = (RectTriangleVerts[k] * w) + x2;
+				pos[1] = ((1-RectTriangleVerts[k+1]) * h) + y2;
+				glBindBuffer(GL_ARRAY_BUFFER, fr->posVbo);
+				glBufferSubData(GL_ARRAY_BUFFER, fr->stringOffset*sizeof(pos), sizeof(pos), pos);
+				glBindBuffer(GL_ARRAY_BUFFER, fr->uvVbo);
+				glBufferSubData(GL_ARRAY_BUFFER, fr->stringOffset*sizeof(coord), sizeof(coord), coord);
+
+				++fr->stringOffset;
+		}
+	}
+
 }
 
-void Text_Clear(Text *text){
-    if(text->verts) free(text->verts);
-    if(text->texCoords)free(text->texCoords);
-    if(text->colors)free(text->colors);
-    text->colors = NULL;
-    text->texCoords = NULL;
-    text->verts = NULL;
-    text->numVerts = 0;
-    text->vertIndex = 0;
-    text->colorsIndex = 0;
-    text->coordIndex = 0;
-}
+void FontRenderer_Render(FontRenderer *fr, int viewportW, int viewportH){
 
-Text Text_Create(FontFace *font){
-    Text ret;
-    memset(&ret, 0, sizeof(Text));
-    ret.color = (Vec4){1,1,1,1};
-    ret.fontFace = font;
-    return ret;
-}
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
 
-void FontFace_Delete(FontFace *font){
-    if(font->fontTexture != 0) glDeleteTextures(1,&font->fontTexture);
-    if(font->fontFace) FT_Done_Face(font->fontFace);
-}
+	Shaders_UseProgram(TEXT_2D_SHADER);
+	glUniform2f(Shaders_GetInvViewportLocation(), 1.0f/viewportW, 1.0f/viewportH); 
+	
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, fr->fontTTF.fontTexture);
 
-void Text_Close(){
-    if(ftLibrary) FT_Done_FreeType(ftLibrary);
-    ftLibrary = NULL;
+	glBindVertexArray(fr->vao);
 
-    glDeleteVertexArrays(1, &vao);
-    glDeleteBuffers(1, &posVbo);
-    glDeleteBuffers(1, &coordVbo);
-    glDeleteBuffers(1, &colorVbo);
-}
+	glCullFace(GL_FRONT);
+	glDrawArrays(GL_TRIANGLES, 0, fr->stringOffset);
 
-void Text_Init(){
-    if(FT_Init_FreeType(&ftLibrary)) printf("Could not Init Freetype.\n");
+	fr->stringOffset = 0;
 
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    GLint posLoc = glGetAttribLocation(Shaders_GetProgram(TEXT_2D_SHADER),SHADERS_POSITION_ATTRIB);
-    GLint uvLoc = glGetAttribLocation(Shaders_GetProgram(TEXT_2D_SHADER), SHADERS_COORD_ATTRIB);
-    GLint colorLoc = glGetAttribLocation(Shaders_GetProgram(TEXT_2D_SHADER), SHADERS_COLOR_ATTRIB);
-
-    if(posLoc != -1){
-        glGenBuffers(1, &posVbo);
-        glBindBuffer(GL_ARRAY_BUFFER,posVbo);
-        glEnableVertexAttribArray(posLoc);
-        glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    }
-    if(colorLoc != -1){
-        glGenBuffers(1, &colorVbo);
-        glBindBuffer(GL_ARRAY_BUFFER,colorVbo);
-        glEnableVertexAttribArray(colorLoc);
-        glVertexAttribPointer(colorLoc, 4, GL_FLOAT, GL_FALSE, 0, 0);
-    }
-    if(uvLoc != -1){
-        glGenBuffers(1, &coordVbo);
-        glBindBuffer(GL_ARRAY_BUFFER,coordVbo);
-        glEnableVertexAttribArray(uvLoc);
-        glVertexAttribPointer(uvLoc, 2, GL_FLOAT, GL_FALSE, 0, 0);
-    }
-
-    glBindVertexArray(0);
 }

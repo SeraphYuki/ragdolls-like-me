@@ -111,9 +111,10 @@ void OctreeLeaf_ResolveCollisions(OctreeLeaf *o, Object *obj, BoundingBox *box, 
 	int k;
 	for(k = 0; k < o->numObjects; k++){
 
-		BoundingBox *bb = &o->objects[k]->bb;
 
-		if(!Math_CheckCollisionCube(bb->wsCube, minCube) || bb == box || obj == o->objects[k]) continue;
+		BoundingBox *bb = &o->objects[k]->bb;
+		if(!Math_CheckCollisionCube(bb->wsCube, minCube) || bb == box || 
+		obj == o->objects[k]) continue;
 
 		BoundingBox_ResolveCollision(obj, box, o->objects[k], bb);
 	}

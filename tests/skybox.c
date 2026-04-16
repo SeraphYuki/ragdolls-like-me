@@ -8,17 +8,22 @@
 #include "image_loader.h"
 
 void Skybox_Draw(Skybox *skybox){
-	
+
+	glCullFace(GL_FRONT);
 	glDepthMask(GL_FALSE);
 
 	Shaders_UseProgram(TEXTURED_SHADER);
 
     Shaders_UpdateProjectionMatrix();
-    Shaders_UpdateViewMatrix();
-    Shaders_UpdateModelMatrix();
+	 Shaders_UpdateViewMatrix();
+	 Shaders_UpdateModelMatrix();
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, skybox->img.glTexture);
+	Vec4 diffuse = (Vec4){1,1,1,1};
+	Vec4 specular = (Vec4){0,0,0,0};
+	glUniform4fv(Shaders_GetDiffuseLocation(), 1, (float *)&diffuse);
+	glUniform4fv(Shaders_GetSpecularLocation(), 1, (float *)&specular);
 
 	float model[16];
 	Math_TranslateMatrix(model, skybox->pos);
@@ -26,8 +31,8 @@ void Skybox_Draw(Skybox *skybox){
 	Shaders_UpdateModelMatrix();
 
 	glBindVertexArray(skybox->vao);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-
+	 glDrawArrays(GL_TRIANGLES, 0, 36);
+	glEnable(GL_CULL_FACE);	
 	glDepthMask(GL_TRUE);
 }
 
@@ -48,15 +53,15 @@ Skybox Skybox_Create(float size, Vec3 pos, const char *texturePath){
 	glGenBuffers(1, &ret.uvVbo);
 
     int posAttrib = glGetAttribLocation(Shaders_GetProgram(TEXTURED_SHADER), SHADERS_POSITION_ATTRIB);
-    int uvAttrib = glGetAttribLocation(Shaders_GetProgram(TEXTURED_SHADER), SHADERS_COORD_ATTRIB);
+	 int uvAttrib = glGetAttribLocation(Shaders_GetProgram(TEXTURED_SHADER), SHADERS_COORD_ATTRIB);
 
 	Vec3 verts[36] = {
-	    { -0.5f, -0.5f, -0.5f }, 
 	    {  0.5f, -0.5f, -0.5f }, 
-	    {  0.5f,  0.5f, -0.5f }, 
-	    {  0.5f,  0.5f, -0.5f }, 
-	    { -0.5f,  0.5f, -0.5f }, 
 	    { -0.5f, -0.5f, -0.5f }, 
+	    {  0.5f,  0.5f, -0.5f }, 
+		{  0.5f,  0.5f, -0.5f }, 
+	    { -0.5f, -0.5f, -0.5f }, 
+	    { -0.5f,  0.5f, -0.5f }, 
 
 	    { -0.5f, -0.5f,  0.5f }, 
 	    {  0.5f, -0.5f,  0.5f }, 
@@ -72,12 +77,12 @@ Skybox Skybox_Create(float size, Vec3 pos, const char *texturePath){
 	    { -0.5f, -0.5f,  0.5f }, 
 	    { -0.5f,  0.5f,  0.5f }, 
 
-	    {  0.5f,  0.5f,  0.5f }, 
 	    {  0.5f,  0.5f, -0.5f }, 
-	    {  0.5f, -0.5f, -0.5f }, 
-	    {  0.5f, -0.5f, -0.5f }, 
-	    {  0.5f, -0.5f,  0.5f }, 
 	    {  0.5f,  0.5f,  0.5f }, 
+	    {  0.5f, -0.5f, -0.5f }, 
+	    {  0.5f, -0.5f, -0.5f }, 
+	    {  0.5f,  0.5f,  0.5f }, 
+	    {  0.5f, -0.5f,  0.5f }, 
 
 	    { -0.5f, -0.5f, -0.5f }, 
 	    {  0.5f, -0.5f, -0.5f }, 
@@ -86,12 +91,12 @@ Skybox Skybox_Create(float size, Vec3 pos, const char *texturePath){
 	    { -0.5f, -0.5f,  0.5f }, 
 	    { -0.5f, -0.5f, -0.5f }, 
 
-	    { -0.5f,  0.5f, -0.5f }, 
 	    {  0.5f,  0.5f, -0.5f }, 
-	    {  0.5f,  0.5f,  0.5f }, 
-	    {  0.5f,  0.5f,  0.5f }, 
-	    { -0.5f,  0.5f,  0.5f }, 
 	    { -0.5f,  0.5f, -0.5f }, 
+	    {  0.5f,  0.5f,  0.5f }, 
+	    {  0.5f,  0.5f,  0.5f }, 
+	    { -0.5f,  0.5f, -0.5f }, 
+	    { -0.5f,  0.5f,  0.5f }, 
 	};
 
 	float th = 1.0/3.0, tw = 1.0/4.0;
@@ -103,42 +108,47 @@ Skybox Skybox_Create(float size, Vec3 pos, const char *texturePath){
 	float y0 = oh, y1 = th + (oh*2), y2 = (th*2) + (oh*3);
 
 	Vec2 coords[36] = {
-		{ x1,   	y1}, //Back one
 		{ x1+w1, 	y1},
+		{ x1,   	y1}, //Back one
 		{ x1+w1, 	y1+h1},
 		{ x1+w1, 	y1+h1},
-		{ x1,   	y1+h1},
 		{ x1,   	y1},
+		{ x1,   	y1+h1},
+
 		{ x3+w3, 	y1}, //Front one
 		{ x3, 		y1},
 		{ x3, 		y1+h1},
 		{ x3, 		y1+h1},
 		{ x3+w3, 	y1+h1},
 		{ x3+w3, 	y1},
+
 		{ x0,   	y1+h1}, //Left one
 		{ x0+w0, 	y1+h1},
 		{ x0+w0, 	y1},
 		{ x0+w0, 	y1},
 		{ x0,   	y1},
 		{ x0,   	y1+h1},
-		{ x2+w2, 	y1+h1}, //Right one
+
 		{ x2, 		y1+h1},
+		{ x2+w2, 	y1+h1}, //Right one
 		{ x2, 		y1},
 		{ x2, 		y1},
-		{ x2+w2, 	y1},
 		{ x2+w2, 	y1+h1},
+		{ x2+w2, 	y1},
+
 		{ x1,   	y0+h0}, //Bottom one
 		{ x1+w1, 	y0+h0},
 		{ x1+w1, 	y0},
 		{ x1+w1, 	y0},
 		{ x1,   	y0},
 		{ x1,   	y0+h0},
-		{ x1,   	y2}, //Top one
+
 		{ x1+w1, 	y2},
+		{ x1,   	y2}, //Top one
 		{ x1+w1, 	y2+h2},
 		{ x1+w1, 	y2+h2},
-		{ x1,   	y2+h2},
 		{ x1,   	y2},
+		{ x1,   	y2+h2},
 	};
 
 	for(int k = 0; k < 36; k++)
@@ -147,15 +157,15 @@ Skybox Skybox_Create(float size, Vec3 pos, const char *texturePath){
 	glBindVertexArray(ret.vao);
 
     glBindBuffer(GL_ARRAY_BUFFER,ret.posVbo);
-    glEnableVertexAttribArray(posAttrib);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(verts), &verts[0].x, GL_STATIC_DRAW);
-    glVertexAttribPointer( posAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	 glEnableVertexAttribArray(posAttrib);
+	 glBufferData(GL_ARRAY_BUFFER, sizeof(verts), &verts[0].x, GL_STATIC_DRAW);
+	 glVertexAttribPointer( posAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
 
-    glBindBuffer(GL_ARRAY_BUFFER,ret.uvVbo);
-    glEnableVertexAttribArray(uvAttrib);
-    glVertexAttribPointer( uvAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
-    glBufferData(GL_ARRAY_BUFFER,sizeof(coords), &coords[0].x, GL_STATIC_DRAW);
+	 glBindBuffer(GL_ARRAY_BUFFER,ret.uvVbo);
+	 glEnableVertexAttribArray(uvAttrib);
+	 glVertexAttribPointer( uvAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	 glBufferData(GL_ARRAY_BUFFER,sizeof(coords), &coords[0].x, GL_STATIC_DRAW);
 
 	glBindVertexArray(0);
 
