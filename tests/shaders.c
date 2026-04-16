@@ -87,6 +87,8 @@ static void CreateShader(struct Shader *shader, const char *vSource, const char 
 
 	glBindAttribLocation(shader->program, POS_LOC, SHADERS_POSITION_ATTRIB);
 	glBindAttribLocation(shader->program, UV_LOC, SHADERS_COORD_ATTRIB);
+	glBindAttribLocation(shader->program, COLOR_LOC, SHADERS_COLOR_ATTRIB);
+	glBindAttribLocation(shader->program, CENTER_LOC, SHADERS_CENTER_ATTRIB);
 
 	 shader->lightInvDirLoc = glGetUniformLocation(shader->program, "invLightDir");
 	 shader->modelLoc = glGetUniformLocation(shader->program, "model");
@@ -237,7 +239,7 @@ static const char *text3DVSource = "#version 120\n"
 "attribute vec3 billboardCenter;\n"
 "attribute vec4 color;\n"
 "varying vec2 TexCoord;\n"
-"varying vec4 colorFromVShader;\n"
+"varying vec4 colorFromVertShader;\n"
 "uniform mat4 model = mat4(1);\n"
 "uniform mat4 invView;\n"
 "uniform mat4 view;\n"
@@ -259,7 +261,7 @@ static const char *text3DVSource = "#version 120\n"
 	 "newpos.z = billboardCenter.z + right.z + up.z;\n"
 	 "TexCoord = coord;\n"
 	 "gl_Position = proj * view * model * vec4(newpos,1);\n"
-	 "colorFromVShader = color;\n"
+	 "colorFromVertShader = color;\n"
 "}";
 
 static const char *texturelessVSource = "#version 120\n"
@@ -617,66 +619,49 @@ static const char *particleVSource =
 "#version 120\n"
 STR(
 
+attribute vec2 pos;
+attribute vec4 color;
+attribute vec2 coord;
+attribute vec3 center;
+
+uniform mat4 proj;
+uniform mat4 view;
+uniform mat4 model;
+
+// uniform vec3 camPos;
+uniform vec3 cameraRight;
+uniform vec3 cameraUp;
+
 varying vec2 TexCoord;
-varying vec4 ScreenCoord;
-
-uniform sampler2D tex;
-uniform sampler2D ssao;
-uniform sampler2D shadowMask;
-uniform sampler2D lightMask;
-uniform sampler2D lightSpecular;
-uniform sampler2D lightDiffuse;
-
-uniform float ambient;
-uniform vec4 diffuse;
-uniform vec4 specular;
-uniform float gamma = 2.2;
-
-uniform int mode = 0;
+varying vec4 Position;
+varying vec4 colorFromVertShader;
 
 void main(){
+	 mat4 projView = proj * view;
 
-    vec2 coord = (ScreenCoord.xy/ScreenCoord.w) * 0.5 + 0.5;
-	 
-	 vec3 diffuseSample = texture2D(lightDiffuse, coord).rgb;
-	 vec3 specularSample = texture2D(lightSpecular, coord).rgb;
+	vec3 right = vec3(cameraRight * pos.x);
+	vec3 up = vec3(cameraUp * pos.y);
 
-    float shadows = texture2D(shadowMask, coord).r;
-	 float ssaoVal = texture2D(ssao, coord).r;
+	vec4 newpos = vec4(center,1);
+	newpos.x += right.x + up.x;
+	newpos.y += right.y + up.y;
+	newpos.z += right.z + up.z;
 
-    float shading = ssaoVal * shadows;
+	Position = projView * newpos;
 
-    vec4 textureSample = texture2D(tex, TexCoord);
+	colorFromVertShader = color;
+	TexCoord = coord;
+	gl_Position = Position;
+}
+);
 
-    vec3 color = (shading * specularSample * specular.a * specular.rgb);
-
-    color += (shading * textureSample.rgb * diffuseSample * diffuse.rgb);
-
-
-	 if(mode == 0)
-	     gl_FragColor = vec4(color,textureSample.a);
-	 else if(mode == 1)
-	     gl_FragColor = vec4(diffuseSample,textureSample.a);
-	 else if(mode == 2)
-	     gl_FragColor = vec4(specularSample,textureSample.a);
-	 else if(mode == 3)
-	     gl_FragColor = vec4(vec3(shading),textureSample.a);
-	 else if(mode == 4)
-	     gl_FragColor = vec4(textureSample.rgb * diffuse.rgb, textureSample.a);
-	 else
-	     gl_FragColor = vec4(textureSample.rgb * diffuse.rgb, textureSample.a);
-
-    // gl_FragColor = vec4(color,1);
-	 // gl_FragColor = vec4(vec3(ssaoVal),textureSample.a);
-	 // gl_FragColor = vec4(shadows.r, shadows.g, 1-ssaoVal,textureSample.a);
-});
 static const char *particleFSource = "#version 120\n"
 "varying vec2 TexCoord;\n"
 "uniform sampler2D tex;\n"
 "uniform vec4 uniColor = vec4(1,1,1,1);\n"
-"varying vec4 colorFromVShader;\n"
+"varying vec4 colorFromVertShader;\n"
 "void main(){\n"
-	 "gl_FragData[0] = uniColor * colorFromVShader * texture2D(tex, TexCoord);\n"
+	 "gl_FragColor = colorFromVertShader * texture2D(tex, TexCoord);\n"
 "}";
 
 static const char *waterVSource = "#version 120\n"
@@ -744,6 +729,8 @@ static struct {
 	{ &textureless2DVSource, &textureless2DFSource },
 	{ &textured2DVSource, &textured2DFSource },
 	{ &quadVSource,&quadFSource },
+	{ &particleVSource,&particleFSource },
+		
 	};
 
 void Shaders_Init(){
@@ -770,15 +757,14 @@ void Shaders_SetViewMatrix(float *matrix){
 	 memcpy(&viewMatrix[0], matrix, 16*sizeof(float));
 	 memcpy(&invViewMatrix[0], matrix, 16*sizeof(float));
 	 Math_InverseMatrix(invViewMatrix);
+
 }
 unsigned int Shaders_GetUniColorLocation(){
 	return shaders[activeProgram].uniColorLoc;	
 }
-
 unsigned int Shaders_GetInvViewportLocation(){
-	return shaders[activeProgram].invViewportLoc;	
+	return shaders[activeProgram].invViewLoc;	
 }
-
 unsigned int Shaders_GetBonesLocation(){
 	 return shaders[activeProgram].bonesLoc;
 }
@@ -796,12 +782,12 @@ void Shaders_UpdateViewMatrix(){
     if(shaders[activeProgram].invViewLoc != (GLuint)-1)
 	     glUniformMatrix4fv(shaders[activeProgram].invViewLoc, 1, GL_TRUE, invViewMatrix);
 
-    // if(shaders[activeProgram].camRightLoc != (GLuint)-1 && shaders[activeProgram].camUpLoc != (GLuint)-1){
-	 //     Vec3 cameraRight = (Vec3){viewMatrix[0], viewMatrix[4], viewMatrix[8]};
-	 //     Vec3 cameraUp    = (Vec3){viewMatrix[1], viewMatrix[5], viewMatrix[9]};
-	 //     glUniform3fv(shaders[activeProgram].camRightLoc, 1, &cameraRight.x);
-	 //     glUniform3fv(shaders[activeProgram].camUpLoc, 1, &cameraUp.x);
-	 // }
+     if(shaders[activeProgram].camRightLoc != (GLuint)-1 && shaders[activeProgram].camUpLoc != (GLuint)-1){
+	      Vec3 cameraRight = (Vec3){invViewMatrix[0], invViewMatrix[4], invViewMatrix[8]};
+	      Vec3 cameraUp    = (Vec3){invViewMatrix[1], invViewMatrix[5], invViewMatrix[9]};
+	      glUniform3fv(shaders[activeProgram].camRightLoc, 1, &cameraRight.x);
+	      glUniform3fv(shaders[activeProgram].camUpLoc, 1, &cameraUp.x);
+	  }
 }
 
 void Shaders_GetViewMatrix(float *matrix){

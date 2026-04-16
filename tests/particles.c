@@ -5,9 +5,6 @@
 #include "memory.h"
 #include "shaders.h"
 
-#define MAX_PARTICLES 1024
-
-static u32 vao, centerVbo, positionVbo, uvVbo, colorVbo, ebo;
 
 static int SortParticles(const void *p1, const void *p2){
 
@@ -19,14 +16,14 @@ static int SortParticles(const void *p1, const void *p2){
 	return 0;
 } 
 
-void Particles_DrawParticles(Image img, Particle *particles, int nParticles, 
+void Particles_DrawParticles(Image img, ParticleSystem *ps,Particle *particles, int nParticles, 
 	float animSpeed, Vec3 camForward, Vec3 camPos, int depthTexture){
 
 	nParticles = MIN(MAX_PARTICLES, nParticles);
 
-	Shaders_UseProgram(PARTICLE_SHADE);
+	Shaders_UseProgram(PARTICLE_SHADER);
 
-	glBindVertexArray(vao);
+	glBindVertexArray(ps->vao);
 
 	float currTime = Window_GetTicks();
 
@@ -83,21 +80,21 @@ void Particles_DrawParticles(Image img, Particle *particles, int nParticles,
 			{ tx, ty + tsy },
 		};
 
-		glBindBuffer(GL_ARRAY_BUFFER, centerVbo);
+		glBindBuffer(GL_ARRAY_BUFFER, ps->centerVbo);
 		glBufferSubData(GL_ARRAY_BUFFER, k * sizeof(Vec3) * 4, sizeof(Vec3) * 4, centers);
 
-		glBindBuffer(GL_ARRAY_BUFFER, colorVbo);
+		glBindBuffer(GL_ARRAY_BUFFER, ps->colorVbo);
 		glBufferSubData(GL_ARRAY_BUFFER, k * sizeof(Vec4) * 4, sizeof(Vec4) * 4, colors);
 
-		glBindBuffer(GL_ARRAY_BUFFER, positionVbo);
+		glBindBuffer(GL_ARRAY_BUFFER, ps->positionVbo);
 		glBufferSubData(GL_ARRAY_BUFFER, k * sizeof(Vec2) * 4, sizeof(Vec2) * 4, positions);
 
-		glBindBuffer(GL_ARRAY_BUFFER, uvVbo);
+		glBindBuffer(GL_ARRAY_BUFFER, ps->uvVbo);
 		glBufferSubData(GL_ARRAY_BUFFER, k * sizeof(Vec2) * 4, sizeof(Vec2) * 4, uvs);
 	}
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, img.texture);
+	glBindTexture(GL_TEXTURE_2D, img.glTexture);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, depthTexture);
 	
@@ -106,13 +103,13 @@ void Particles_DrawParticles(Image img, Particle *particles, int nParticles,
 	glBindVertexArray(0);
 }
 
-void Particles_DrawBillboard(Image img, Vec3 pos, Vec2 size, Vec4 color, Rect2D imgRect){
+void Particles_DrawBillboard( Image img,ParticleSystem *ps, Vec3 pos, Vec2 size, Vec4 color, Rect2D imgRect){
 
 	Shaders_UseProgram(PARTICLE_SHADER);
 
-	glBindVertexArray(vao);
+	glBindVertexArray(ps->vao);
 
-	Vec3 centers[] = { pos, pos, pos, pos, pos, pos };
+	Vec3 centers[] = { pos, pos, pos, pos };
 	Vec4 colors[] = { color, color, color, color };
 
 	Vec2 positions[] = {
@@ -129,68 +126,70 @@ void Particles_DrawBillboard(Image img, Vec3 pos, Vec2 size, Vec4 color, Rect2D 
 		{ imgRect.x, imgRect.y + imgRect.h },
 	};
 
-	glBindBuffer(GL_ARRAY_BUFFER, positionVbo);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vec2) * 6, positions);
-
-	glBindBuffer(GL_ARRAY_BUFFER, centerVbo);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vec3) * 4, centers);
-
-	glBindBuffer(GL_ARRAY_BUFFER, colorVbo);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vec4) * 4, colors);
-
-	glBindBuffer(GL_ARRAY_BUFFER, positionVbo);
+	glBindBuffer(GL_ARRAY_BUFFER, ps->positionVbo);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vec2) * 4, positions);
 
-	glBindBuffer(GL_ARRAY_BUFFER, uvVbo);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vec2) * 6, uvs);
+	glBindBuffer(GL_ARRAY_BUFFER, ps->centerVbo);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vec3) * 4, centers);
+
+	glBindBuffer(GL_ARRAY_BUFFER, ps->colorVbo);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vec4) * 4, colors);
+
+	glBindBuffer(GL_ARRAY_BUFFER, ps->uvVbo);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vec2) * 4, uvs);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, img.texture);
+	glBindTexture(GL_TEXTURE_2D, img.glTexture);
 
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, NULL);
 
 	glBindVertexArray(0);
 }
 
-void Particles_Init(void){
+void Particles_Init(ParticleSystem *ps){
+	
+	GLuint centerLoc = glGetAttribLocation(Shaders_GetProgram(PARTICLE_SHADER), SHADERS_CENTER_ATTRIB);
+	GLuint colorLoc = glGetAttribLocation(Shaders_GetProgram(PARTICLE_SHADER), SHADERS_COLOR_ATTRIB);
+	GLuint uvLoc = glGetAttribLocation(Shaders_GetProgram(PARTICLE_SHADER), SHADERS_COORD_ATTRIB);
+	GLuint posLoc = glGetAttribLocation(Shaders_GetProgram(PARTICLE_SHADER), SHADERS_POSITION_ATTRIB);
+					
+	glGenVertexArrays(1, &ps->vao);
+	glBindVertexArray(ps->vao);
 
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
+	glGenBuffers(1, &ps->centerVbo);
+	glBindBuffer(GL_ARRAY_BUFFER, ps->centerVbo);
 
-	glGenBuffers(1, &centerVbo);
-	glBindBuffer(GL_ARRAY_BUFFER, centerVbo);
-
-    glEnableVertexAttribArray(CENTER_LOC);
-	 glVertexAttribPointer(CENTER_LOC, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(centerLoc);
+	 glVertexAttribPointer(centerLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Vec3) * MAX_PARTICLES * 4, NULL, GL_STATIC_DRAW);
 
-	glGenBuffers(1, &uvVbo);
-	glBindBuffer(GL_ARRAY_BUFFER, uvVbo);
+	glGenBuffers(1, &ps->uvVbo);
+	glBindBuffer(GL_ARRAY_BUFFER, ps->uvVbo);
 
-    glEnableVertexAttribArray(UV_LOC);
-	 glVertexAttribPointer(UV_LOC, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(uvLoc);
+	 glVertexAttribPointer(uvLoc, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Vec2) * MAX_PARTICLES * 4, NULL, GL_STATIC_DRAW);
 
-	glGenBuffers(1, &colorVbo);
-	glBindBuffer(GL_ARRAY_BUFFER, colorVbo);
+	glGenBuffers(1, &ps->colorVbo);
+	glBindBuffer(GL_ARRAY_BUFFER, ps->colorVbo);
 
-    glEnableVertexAttribArray(COLOR_LOC);
-	 glVertexAttribPointer(COLOR_LOC, 4, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(colorLoc);
+	 glVertexAttribPointer(colorLoc, 4, GL_FLOAT, GL_FALSE, 0, 0);
 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Vec4) * MAX_PARTICLES * 4, NULL, GL_STATIC_DRAW);
 
-	glGenBuffers(1, &positionVbo);
-	glBindBuffer(GL_ARRAY_BUFFER, positionVbo);
+	glGenBuffers(1, &ps->positionVbo);
+	glBindBuffer(GL_ARRAY_BUFFER, ps->positionVbo);
 	
-	 glEnableVertexAttribArray(POS_LOC);
-	 glVertexAttribPointer(POS_LOC, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	 glEnableVertexAttribArray(posLoc);
+	 glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, 0);
 	
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Vec2) * MAX_PARTICLES * 4, NULL, GL_STATIC_DRAW);
 
-	glGenBuffers(1, &ebo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+	glGenBuffers(1, &ps->ebo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ps->ebo);
 
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(u16) * MAX_PARTICLES * 6, NULL, GL_STATIC_DRAW);
 
@@ -210,12 +209,12 @@ void Particles_Init(void){
 	glBindVertexArray(0);
 }
 
-void Particles_Close(void){
+void Particles_Close(ParticleSystem *ps){
 
-	glDeleteBuffers(1, &positionVbo);
-	glDeleteBuffers(1, &centerVbo);
-	glDeleteBuffers(1, &uvVbo);
-	glDeleteBuffers(1, &colorVbo);
-	glDeleteBuffers(1, &ebo);
-	glDeleteVertexArrays(1, &vao);
+	glDeleteBuffers(1, &ps->positionVbo);
+	glDeleteBuffers(1, &ps->centerVbo);
+	glDeleteBuffers(1, &ps->uvVbo);
+	glDeleteBuffers(1, &ps->colorVbo);
+	glDeleteBuffers(1, &ps->ebo);
+	glDeleteVertexArrays(1, &ps->vao);
 }

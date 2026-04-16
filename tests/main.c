@@ -1,5 +1,6 @@
 #include <GL/glew.h>
 #include "window.h"
+#include "particles.h"
 #include "freetype.h"
 #include "sound.h"
 #include "world.h"
@@ -12,6 +13,9 @@
 #include "skybox.h"
 #define WINDOW_WIDTH 960 
 #define WINDOW_HEIGHT 544
+
+static ParticleSystem ps;
+static Particle particles[100];
 
 static Object *rotatingObj = NULL;
 static Object *cubeObj, *groundObj, *throwObj;
@@ -26,7 +30,7 @@ float invPersp[16];
 float persp[16], view[16], model[16];
 static Vec2 rotation = {0,0};
 static Vec2 mousepos = {0,0};
-static Vec3 position = {0,8,6};
+static Vec3 position = {0,9,8};
 static UI ui;
 static char movingDirs[5];
 static PhysicsFigure_t figure;
@@ -269,11 +273,13 @@ static char Draw(){
 	//float view[16];
 	Math_LookAt(view, position, Math_Vec3AddVec3(position, forward), (Vec3){0,1,0});
 	Shaders_SetViewMatrix(view);
-
 	 Math_Perspective(persp, 60.0f*(3.1415/180), (float)1920 / (float)1080, 0.1f, 50.0f);
 	Shaders_SetProjectionMatrix(persp);
 
 	Shaders_UseProgram(SKELETAL_ANIMATION_SHADER);
+	Shaders_UpdateViewMatrix();
+	Shaders_UpdateProjectionMatrix();
+	Shaders_UseProgram(PARTICLE_SHADER);
 	Shaders_UpdateViewMatrix();
 	Shaders_UpdateProjectionMatrix();
 	Shaders_UseProgram(TEXTURED_SHADER);
@@ -301,12 +307,16 @@ static char Draw(){
 
 	//Skeleton_Apply(&cubeSkel);
 
-	World_Render(1);
+	World_Render(0);
+	Particles_DrawBillboard(skybox.img,&ps, (Vec3){-5,5,0}, (Vec2){2,2}, 
+	(Vec4){1,1,1,1}, (Rect2D){0,0,1,1});
 
 	Skybox_Draw(&skybox);
 	UI_Clear(&ui);
 	UI_RenderRectTex(&ui, 0,0, 200,200, 0,0,ui.test.w,ui.test.h,255,255,255,255);
 	UI_Render(&ui);
+
+
 	return 1;
 }
 
@@ -334,6 +344,7 @@ int main(int argc, char **argv){
 	glClearColor(0,0,0,1);
 	Shaders_Init();
 
+	Particles_Init(&ps);
 	World_InitOctree((Vec3){-100, -100, -100}, 200, 25);
 
 	glClearColor(0,0,0,1);
@@ -368,7 +379,7 @@ int main(int argc, char **argv){
 	cubeObj->AddUser(cubeObj);
 	cubeObj->bb.pos.y = 1;
 	cubeObj->bb.scale = (Vec3){0.2,0.2,0.2};
-	cubeObj->bb.rot = (Vec3){0,1,0};
+	cubeObj->bb.rot = (Vec3){0,0,0};
 	World_UpdateObjectInOctree(cubeObj);
 
 	groundObj = Object_Create();
@@ -409,4 +420,5 @@ int main(int argc, char **argv){
 	UI_Free(&ui);
 	Text_Close();
 	Skybox_Free(&skybox);
+	Particles_Close(&ps);
 }

@@ -5,6 +5,8 @@ typedef struct {
 	char *pixels;
 	int w;
 	int h;
+	int nFramesX;
+	int nFramesY;
 	unsigned int glTexture;
 } Image;
 
