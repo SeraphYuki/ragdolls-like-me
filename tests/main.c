@@ -48,14 +48,15 @@ static void onThrow(Object *obj, Object *obj2, BoundingBox *bb, BoundingBox *bb2
 	obj->ObjUpdate(obj);
 }
 static void onCube(Object *obj, Object *obj2, BoundingBox *bb, BoundingBox *bb2, Vec3 axis, float overlap){
-	obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,Math_Vec3MultFloat(Math_Vec3MultFloat(axis,-1), overlap));
-	obj->ObjUpdate(obj);	
+	obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,Math_Vec3MultFloat(axis, -overlap));
+	
+	obj->ObjUpdate(obj);
 }
 static void Update(){
 
 	 cubeObj->bb.pos.y -= Window_GetDeltaTime() / 1000.0f;
-	if(cubeObj->bb.pos.y < 0){
-	    cubeObj->bb.pos.y = 0;
+	if(cubeObj->bb.pos.y < 0.8){
+	    cubeObj->bb.pos.y = 0.8;
 	}
 
     cubeAnims[0].into += Window_GetDeltaTime() / 10.1f;
@@ -65,8 +66,10 @@ static void Update(){
 	}
 
 	Skeleton_Update(&cubeSkel, cubeAnims, 1);
+	cubeObj->ObjUpdate(cubeObj);
 	Object_UpdateSkeleton(cubeObj, &cubeSkel);
-
+	Object_UpdateModel(groundObj, &groundModel);
+	
 	figure.skel = &cubeSkel;	
 	Vec3 moveVec = {0,0,0};
 
@@ -80,11 +83,13 @@ static void Update(){
 			rotatingObj->bb.rot.y += GetDeltaTime() * mouseSensitivity;
 			rotatingObj->ObjUpdate(rotatingObj);
 			World_UpdateObjectInOctree(rotatingObj);
-			cubeObj->bb.rot.y += GetDeltaTime() * mouseSensitivity;
-			cubeObj->ObjUpdate(cubeObj);
-			cubeObj->bb.pos = Math_Rotate(cubeObj->bb.pos, 
-			(Vec3){0, GetDeltaTime() * mouseSensitivity,0});
-			World_UpdateObjectInOctree(cubeObj);
+			if(rotatingObj == groundObj){
+				cubeObj->bb.rot.y += GetDeltaTime() * mouseSensitivity;
+				cubeObj->ObjUpdate(cubeObj);
+				cubeObj->bb.pos = Math_Rotate(cubeObj->bb.pos, 
+				(Vec3){0, GetDeltaTime() * mouseSensitivity,0});
+				World_UpdateObjectInOctree(cubeObj);
+			}
 		}	
 				
 		if(Math_Vec3Magnitude(moveVec)){
@@ -109,16 +114,16 @@ static void Update(){
 	cubeObj->ObjUpdate(cubeObj);
 
 
-	float thrown = GetDeltaTime() / 500.0f;
-	Vec3 forward = Math_Rotate((Vec3){0,0,-1}, (Vec3){-rotation.y, -rotation.x, 0});
-	throwObj->bb.pos.x += thrown * forward.x;
-	throwObj->bb.pos.y += thrown * forward.y;
-	throwObj->bb.pos.z += thrown * forward.z;
-	if(Math_Vec3Magnitude(Math_Vec3SubVec3(throwObj->bb.pos,position)) > 5) 
-	throwObj->bb.pos = (Vec3){0,0,0};
-	throwObj->OnCollision = onThrow;
-	throwObj->ObjUpdate(throwObj);
-	World_ResolveCollisions(throwObj, &throwObj->bb);
+	//float thrown = GetDeltaTime() / 500.0f;
+	//Vec3 forward = Math_Rotate((Vec3){0,0,-1}, (Vec3){-rotation.y, -rotation.x, 0});
+	//throwObj->bb.pos.x += thrown * forward.x;
+	//throwObj->bb.pos.y += thrown * forward.y;
+	//throwObj->bb.pos.z += thrown * forward.z;
+	//if(Math_Vec3Magnitude(Math_Vec3SubVec3(throwObj->bb.pos,position)) > 5) 
+	//throwObj->bb.pos = (Vec3){0,0,0};
+	//throwObj->OnCollision = onThrow;
+	//throwObj->ObjUpdate(throwObj);
+	//World_ResolveCollisions(throwObj, &throwObj->bb);
 }
 
 static void Event(SDL_Event ev){
@@ -319,7 +324,7 @@ static char Draw(){
 	Particles_DrawBillboard(billboardImg, &ps, Math_Rotate((Vec3){4,0,5}, groundObj->bb.rot), 
 	(Vec2){1,1},(Vec4){1,1,1,1}, (Rect2D){
 	0,0,1,1});
-	//Particles_DrawParticles(particleImg, &ps, particles, 100, 50, forward, position, 0);
+	Particles_DrawParticles(particleImg, &ps, particles, 100, 50, forward, position, 0);
 
 	Skybox_Draw(&skybox);
 
@@ -410,8 +415,8 @@ int main(int argc, char **argv){
 	cubeObj->AddUser(cubeObj);
 	cubeObj->bb.pos.y = 1;
 	cubeObj->bb.scale = (Vec3){0.2,0.2,0.2};
-	cubeObj->bb.rot = (Vec3){0,1,0};
-	cubeObj->bb.cube = (Cube){-2.5,0,-2.5,5,10,5};
+	cubeObj->bb.rot = (Vec3){0,0.3,0};
+	cubeObj->bb.cube = (Cube){-2.5,0.1,-2.5,5,10,5};
 	World_UpdateObjectInOctree(cubeObj);
 
 	groundObj = Object_Create();

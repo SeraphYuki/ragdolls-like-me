@@ -248,7 +248,7 @@ static void BoneUpdate(Bone *bone, PlayingAnimation *anims, int nAnims, Vec4 *ma
 	     BoneUpdate(bone->children[j], anims, nAnims, matrices);
 
 
-    //Quat rot = (Quat){0,0,0,1};
+	 //Quat rot = (Quat){0,0,0,1};
 	 //Vec3 pos = (Vec3){0,0,0};
 
     //int j;
@@ -272,7 +272,7 @@ static void BoneUpdate(Bone *bone, PlayingAnimation *anims, int nAnims, Vec4 *ma
 	      //bone->absPos = Math_Vec3AddVec3(bone->parent->absPos,
 	          //Math_QuatRotate(bone->parent->absRot,pos));
 	      //bone->absRot = Math_QuatMult(bone->parent->absRot, rot);
-    //}
+	 //}
 }
 
 static void BoneUpdateVelocities(Bone *bone,Vec4 *matrices){

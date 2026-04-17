@@ -12,6 +12,7 @@ typedef struct _BoundingBox {
 	float matrix[16];
 	Vec3 points[8];
 	Vec3 axes[3];
+	Vec3 initialAxes[3];
 	Vec3 pos;
 	Vec3 rot;
 	Vec3 scale;

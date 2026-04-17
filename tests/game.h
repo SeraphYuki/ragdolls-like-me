@@ -5,8 +5,8 @@
 
 #include "window.h"
 
-#define MIN(x, y) x < y ? x : y
-#define MAX(x, y) x > y ? x : y
+#define MIN(x, y) (x < y ? x : y)
+#define MAX(x, y) (x > y ? x : y)
 
 #define CAMERA_FOV (60.0f * (PI / 180.0f))
 #define CAMERA_FAR 70

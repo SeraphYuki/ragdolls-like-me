@@ -315,7 +315,6 @@ int BoundingBox_CheckCollision(BoundingBox *bb, BoundingBox *bb2){
 
 int BoundingBox_ResolveCollision(Object *obj1, BoundingBox *bb, Object *obj2, BoundingBox *bb2){
 
-
 	// children not iterative. need checking for each pair
 
 	int ret = 0;
@@ -335,16 +334,15 @@ int BoundingBox_ResolveCollision(Object *obj1, BoundingBox *bb, Object *obj2, Bo
 
 	Vec3 axis;
 	float overlap = 0;
-	//if((BoundingBox_IsSAT(bb) || BoundingBox_IsSAT(bb2))){
+	if((BoundingBox_IsSAT(bb) && BoundingBox_IsSAT(bb2))){
+
 		if(!BoundingBox_SATCollision(bb, bb2, &overlap, &axis)){
 			return ret;	
 		}
-		
-	//}
+	}
 
-		bb->renderDebug = 1;
-		bb2->renderDebug = 1;
-		
+	bb->renderDebug = 1;
+	bb2->renderDebug = 1;
 	if(obj1 && (obj1->storeLastCollisions || obj1->OnCollision)){
 		
 		if(obj1->OnCollision) obj1->OnCollision(obj1, obj2, bb, bb2, axis, overlap);
@@ -363,7 +361,7 @@ int BoundingBox_ResolveCollision(Object *obj1, BoundingBox *bb, Object *obj2, Bo
 		}
 	}
 
-    return ret+1;
+	return ret+1;
 }
 void BoundingBox_UpdateWorldSpaceCube(BoundingBox *bb){
 	bb->wsCube.x = bb->wsCube.y = bb->wsCube.z = HUGE_VAL;
@@ -403,14 +401,22 @@ void BoundingBox_UpdatePoints(BoundingBox *bb){
 	 bb->points[7] = (Vec3){bb->cube.x+bb->cube.w, bb->cube.y, bb->cube.z};
 
     float rmatrix[16];
-	 Math_RotateMatrix(rmatrix,bb->rot);
+	Vec3 rot = bb->rot;
 
-    bb->axes[0] = (Vec3){1,0,0};
+   if(bb->parent){
+		rot = Math_Vec3AddVec3(bb->parent->rot,bb->rot);
+	}
+	
+	 Math_RotateMatrix(rmatrix,rot);
+	bb->axes[0] = (Vec3){1,0,0};
 	 bb->axes[1] = (Vec3){0,1,0};
 	 bb->axes[2] = (Vec3){0,0,1};
 	 bb->axes[0] = Math_Vec3Normalize(Math_MatrixMult(bb->axes[0], rmatrix));
 	 bb->axes[1] = Math_Vec3Normalize(Math_MatrixMult(bb->axes[1], rmatrix));
 	 bb->axes[2] = Math_Vec3Normalize(Math_MatrixMult(bb->axes[2], rmatrix));
+
+
+	 Math_RotateMatrix(rmatrix,bb->rot);
 
 	Math_ScalingMatrixXYZ(bb->matrix, bb->scale);
 	 Math_MatrixMatrixMult(bb->matrix, rmatrix, bb->matrix);	
@@ -419,10 +425,13 @@ void BoundingBox_UpdatePoints(BoundingBox *bb){
 	 Math_TranslateMatrix(matrix, bb->pos);
 	 Math_MatrixMatrixMult(bb->matrix, matrix, bb->matrix);
 
-   if(bb->parent)
+   if(bb->parent){
 	    Math_MatrixMatrixMult(bb->matrix, bb->parent->matrix, bb->matrix); 
-
-    bb->points[0] = Math_MatrixMult(bb->points[0], bb->matrix);
+	}
+	
+	
+	
+	 bb->points[0] = Math_MatrixMult(bb->points[0], bb->matrix);
 	 bb->points[1] = Math_MatrixMult(bb->points[1], bb->matrix);
 	 bb->points[2] = Math_MatrixMult(bb->points[2], bb->matrix);
 	 bb->points[3] = Math_MatrixMult(bb->points[3], bb->matrix);
@@ -442,9 +451,9 @@ void BoundingBox_UpdatePoints(BoundingBox *bb){
 }
 
 int BoundingBox_IsSAT(BoundingBox *bb){
-	//if(bb->noCollisions != 0){
-		//return 0;
-	//}
+	if(bb->noCollisions != 0){
+		return 0;
+	}
 	return 1;
 }
 

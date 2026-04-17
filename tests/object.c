@@ -14,9 +14,10 @@ static void RemoveUser(Object *obj){
 }
 
 static void ObjUpdate(Object *obj){
+	obj->bb.renderDebug = 0;
 	BoundingBox_UpdatePoints(&obj->bb);
- 	//if(obj->model->numBB > 1)
-		//Object_SetModel(obj, obj->model);
+ 	if(obj->model->numBB > 1)
+		Object_UpdateModel(obj, obj->model);
  }
 
 
@@ -88,32 +89,43 @@ void Object_UpdateSkeleton(Object *obj, Skeleton *skel){
 		BoundingBox_AddChild(&obj->skelBb,  &child);
 	 
 	 }
-	obj->bb.noCollisions = 1;
+	obj->bb.noCollisions = 0;
 	obj->skelBb.noCollisions = 1;
 	cube.w -= cube.x;
 	 cube.h -= cube.y;
 	 cube.d -= cube.z;
-	 obj->skelBb.points[0] = (Vec3){cube.x, cube.y+cube.h, cube.z+cube.d};
-	 obj->skelBb.points[1] = (Vec3){cube.x, cube.y, cube.z+cube.d};
-	 obj->skelBb.points[2] = (Vec3){cube.x, cube.y+cube.h, cube.z};
-	 obj->skelBb.points[3] = (Vec3){cube.x, cube.y, cube.z};
-	 obj->skelBb.points[4] = (Vec3){cube.x+cube.w, cube.y+cube.h, cube.z+cube.d};
-	 obj->skelBb.points[5] = (Vec3){cube.x+cube.w, cube.y, cube.z+cube.d};
-	 obj->skelBb.points[6] = (Vec3){cube.x+cube.w, cube.y+cube.h, cube.z};
-	 obj->skelBb.points[7] = (Vec3){cube.x+cube.w, cube.y, cube.z};
-	//memcpy(&obj->skelBb.points[0].x, &obj->bb.points[0].x, sizeof(Vec3)*8);
+	 obj->bb.points[0] = (Vec3){cube.x, cube.y+cube.h, cube.z+cube.d};
+	 obj->bb.points[1] = (Vec3){cube.x, cube.y, cube.z+cube.d};
+	 obj->bb.points[2] = (Vec3){cube.x, cube.y+cube.h, cube.z};
+	 obj->bb.points[3] = (Vec3){cube.x, cube.y, cube.z};
+	 obj->bb.points[4] = (Vec3){cube.x+cube.w, cube.y+cube.h, cube.z+cube.d};
+	 obj->bb.points[5] = (Vec3){cube.x+cube.w, cube.y, cube.z+cube.d};
+	 obj->bb.points[6] = (Vec3){cube.x+cube.w, cube.y+cube.h, cube.z};
+	 obj->bb.points[7] = (Vec3){cube.x+cube.w, cube.y, cube.z};
+	memcpy(&obj->skelBb.points[0].x, &obj->bb.points[0].x, sizeof(Vec3)*8);
 	BoundingBox_UpdateWorldSpaceCube(&obj->skelBb);
 	//BoundingBox_UpdateWorldSpaceCube(&obj->bb);
-	obj->skelBb.cube = obj->skelBb.wsCube;
+	//obj->skelBb.cube = obj->skelBb.wsCube;
 	//obj->bb.cube = obj->bb.wsCube;
 }
-
-void Object_SetModel(Object *obj, Model *model){
-	obj->model= model; 
+void Object_UpdateModel(Object *obj, Model *model){
+	
+	Vec3 scale = obj->bb.scale;
+	Vec3 pos = obj->bb.pos;
+	Vec3 rot = obj->bb.rot;
+		
 	memset(&obj->bb, 0, sizeof(BoundingBox));
-
+	
+	obj->bb.noCollisions = 1;
+		
+	obj->bb.scale = scale;
+	obj->bb.pos = pos;
+	obj->bb.rot = rot;
+	
+	obj->model = model;
+	
 	if(obj->model->numBB == 1){
-	     obj->bb.cube = obj->model->bb[0].cube;
+		obj->bb.cube = obj->model->bb[0].cube;
 		obj->bb.pos = obj->model->bb[0].pos;
 		obj->bb.rot = obj->model->bb[0].rot;
 		obj->bb.scale = obj->model->bb[0].scale;
@@ -121,22 +133,19 @@ void Object_SetModel(Object *obj, Model *model){
 		return;
 	}
 
+
 	Cube cube;
 	cube.x = cube.y = cube.z = HUGE_VAL;
 	cube.w = cube.h = cube.d = -HUGE_VAL;
-	obj->bb.noCollisions = 1;
-	obj->bb.pos = (Vec3){0,0,0};
-	obj->bb.rot = (Vec3){0,0,0};
-	obj->bb.scale = (Vec3){1,1,1};
-	 
-	 int k;
+	
+	int k;
 	 for(k = 0; k < obj->model->numBB; k++){
 	     BoundingBox child;
 	     memset(&child, 0, sizeof(BoundingBox));
 	     child.cube = obj->model->bb[k].cube;
 
 		child.pos = obj->model->bb[k].pos;
-		child.rot = obj->model->bb[k].rot;
+		child.rot =  obj->model->bb[k].rot;
 		child.scale = obj->model->bb[k].scale;
 		BoundingBox_AddChild(&obj->bb,  &child);
 		BoundingBox_UpdatePoints(&child);
@@ -176,6 +185,29 @@ void Object_SetModel(Object *obj, Model *model){
 
 	BoundingBox_UpdatePoints(&obj->bb);
 }
+
+void Object_SetModel(Object *obj, Model *model){
+
+	obj->model= model; 
+	memset(&obj->bb, 0, sizeof(BoundingBox));
+
+	if(obj->model->numBB == 1){
+	     obj->bb.cube = obj->model->bb[0].cube;
+		obj->bb.pos = obj->model->bb[0].pos;
+		obj->bb.rot = obj->model->bb[0].rot;
+		obj->bb.scale = obj->model->bb[0].scale;
+		BoundingBox_UpdatePoints(&obj->bb);
+		return;
+	}
+
+	obj->bb.noCollisions = 1;
+	obj->bb.pos = (Vec3){0,0,0};
+	obj->bb.rot = (Vec3){0,0,0};
+	obj->bb.scale = (Vec3){1,1,1};
+
+	Object_UpdateModel(obj, model);	 
+}
+
 void Object_Free(Object *obj){
 	free(obj);
 }

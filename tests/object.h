@@ -68,5 +68,6 @@ int Object_SkeletonCollision(BoundingBox *bb1, BoundingBox *bb2, Vec3 *axis, flo
 void Object_Free(Object *obj);
 void Object_Freeze(Object *obj);
 void Object_SetModel(Object *obj, Model *model);
+void Object_UpdateModel(Object *obj, Model *model);
 
 #endif
