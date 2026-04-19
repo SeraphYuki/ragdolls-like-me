@@ -1,2 +1,2 @@
 # Ragdolls
-Lagrange multipliers linear compentarity problems ragdolls
+dress up game
