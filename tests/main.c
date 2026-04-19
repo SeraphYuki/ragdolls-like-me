@@ -1,7 +1,9 @@
 #include <GL/glew.h>
 #include "window.h"
+#include "pathfinding.h"
 #include "particles.h"
 #include "freetype.h"
+//#include "thoth/thoth.h"
 #include "sound.h"
 #include "world.h"
 #include "mesh.h"
@@ -14,12 +16,16 @@
 #define WINDOW_WIDTH 960 
 #define WINDOW_HEIGHT 544
 
+#define NUM_GARBAGE 10
+
+
+//static Thoth_t *thoth;
 static ParticleSystem ps;
 static Particle particles[100];
 static Image particleImg, billboardImg;
 static Object *rotatingObj = NULL;
-static Object *cubeObj, *groundObj, *throwObj;
-static Model cubeModel, groundModel, throwModel;
+static Object *cubeObj, *groundObj, *throwObj, *cans[NUM_GARBAGE];
+static Model cubeModel, groundModel, throwModel, canModel;
 static Animation cubeAnim;
 static Skeleton cubeSkel;
 static PlayingAnimation cubeAnims[1];
@@ -30,9 +36,11 @@ float invPersp[16];
 float persp[16], view[16], model[16];
 static Vec2 rotation = {0,0};
 static Vec2 mousepos = {0,0};
-static Vec3 position = {0,9,8};
+static Vec3 position = {-2,4,4};
+static Vec3 renderpos = {-2,4,4};
 static UI ui;
 static char movingDirs[5];
+static Vec3 moveToPos;
 static PhysicsFigure_t figure;
 
 float GetDeltaTime(void){
@@ -47,16 +55,19 @@ static void onThrow(Object *obj, Object *obj2, BoundingBox *bb, BoundingBox *bb2
 	}
 	obj->ObjUpdate(obj);
 }
+
 static void onCube(Object *obj, Object *obj2, BoundingBox *bb, BoundingBox *bb2, Vec3 axis, float overlap){
 	obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,Math_Vec3MultFloat(axis, -overlap));
 	
 	obj->ObjUpdate(obj);
 }
+
 static void Update(){
 
 	 cubeObj->bb.pos.y -= Window_GetDeltaTime() / 1000.0f;
-	if(cubeObj->bb.pos.y < 0.8){
-	    cubeObj->bb.pos.y = 0.8;
+	if(cubeObj->bb.pos.y < 0.2){
+	    cubeObj->bb.pos.y = 0.2;
+		moveToPos.y = cubeObj->bb.pos.y;
 	}
 
     cubeAnims[0].into += Window_GetDeltaTime() / 10.1f;
@@ -72,36 +83,16 @@ static void Update(){
 	
 	figure.skel = &cubeSkel;	
 	Vec3 moveVec = {0,0,0};
+	moveVec = Math_Vec3SubVec3(moveToPos,cubeObj->bb.pos);
 
-	if(movingDirs[4]) moveVec.y += 1;
-	if(movingDirs[0]) moveVec.z -= 1;
-	if(movingDirs[1]) moveVec.z += 1;
-	if(movingDirs[2]) moveVec.x -= 1;
-	if(movingDirs[3]) moveVec.x += 1;
-
-		if(rotatingObj){
-			rotatingObj->bb.rot.y += GetDeltaTime() * mouseSensitivity;
-			rotatingObj->ObjUpdate(rotatingObj);
-			World_UpdateObjectInOctree(rotatingObj);
-			if(rotatingObj == groundObj){
-				cubeObj->bb.rot.y += GetDeltaTime() * mouseSensitivity;
-				cubeObj->ObjUpdate(cubeObj);
-				cubeObj->bb.pos = Math_Rotate(cubeObj->bb.pos, 
-				(Vec3){0, GetDeltaTime() * mouseSensitivity,0});
-				World_UpdateObjectInOctree(cubeObj);
-			}
-		}	
-				
 		if(Math_Vec3Magnitude(moveVec)){
 
 	     moveVec = Math_Vec3Normalize(moveVec);
 
-	     moveVec = Math_Rotate(moveVec, (Vec3){-rotation.y, -rotation.x, 0});
-
 	     moveVec = Math_Vec3MultFloat(moveVec, Window_GetDeltaTime() * moveSpeed);
 
-	     // position.x += moveVec.x;
-	    // position.z += moveVec.z;
+	      //position.x += moveVec.x;
+						//position.z += moveVec.z;
 	    cubeObj->bb.pos.x += moveVec.x;
 	    cubeObj->bb.pos.z += moveVec.z;
 	    cubeObj->bb.pos.y += moveVec.y;
@@ -113,6 +104,7 @@ static void Update(){
 	World_ResolveCollisions(cubeObj, &cubeObj->bb);
 	cubeObj->ObjUpdate(cubeObj);
 
+	
 
 	//float thrown = GetDeltaTime() / 500.0f;
 	//Vec3 forward = Math_Rotate((Vec3){0,0,-1}, (Vec3){-rotation.y, -rotation.x, 0});
@@ -127,29 +119,25 @@ static void Update(){
 }
 
 static void Event(SDL_Event ev){
+	      //Thoth_Event(thoth, ev);
+	      //if(ev.window.event == SDL_WINDOWEVENT_RESIZED || 
+	          //ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED){
+	          //int w = ev.window.data1;
+	          //int h = ev.window.data2;
 
-    // Thoth_Event(thoth, ev);
-
-    // if(ev.window.event == SDL_WINDOWEVENT_RESIZED || 
-	  //     ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED){
-	  //     int w = ev.window.data1;
-	  //     int h = ev.window.data2;
-
-    //     Thoth_Resize(thoth, w/4, 0, (w/2) + (w/4), h);
-	  // }
-
+	          //Thoth_Resize(thoth, 0, 0, w, h);
+	      //}
 	if(ev.type == SDL_MOUSEBUTTONUP){
 
 		if(ev.button.button == SDL_BUTTON_LEFT){
 			rotatingObj = NULL;
-
-			throwObj->model->materials[0].diffuse = (Vec4){0.8,0.8,0.8,1};
-			cubeObj->model->materials[0].diffuse = (Vec4){0.8,0.8,0.8,1};
-			groundObj->model->materials[0].diffuse = (Vec4){0.8,0.8,0.8,1};
+			moveToPos = cubeObj->bb.pos;
+			throwObj->model->materials[0].diffuse = (Vec4){0.8,0.6,0.6,1};
+			cubeObj->model->materials[0].diffuse = (Vec4){0.8,0.6,0.6,1};
+			groundObj->model->materials[0].diffuse = (Vec4){0.8,0.6,0.6,1};
 
 			float invView[16];
-			memcpy(invView, view, sizeof(view));
-			Math_InverseMatrix(invView);
+			Shaders_GetInvViewMatrix(invView);
 			
 			Vec4 rayWorld = (Vec4){
 				(2.0 * (mousepos.x / WINDOW_WIDTH)) - 1.0, 
@@ -168,12 +156,36 @@ static void Event(SDL_Event ev){
 			Object *collisionObj = NULL;
 			BoundingBox *collision = NULL;
 	
-			World_GetAllCollisionsRay((Ray){position, ray}, &distance, &collision, &collisionObj);
+			World_GetAllCollisionsRay((Ray){renderpos, ray}, &distance, &collision, &collisionObj);
 			if(collisionObj){
-				collisionObj->model->materials[0].diffuse = (Vec4){0.8,0.6,0.6,1};
-				
-				rotatingObj = collisionObj;
+				collisionObj->model->materials[0].diffuse = (Vec4){1,1,1,1};
 
+				if(collisionObj->type == TYPE_CAN){
+					
+					ui.stress += 0.1;
+					
+					World_RemoveObjectFromOctree(collisionObj);
+					
+					int j;
+					for(j = 0; j < 100; j++){
+						particles[j].createTime = SDL_GetTicks();
+						particles[j].lifeTime = 10000;
+						particles[j].pos = Math_Vec3AddVec3(collisionObj->bb.pos,
+						 (Vec3){ (-50 + rand()%100)/90.0f,(-50 + rand()%100)/90.0f,(-50 + rand()%100)/90.0f});
+						particles[j].size = (Vec2){1,1};
+						particles[j].color = (Vec4){0.1,0.1,0.1,0.1};
+						particles[j].vel = (Vec3){(-5 + (rand()%10))/10000.0f,(-5 + (rand()%10))/10000.0f,
+						(-5 + (rand()%10))/10000.0f};
+					}
+				} else {
+					if(collisionObj == groundObj){
+						moveToPos = Math_Vec3AddVec3(renderpos,
+						Math_Vec3MultFloat(ray, distance));
+					} else {
+						
+						rotatingObj = collisionObj;
+					}
+				}
 			}
 		}
 
@@ -194,8 +206,8 @@ static void Event(SDL_Event ev){
 			movingDirs[2] = 1;
 	      else if(ev.key.keysym.sym == SDLK_d)
 	          movingDirs[3] = 1;
-	      else if(ev.key.keysym.sym == SDLK_ESCAPE)
-	          exit(0);
+	      //else if(ev.key.keysym.sym == SDLK_jESCAPE)
+	          //exit(0);
 
 	} else if(ev.type == SDL_KEYUP){
 
@@ -220,9 +232,7 @@ static void Focus(){
 
 } 
 
-
 static void DrawRigged(Object *obj){
-
 
 	Shaders_UseProgram(SKELETAL_ANIMATION_SHADER);
 
@@ -262,7 +272,7 @@ static void DrawModel(Object *obj){
 	glActiveTexture(GL_TEXTURE0);
 
 	glBindVertexArray(obj->model->vao);
-
+	glCullFace(GL_BACK);
 	int curr = 0;
 
 
@@ -279,9 +289,13 @@ static void DrawModel(Object *obj){
 }
 static char Draw(){
 	float persp[16];
-	Vec3 forward = (Vec3){0.2,-0.8,-1};//Math_Rotate((Vec3){0,0,-1}, (Vec3){-rotation.y, -rotation.x, 0});
-	//float view[16];
-	Math_LookAt(view, position, Math_Vec3AddVec3(position, forward), (Vec3){0,1,0});
+	rotation.y += mouseSensitivity * Window_GetDeltaTime();
+	
+	renderpos = Math_Rotate(position, (Vec3){0,rotation.y,0});
+	Vec3 forward = Math_Vec3Normalize(Math_Vec3SubVec3((Vec3){0,0,0}, renderpos));
+
+	float view[16];
+	Math_LookAt(view, renderpos, forward, (Vec3){0,1,0});
 	Shaders_SetViewMatrix(view);
 	 Math_Perspective(persp, 60.0f*(3.1415/180), (float)1920 / (float)1080, 0.1f, 50.0f);
 	Shaders_SetProjectionMatrix(persp);
@@ -307,7 +321,7 @@ static char Draw(){
 
 	int k;
 	for(k = 0; k < cubeObj->skelBb.numChildren; k++){
-		//World_DrawSkeleton(&cubeObj->skelBb.children[k]);
+		World_DrawSkeleton(&cubeObj->skelBb.children[k]);
 	}
 
 	Skeleton_Update(&cubeSkel, cubeAnims, 1);
@@ -315,30 +329,24 @@ static char Draw(){
 	Shaders_UseProgram(TEXTURELESS_SHADER);
 	Shaders_SetModelMatrix(cubeObj->bb.matrix);
 
+
+	//cubeObj->bb.renderDebug = 1;
 	//Skeleton_Apply(&cubeSkel);
-
-	cubeObj->bb.renderDebug = 1;
-	World_Render(1);
-
-
-	Particles_DrawBillboard(billboardImg, &ps, Math_Rotate((Vec3){4,0,5}, groundObj->bb.rot), 
-	(Vec2){1,1},(Vec4){1,1,1,1}, (Rect2D){
-	0,0,1,1});
-	Particles_DrawParticles(particleImg, &ps, particles, 100, 50, forward, position, 0);
-
 	Skybox_Draw(&skybox);
-
-
+	int j;
+	for(j = 0; j < NUM_GARBAGE; j++){
+		cans[j]->bb.renderDebug = 1;
+	}
+	World_Render(1);
+	Particles_DrawParticles(particleImg, &ps, particles, 100, 50, forward, renderpos, 0);
+	
 	UI_Clear(&ui);
-	UI_RenderRectTex(&ui, 0,0, 200,200, 0,0,ui.test.w,ui.test.h,255,255,255,255);
 	UI_Render(&ui);
-
-
 	return 1;
 }
 
 static void OnResize(){
-	//Thoth_Render(thoth); stencil buffer/framebuffer access todo
+	//Thoth_Render(thoth); 
 
 }
 
@@ -364,23 +372,23 @@ int main(int argc, char **argv){
 
 	Particles_Init(&ps);
 	
-	
+	//thoth = Thoth_Create(WINDOW_WIDTH, WINDOW_HEIGHT );
+	//Thoth_Resize(thoth, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+	//Thoth_LoadFile(thoth, "main.c");
+
+
 	particleImg = ImageLoader_CreateImage("Resources/smoke.png",1);
 	particleImg.nFramesX = 5;
 	particleImg.nFramesY = 5;
 	billboardImg = ImageLoader_CreateImage("Resources/tex.png",1);	
-	
-	int j;
-	for(j = 0; j < 100; j++){
-		particles[j].createTime = SDL_GetTicks();
-		particles[j].lifeTime = 10000;
-		particles[j].pos = (Vec3){ (rand()%100)/90.0f,(rand()%100)/90.0f,(rand()%100)/90.0f};
-		particles[j].size = (Vec2){1,1};
-		particles[j].color = (Vec4){0.4,0.4,0.4,0.4};
-		particles[j].vel = (Vec3){(-5 + (rand()%10))/10000.0f,(-5 + (rand()%10))/10000.0f,
-		(-5 + (rand()%10))/10000.0f};
-	}
-	
+
+	Pathfinder pf;
+	Pathfinding_Init(&pf, 10,10);
+	Pathfinding_SetClosed(&pf, 1,1);	
+	Pathfinding_SetClosed(&pf, 1,2);	
+	Pathfinding_SetClosed(&pf, 1,3);
+	Pathfinding_FindPath(&pf, 0,0,3,3);
+
 	World_InitOctree((Vec3){-100, -100, -100}, 200, 25);
 
 	glClearColor(0,0,0,1);
@@ -391,7 +399,7 @@ int main(int argc, char **argv){
 	memcpy(invPersp, persp, sizeof(persp));
 	Math_InverseMatrix(invPersp);
 
-	Math_LookAt(view, (Vec3){0,0,-5}, (Vec3){0,0,0}, (Vec3){0,1,0});
+	//Math_LookAt(view, (Vec3){0,0,-5}, (Vec3){0,0,0}, (Vec3){0,1,0});
 	Math_Identity(model);
 	Shaders_UseProgram(SKELETAL_ANIMATION_SHADER);
 	Shaders_SetProjectionMatrix(persp);
@@ -426,15 +434,35 @@ int main(int argc, char **argv){
 	groundObj->Draw = DrawModel;
 	groundObj->AddUser(groundObj);
 	groundObj->bb.rot = (Vec3){0,1,0};
+	moveToPos = cubeObj->bb.pos;
 	groundObj->ObjUpdate(groundObj);
 	World_UpdateObjectInOctree(groundObj);
+	
 	throwObj = Object_Create();
 	Model_Load(&throwModel, "Resources/cube.yuk");
 	Object_SetModel(throwObj, &throwModel);
 	throwObj->Draw = DrawModel;
-	throwObj->bb.pos = (Vec3){0,0,0};
+	throwObj->bb.pos = (Vec3){0,1,0};
+	throwObj->bb.scale = (Vec3){0.5,0.5,0.5};
 	throwObj->AddUser(throwObj);
+	throwObj->ObjUpdate(throwObj);
 	World_UpdateObjectInOctree(throwObj);
+	Model_Load(&canModel, "Resources/can.yuk");
+
+	int j;
+	for(j = 0; j < NUM_GARBAGE; j++){
+			cans[j] = Object_Create();
+			Object_SetModel(cans[j], &canModel);
+			cans[j]->Draw = DrawModel;
+			cans[j]->bb.renderDebug = 1;
+			cans[j]->bb.pos = Math_Vec3AddVec3(cans[j]->bb.pos,
+			(Vec3){ (-50 + rand()%100)/20.0f,0.1, (-50 + rand()%100)/20.0f});
+			cans[j]->bb.scale = (Vec3){0.2,0.2,0.2};
+			cans[j]->type = TYPE_CAN;
+			cans[j]->ObjUpdate(cans[j]);
+			World_UpdateObjectInOctree(cans[j]);
+	}
+
 	cubeAnims[0] = (PlayingAnimation){
 		 .active = 1,
 		 .weight = 1,
@@ -446,12 +474,10 @@ int main(int argc, char **argv){
 
 	// thoth = Thoth_Create(WINDOW_WIDTH, WINDOW_HEIGHT );
 	// Thoth_LoadFile(thoth, "main.c");
-	// Thoth_Resize(thoth, 50, 50, WINDOW_WIDTH, WINDOW_HEIGHT);
-
 	Window_MainLoop(Update, Event, Draw, Focus, OnResize, 1, 1);
 	
 
-	// Thoth_Destroy(thoth);
+    //Thoth_Destroy(thoth);
 
 	World_Free();
 	Shaders_Close();
@@ -459,5 +485,4 @@ int main(int argc, char **argv){
 	UI_Free(&ui);
 	Text_Close();
 	Skybox_Free(&skybox);
-	Particles_Close(&ps);
 }

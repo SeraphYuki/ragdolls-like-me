@@ -86,15 +86,9 @@ void FontRenderer_Close(FontRenderer *fr){
 
 }
 
-void FontRenderer_Zoom(FontRenderer *fr, int by){
-	if(by < 0 && fr->fontSize > MINFONTSIZE) fr->fontSize += by;
-	if(by > 0 && fr->fontSize < MAXFONTSIZE) fr->fontSize += by;
+void FontRenderer_SetSize(FontRenderer *fr, int sizes){
+	fr->fontSize = sizes;
 	FontFace_SetSize(&fr->fontTTF, fr->fontSize);
-}
-
-
-void FontRenderer_SetFontSize(FontRenderer *fr, u8 fs){
-	fr->fontSize = fs;
 }
 
 void FontRenderer_RenderString(FontRenderer *fr, float x, float y, char *str,

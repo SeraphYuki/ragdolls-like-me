@@ -165,7 +165,6 @@ float SAT_CollisionRay(Vec3 *pointsA, Ray ray, Vec3 *axesA, Vec3 *axis){
 
 int BoundingBox_SATCollision(BoundingBox *bb1, BoundingBox *bb2, float *overlap, Vec3 *axis){
 
-
 	return SAT_Collision(bb1->points, bb2->points, bb1->axes, bb2->axes, overlap, axis);
 }
 
@@ -369,76 +368,74 @@ void BoundingBox_UpdateWorldSpaceCube(BoundingBox *bb){
 
 	int k;
 	for(k = 0; k < 8; k++){
-		Vec3 pos = bb->points[k];
-	     if(pos.x < bb->wsCube.x)
-	         bb->wsCube.x = pos.x;
-	     if(pos.x > bb->wsCube.w)
-	         bb->wsCube.w = pos.x;
-	     if(pos.y < bb->wsCube.y)
-	         bb->wsCube.y = pos.y;
-	     if(pos.y > bb->wsCube.h)
-	         bb->wsCube.h = pos.y;
-	     if(pos.z < bb->wsCube.z)
-	         bb->wsCube.z = pos.z;
-	     if(pos.z >  bb->wsCube.d)
-	         bb->wsCube.d = pos.z;
-	 }
- 
+	Vec3 pos = bb->points[k];
+	    if(pos.x < bb->wsCube.x)
+	        bb->wsCube.x = pos.x;
+	    if(pos.x > bb->wsCube.w)
+	        bb->wsCube.w = pos.x;
+	    if(pos.y < bb->wsCube.y)
+	        bb->wsCube.y = pos.y;
+	    if(pos.y > bb->wsCube.h)
+	        bb->wsCube.h = pos.y;
+	    if(pos.z < bb->wsCube.z)
+	        bb->wsCube.z = pos.z;
+	    if(pos.z >  bb->wsCube.d)
+	        bb->wsCube.d = pos.z;
+	}
+
 	bb->wsCube.w -= bb->wsCube.x;
-	 bb->wsCube.h -= bb->wsCube.y;
-	 bb->wsCube.d -= bb->wsCube.z;
+	bb->wsCube.h -= bb->wsCube.y;
+	bb->wsCube.d -= bb->wsCube.z;
 }
 
 void BoundingBox_UpdatePoints(BoundingBox *bb){
 
-    bb->points[0] = (Vec3){bb->cube.x, bb->cube.y+bb->cube.h, bb->cube.z+bb->cube.d};
-	 bb->points[1] = (Vec3){bb->cube.x, bb->cube.y, bb->cube.z+bb->cube.d};
-	 bb->points[2] = (Vec3){bb->cube.x, bb->cube.y+bb->cube.h, bb->cube.z};
-	 bb->points[3] = (Vec3){bb->cube.x, bb->cube.y, bb->cube.z};
-	 bb->points[4] = (Vec3){bb->cube.x+bb->cube.w, bb->cube.y+bb->cube.h, bb->cube.z+bb->cube.d};
-	 bb->points[5] = (Vec3){bb->cube.x+bb->cube.w, bb->cube.y, bb->cube.z+bb->cube.d};
-	 bb->points[6] = (Vec3){bb->cube.x+bb->cube.w, bb->cube.y+bb->cube.h, bb->cube.z};
-	 bb->points[7] = (Vec3){bb->cube.x+bb->cube.w, bb->cube.y, bb->cube.z};
+	bb->points[0] = (Vec3){bb->cube.x, bb->cube.y+bb->cube.h, bb->cube.z+bb->cube.d};
+	bb->points[1] = (Vec3){bb->cube.x, bb->cube.y, bb->cube.z+bb->cube.d};
+	bb->points[2] = (Vec3){bb->cube.x, bb->cube.y+bb->cube.h, bb->cube.z};
+	bb->points[3] = (Vec3){bb->cube.x, bb->cube.y, bb->cube.z};
+	bb->points[4] = (Vec3){bb->cube.x+bb->cube.w, bb->cube.y+bb->cube.h, bb->cube.z+bb->cube.d};
+	bb->points[5] = (Vec3){bb->cube.x+bb->cube.w, bb->cube.y, bb->cube.z+bb->cube.d};
+	bb->points[6] = (Vec3){bb->cube.x+bb->cube.w, bb->cube.y+bb->cube.h, bb->cube.z};
+	bb->points[7] = (Vec3){bb->cube.x+bb->cube.w, bb->cube.y, bb->cube.z};
 
-    float rmatrix[16];
+	float rmatrix[16];
 	Vec3 rot = bb->rot;
 
-   if(bb->parent){
+	if(bb->parent){
 		rot = Math_Vec3AddVec3(bb->parent->rot,bb->rot);
 	}
-	
-	 Math_RotateMatrix(rmatrix,rot);
+
+	Math_RotateMatrix(rmatrix,rot);
 	bb->axes[0] = (Vec3){1,0,0};
-	 bb->axes[1] = (Vec3){0,1,0};
-	 bb->axes[2] = (Vec3){0,0,1};
-	 bb->axes[0] = Math_Vec3Normalize(Math_MatrixMult(bb->axes[0], rmatrix));
-	 bb->axes[1] = Math_Vec3Normalize(Math_MatrixMult(bb->axes[1], rmatrix));
-	 bb->axes[2] = Math_Vec3Normalize(Math_MatrixMult(bb->axes[2], rmatrix));
+	bb->axes[1] = (Vec3){0,1,0};
+	bb->axes[2] = (Vec3){0,0,1};
+	bb->axes[0] = Math_Vec3Normalize(Math_MatrixMult(bb->axes[0], rmatrix));
+	bb->axes[1] = Math_Vec3Normalize(Math_MatrixMult(bb->axes[1], rmatrix));
+	bb->axes[2] = Math_Vec3Normalize(Math_MatrixMult(bb->axes[2], rmatrix));
 
 
-	 Math_RotateMatrix(rmatrix,bb->rot);
+	Math_RotateMatrix(rmatrix,bb->rot);
 
 	Math_ScalingMatrixXYZ(bb->matrix, bb->scale);
-	 Math_MatrixMatrixMult(bb->matrix, rmatrix, bb->matrix);	
+	Math_MatrixMatrixMult(bb->matrix, rmatrix, bb->matrix);	
 
-    float matrix[16];
-	 Math_TranslateMatrix(matrix, bb->pos);
-	 Math_MatrixMatrixMult(bb->matrix, matrix, bb->matrix);
+	float matrix[16];
+	Math_TranslateMatrix(matrix, bb->pos);
+	Math_MatrixMatrixMult(bb->matrix, matrix, bb->matrix);
 
-   if(bb->parent){
-	    Math_MatrixMatrixMult(bb->matrix, bb->parent->matrix, bb->matrix); 
+	if(bb->parent){
+		Math_MatrixMatrixMult(bb->matrix, bb->parent->matrix, bb->matrix); 
 	}
-	
-	
-	
-	 bb->points[0] = Math_MatrixMult(bb->points[0], bb->matrix);
-	 bb->points[1] = Math_MatrixMult(bb->points[1], bb->matrix);
-	 bb->points[2] = Math_MatrixMult(bb->points[2], bb->matrix);
-	 bb->points[3] = Math_MatrixMult(bb->points[3], bb->matrix);
-	 bb->points[4] = Math_MatrixMult(bb->points[4], bb->matrix);
-	 bb->points[5] = Math_MatrixMult(bb->points[5], bb->matrix);
-	 bb->points[6] = Math_MatrixMult(bb->points[6], bb->matrix);
-	 bb->points[7] = Math_MatrixMult(bb->points[7], bb->matrix);
+
+	bb->points[0] = Math_MatrixMult(bb->points[0], bb->matrix);
+	bb->points[1] = Math_MatrixMult(bb->points[1], bb->matrix);
+	bb->points[2] = Math_MatrixMult(bb->points[2], bb->matrix);
+	bb->points[3] = Math_MatrixMult(bb->points[3], bb->matrix);
+	bb->points[4] = Math_MatrixMult(bb->points[4], bb->matrix);
+	bb->points[5] = Math_MatrixMult(bb->points[5], bb->matrix);
+	bb->points[6] = Math_MatrixMult(bb->points[6], bb->matrix);
+	bb->points[7] = Math_MatrixMult(bb->points[7], bb->matrix);
 
 	BoundingBox_UpdateWorldSpaceCube(bb);
 
@@ -446,7 +443,7 @@ void BoundingBox_UpdatePoints(BoundingBox *bb){
 	if(bb->children){
 		for(k = 0; k < bb->numChildren; k++)
 			BoundingBox_UpdatePoints(&bb->children[k]);
-		
+
 	}
 }
 

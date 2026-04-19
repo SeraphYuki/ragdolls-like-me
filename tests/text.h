@@ -25,7 +25,7 @@ void FontRenderer_Clear(FontRenderer *fr);
 void FontRenderer_Close(FontRenderer *fr);
 void FontRenderer_Resize(FontRenderer *fr, int w, int h);
 void FontRenderer_Render(FontRenderer *fr, int viewportW, int viewportH);
-void FontRenderer_SetSize(FontRenderer *fr, float w, float h);
+void FontRenderer_SetSize(FontRenderer *fr, int size);
 void FontRenderer_RenderString(FontRenderer *fr, float x, float y, char *str,
 u8 r, u8 g, u8 b, u8 a);
 

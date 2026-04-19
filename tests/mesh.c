@@ -155,124 +155,124 @@ static void BoneUpdateSprings(Bone *bone, Vec4 *matrices){
 
 static void BoneUpdate(Bone *bone, PlayingAnimation *anims, int nAnims, Vec4 *matrices){
 
-    Quat rot = (Quat){0,0,0,1};
-	 Vec3 pos = (Vec3){0,0,0};
+	Quat rot = (Quat){0,0,0,1};
+	Vec3 pos = (Vec3){0,0,0};
 
-    int j;
-	 float matrix[16];
+	int j;
+	float matrix[16];
 
-    for(j = 0; j < nAnims; j++){
-	     if(anims[j].anim->nKeyframes[bone->index]){
-	         rot = Math_Slerp(rot, GetAnimsBoneRot(bone, &anims[j]), anims[j].weight);
-	         pos = Math_LerpVec3(pos, GetAnimsBonePos(bone, &anims[j]), anims[j].weight);
-	     }
-	 }
-
-    if(bone->spring != 0){
-
-        if(bone->parent && bone->parent->spring == 0)
-	         UpdateBoneSpring(bone, Math_QuatMult(bone->parent->rotDisplacement, Math_QuatMult(bone->rotDisplacement, rot)));
-	     else
-	         UpdateBoneSpring(bone, Math_QuatMult(bone->rotDisplacement, rot));
-
-        rot = Math_QuatMult(bone->rot, bone->rotDisplacement);
-	 
-	 } else {
-
-        // accumulate rotation in rotDisplacement
-
-        bone->rotDisplacement = Math_QuatMult(bone->rotDisplacement, rot);
-	     
-	     for(j = 0; j < bone->nChildren; j++){
-	         if(bone->children[j]->spring == 0)
-	             bone->children[j]->rotDisplacement = bone->rotDisplacement;
-	     }
-
-
-	     rot = Math_QuatMult(bone->rot, rot);
-	 }
-
-    pos = Math_Vec3AddVec3(bone->pos, Math_QuatRotate(bone->rot, pos));
-
-    Math_TranslateMatrix(matrix, pos);
-	 Math_MatrixFromQuat(rot, bone->absMatrix);
-
-    Math_MatrixMatrixMult(bone->absMatrix, matrix, bone->absMatrix);
-	 if(bone->parent){
-	     Math_MatrixMatrixMult(bone->absMatrix, bone->parent->absMatrix, bone->absMatrix); 
+	for(j = 0; j < nAnims; j++){
+		if(anims[j].anim->nKeyframes[bone->index]){
+			rot = Math_Slerp(rot, GetAnimsBoneRot(bone, &anims[j]), anims[j].weight);
+			pos = Math_LerpVec3(pos, GetAnimsBonePos(bone, &anims[j]), anims[j].weight);
+		}
 	}
 
-    Math_MatrixMatrixMult(matrix, bone->absMatrix, bone->invBindMatrix);
+	if(bone->spring != 0){
 
-    bone->axes[0] = (Vec3){1,0,0};
-	 bone->axes[1] = (Vec3){0,1,0};
-	 bone->axes[2] = (Vec3){0,0,1};
-	 bone->axes[0] = Math_Vec3Normalize(Math_MatrixMult(bone->axes[0], bone->absMatrix));
-	 bone->axes[1] = Math_Vec3Normalize(Math_MatrixMult(bone->axes[1], bone->absMatrix));
-	 bone->axes[2] = Math_Vec3Normalize(Math_MatrixMult(bone->axes[2], bone->absMatrix));
+		if(bone->parent && bone->parent->spring == 0)
+			UpdateBoneSpring(bone, Math_QuatMult(bone->parent->rotDisplacement, Math_QuatMult(bone->rotDisplacement, rot)));
+		else
+			UpdateBoneSpring(bone, Math_QuatMult(bone->rotDisplacement, rot));
 
-    bone->points[0] = (Vec3){bone->cube.x, bone->cube.y, bone->cube.z};
-	 bone->points[1] = (Vec3){bone->cube.x+bone->cube.w, bone->cube.y, bone->cube.z};
-	 bone->points[2] = (Vec3){bone->cube.x+bone->cube.w, bone->cube.y+bone->cube.h, bone->cube.z};
-	 bone->points[3] = (Vec3){bone->cube.x, bone->cube.y+bone->cube.h, bone->cube.z};
-	 bone->points[4] = (Vec3){bone->cube.x, bone->cube.y, bone->cube.z+bone->cube.d};
-	 bone->points[5] = (Vec3){bone->cube.x+bone->cube.w, bone->cube.y, bone->cube.z+bone->cube.d};
-	 bone->points[6] = (Vec3){bone->cube.x+bone->cube.w, bone->cube.y+bone->cube.h, bone->cube.z+bone->cube.d};
-	 bone->points[7] = (Vec3){bone->cube.x, bone->cube.y+bone->cube.h, bone->cube.z+bone->cube.d};
+		rot = Math_QuatMult(bone->rot, bone->rotDisplacement);
 
-    bone->points[0] = Math_MatrixMult(bone->points[0], bone->absMatrix);
-	 bone->points[1] = Math_MatrixMult(bone->points[1], bone->absMatrix);
-	 bone->points[2] = Math_MatrixMult(bone->points[2], bone->absMatrix);
-	 bone->points[3] = Math_MatrixMult(bone->points[3], bone->absMatrix);
-	 bone->points[4] = Math_MatrixMult(bone->points[4], bone->absMatrix);
-	 bone->points[5] = Math_MatrixMult(bone->points[5], bone->absMatrix);
-	 bone->points[6] = Math_MatrixMult(bone->points[6], bone->absMatrix);
-	 bone->points[7] = Math_MatrixMult(bone->points[7], bone->absMatrix);
-	 
-	 matrices[(bone->index*3)].x = matrix[0];
-	 matrices[(bone->index*3)].y = matrix[1];
-	 matrices[(bone->index*3)].z = matrix[2];
-	 matrices[(bone->index*3)].w = matrix[3];
+	} else {
 
-    matrices[(bone->index*3)+1].x = matrix[4];
-	 matrices[(bone->index*3)+1].y = matrix[5];
-	 matrices[(bone->index*3)+1].z = matrix[6];
-	 matrices[(bone->index*3)+1].w = matrix[7];
+		// accumulate rotation in rotDisplacement
 
-    matrices[(bone->index*3)+2].x = matrix[8];
-	 matrices[(bone->index*3)+2].y = matrix[9];
-	 matrices[(bone->index*3)+2].z = matrix[10];
-	 matrices[(bone->index*3)+2].w = matrix[11];
+		bone->rotDisplacement = Math_QuatMult(bone->rotDisplacement, rot);
 
-    for(j = 0; j < bone->nChildren; j++)
-	     BoneUpdate(bone->children[j], anims, nAnims, matrices);
+		for(j = 0; j < bone->nChildren; j++){
+		if(bone->children[j]->spring == 0)
+			bone->children[j]->rotDisplacement = bone->rotDisplacement;
+		}
 
 
-	 //Quat rot = (Quat){0,0,0,1};
-	 //Vec3 pos = (Vec3){0,0,0};
+		rot = Math_QuatMult(bone->rot, rot);
+	}
 
-    //int j;
+	pos = Math_Vec3AddVec3(bone->pos, Math_QuatRotate(bone->rot, pos));
 
-    //for(j = 0; j < nAnims; j++){
-	     //if(anims[j].anim->nKeyframes[bone->index]){
-	         //rot = Math_Slerp(rot, GetAnimsBoneRot(bone, &anims[j]), anims[j].weight);
-	         //pos = Math_LerpVec3(pos, GetAnimsBonePos(bone, &anims[j]), anims[j].weight);
-	     //}
-	 //}
+	Math_TranslateMatrix(matrix, pos);
+	Math_MatrixFromQuat(rot, bone->absMatrix);
+
+	Math_MatrixMatrixMult(bone->absMatrix, matrix, bone->absMatrix);
+	if(bone->parent){
+		Math_MatrixMatrixMult(bone->absMatrix, bone->parent->absMatrix, bone->absMatrix); 
+	}
+
+	Math_MatrixMatrixMult(matrix, bone->absMatrix, bone->invBindMatrix);
+
+	bone->axes[0] = (Vec3){1,0,0};
+	bone->axes[1] = (Vec3){0,1,0};
+	bone->axes[2] = (Vec3){0,0,1};
+	bone->axes[0] = Math_Vec3Normalize(Math_MatrixMult(bone->axes[0], bone->absMatrix));
+	bone->axes[1] = Math_Vec3Normalize(Math_MatrixMult(bone->axes[1], bone->absMatrix));
+	bone->axes[2] = Math_Vec3Normalize(Math_MatrixMult(bone->axes[2], bone->absMatrix));
+
+	bone->points[0] = (Vec3){bone->cube.x, bone->cube.y, bone->cube.z};
+	bone->points[1] = (Vec3){bone->cube.x+bone->cube.w, bone->cube.y, bone->cube.z};
+	bone->points[2] = (Vec3){bone->cube.x+bone->cube.w, bone->cube.y+bone->cube.h, bone->cube.z};
+	bone->points[3] = (Vec3){bone->cube.x, bone->cube.y+bone->cube.h, bone->cube.z};
+	bone->points[4] = (Vec3){bone->cube.x, bone->cube.y, bone->cube.z+bone->cube.d};
+	bone->points[5] = (Vec3){bone->cube.x+bone->cube.w, bone->cube.y, bone->cube.z+bone->cube.d};
+	bone->points[6] = (Vec3){bone->cube.x+bone->cube.w, bone->cube.y+bone->cube.h, bone->cube.z+bone->cube.d};
+	bone->points[7] = (Vec3){bone->cube.x, bone->cube.y+bone->cube.h, bone->cube.z+bone->cube.d};
+
+	bone->points[0] = Math_MatrixMult(bone->points[0], bone->absMatrix);
+	bone->points[1] = Math_MatrixMult(bone->points[1], bone->absMatrix);
+	bone->points[2] = Math_MatrixMult(bone->points[2], bone->absMatrix);
+	bone->points[3] = Math_MatrixMult(bone->points[3], bone->absMatrix);
+	bone->points[4] = Math_MatrixMult(bone->points[4], bone->absMatrix);
+	bone->points[5] = Math_MatrixMult(bone->points[5], bone->absMatrix);
+	bone->points[6] = Math_MatrixMult(bone->points[6], bone->absMatrix);
+	bone->points[7] = Math_MatrixMult(bone->points[7], bone->absMatrix);
+
+	matrices[(bone->index*3)].x = matrix[0];
+	matrices[(bone->index*3)].y = matrix[1];
+	matrices[(bone->index*3)].z = matrix[2];
+	matrices[(bone->index*3)].w = matrix[3];
+
+	matrices[(bone->index*3)+1].x = matrix[4];
+	matrices[(bone->index*3)+1].y = matrix[5];
+	matrices[(bone->index*3)+1].z = matrix[6];
+	matrices[(bone->index*3)+1].w = matrix[7];
+
+	matrices[(bone->index*3)+2].x = matrix[8];
+	matrices[(bone->index*3)+2].y = matrix[9];
+	matrices[(bone->index*3)+2].z = matrix[10];
+	matrices[(bone->index*3)+2].w = matrix[11];
+
+	for(j = 0; j < bone->nChildren; j++)
+		BoneUpdate(bone->children[j], anims, nAnims, matrices);
 
 
-	 //bone->angVel = Math_QuatToEuler(rot);
-	 //bone->linVel = pos;//Math_QuatRotate(rot,pos);
-	 //bone->absPos = Math_QuatRotate(rot,pos);
-	 //bone->absRot = rot;
-	 //rot = Math_QuatMult(bone->rot,rot);
-	 //pos = Math_Vec3AddVec3(bone->pos,Math_QuatRotate(rot,pos));
+	//Quat rot = (Quat){0,0,0,1};
+	//Vec3 pos = (Vec3){0,0,0};
 
-    //if(bone->parent){
-	      //bone->absPos = Math_Vec3AddVec3(bone->parent->absPos,
-	          //Math_QuatRotate(bone->parent->absRot,pos));
-	      //bone->absRot = Math_QuatMult(bone->parent->absRot, rot);
-	 //}
+	//int j;
+
+	//for(j = 0; j < nAnims; j++){
+	  //if(anims[j].anim->nKeyframes[bone->index]){
+	      //rot = Math_Slerp(rot, GetAnimsBoneRot(bone, &anims[j]), anims[j].weight);
+	      //pos = Math_LerpVec3(pos, GetAnimsBonePos(bone, &anims[j]), anims[j].weight);
+	  //}
+	//}
+
+
+	//bone->angVel = Math_QuatToEuler(rot);
+	//bone->linVel = pos;//Math_QuatRotate(rot,pos);
+	//bone->absPos = Math_QuatRotate(rot,pos);
+	//bone->absRot = rot;
+	//rot = Math_QuatMult(bone->rot,rot);
+	//pos = Math_Vec3AddVec3(bone->pos,Math_QuatRotate(rot,pos));
+
+	//if(bone->parent){
+	   //bone->absPos = Math_Vec3AddVec3(bone->parent->absPos,
+	       //Math_QuatRotate(bone->parent->absRot,pos));
+	   //bone->absRot = Math_QuatMult(bone->parent->absRot, rot);
+	//}
 }
 
 static void BoneUpdateVelocities(Bone *bone,Vec4 *matrices){
@@ -340,7 +340,6 @@ static void BoneUpdateVelocities(Bone *bone,Vec4 *matrices){
 
     //for(j = 0; j < bone->nChildren; j++)
 	     //BoneUpdateVelocities(bone->children[j], matrices);
-
 
 }
 

@@ -11,7 +11,7 @@ void Skybox_Draw(Skybox *skybox){
 
 	glCullFace(GL_FRONT);
 	glDepthMask(GL_FALSE);
-
+	glDisable(GL_DEPTH_TEST);
 	Shaders_UseProgram(TEXTURED_SHADER);
 
     Shaders_UpdateProjectionMatrix();
@@ -34,6 +34,8 @@ void Skybox_Draw(Skybox *skybox){
 	 glDrawArrays(GL_TRIANGLES, 0, 36);
 	glEnable(GL_CULL_FACE);	
 	glDepthMask(GL_TRUE);
+	glCullFace(GL_BACK);
+	glEnable(GL_DEPTH_TEST);
 }
 
 Skybox Skybox_Create(float size, Vec3 pos, const char *texturePath){

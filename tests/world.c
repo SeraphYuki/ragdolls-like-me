@@ -371,7 +371,7 @@ static void DrawBoundingBoxes(BoundingBox *bb){
 	 	//return;
 	 }
 	
-	 World_DrawCube(bb->wsCube);
+	 //World_DrawCube(bb->wsCube);
 }
 
 void World_Free(){

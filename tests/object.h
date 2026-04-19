@@ -7,6 +7,9 @@
 #include "mesh.h"
 #include <stdio.h>
 
+enum {
+	TYPE_CAN = 1,
+};
 typedef struct _OctreeLeaf OctreeLeaf;
 
 typedef struct {
@@ -51,6 +54,7 @@ struct Object {
 
 	OctreeLeaf *inOctant;
 
+	u32 type;
 	void *data;
 
 	char storeLastCollisions;

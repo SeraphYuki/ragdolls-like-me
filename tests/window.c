@@ -66,8 +66,7 @@ int Window_Open(const char *title, int posx, int posy, int width, int height, in
 }
 
 static void Window_CleanUp(){
-
-    // if(controller) SDL_GameControllerClose(controller);
+	 // if(controller) SDL_GameControllerClose(controller);
 	SDL_GL_DeleteContext(context);
 	 SDL_DestroyWindow(window);
 	SDL_Quit();

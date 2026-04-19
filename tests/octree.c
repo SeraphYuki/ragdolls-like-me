@@ -52,7 +52,7 @@ int OctreeLeaf_Insert(OctreeLeaf *o, Object *obj){
 
 	obj->inOctant = o;
 
-	// obj->AddUser(obj);
+	 obj->AddUser(obj);
 
 	return 1;
 }
