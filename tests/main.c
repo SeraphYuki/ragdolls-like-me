@@ -11,7 +11,6 @@
 #include "shaders.h"
 #include "ui.h"
 #include "object.h"
-#include "physics.h"
 #include "skybox.h"
 #define WINDOW_WIDTH 960 
 #define WINDOW_HEIGHT 544
@@ -36,12 +35,11 @@ float invPersp[16];
 float persp[16], view[16], model[16];
 static Vec2 rotation = {0,0};
 static Vec2 mousepos = {0,0};
-static Vec3 position = {-2,4,4};
+static Vec3 position = {-2,7,6};
 static Vec3 renderpos = {-2,4,4};
 static UI ui;
 static char movingDirs[5];
 static Vec3 moveToPos;
-static PhysicsFigure_t figure;
 
 float GetDeltaTime(void){
 	  return Window_GetDeltaTime();
@@ -70,10 +68,11 @@ static void Update(){
 		moveToPos.y = cubeObj->bb.pos.y;
 	}
 
-    cubeAnims[0].into += Window_GetDeltaTime() / 10.1f;
+	static float animDir = 1;
+	 cubeAnims[0].into += animDir * Window_GetDeltaTime() / 100.1f;
 
-    if(cubeAnims[0].into > cubeAnim.length/1.5){
-	      cubeAnims[0].into = cubeAnim.length/8;
+    if(cubeAnims[0].into > cubeAnim.length || cubeAnims[0].into < 0){
+		animDir = - animDir;
 	}
 
 	Skeleton_Update(&cubeSkel, cubeAnims, 1);
@@ -81,7 +80,6 @@ static void Update(){
 	Object_UpdateSkeleton(cubeObj, &cubeSkel);
 	Object_UpdateModel(groundObj, &groundModel);
 	
-	figure.skel = &cubeSkel;	
 	Vec3 moveVec = {0,0,0};
 	moveVec = Math_Vec3SubVec3(moveToPos,cubeObj->bb.pos);
 
@@ -325,18 +323,17 @@ static char Draw(){
 	}
 
 	Skeleton_Update(&cubeSkel, cubeAnims, 1);
+	Skeleton_Apply(&cubeSkel);
 
-	Shaders_UseProgram(TEXTURELESS_SHADER);
-	Shaders_SetModelMatrix(cubeObj->bb.matrix);
-
-
-	//cubeObj->bb.renderDebug = 1;
-	//Skeleton_Apply(&cubeSkel);
 	Skybox_Draw(&skybox);
 	int j;
 	for(j = 0; j < NUM_GARBAGE; j++){
 		cans[j]->bb.renderDebug = 1;
 	}
+	Shaders_UseProgram(TEXTURELESS_SHADER);
+	Shaders_SetModelMatrix(cubeObj->bb.matrix);
+
+
 	World_Render(1);
 	Particles_DrawParticles(particleImg, &ps, particles, 100, 50, forward, renderpos, 0);
 	
@@ -404,7 +401,7 @@ int main(int argc, char **argv){
 	Shaders_UseProgram(SKELETAL_ANIMATION_SHADER);
 	Shaders_SetProjectionMatrix(persp);
 	Shaders_UpdateProjectionMatrix();
-	Shaders_SetModelMatrix(model);
+	(model);
 	Shaders_UpdateModelMatrix();
 	Shaders_SetViewMatrix(view);
 	Shaders_UpdateViewMatrix();
@@ -417,13 +414,14 @@ int main(int argc, char **argv){
 	RiggedModel_Load(&cubeModel, &cubeSkel, "Resources/figure.yuk");
 	memset(&cubeAnim, 0, sizeof(Animation));
 	Animation_Load(&cubeAnim, "Resources/figure_ArmatureAction.anm");
+	
 
 	Object_SetModel(cubeObj, &cubeModel);
 	cubeObj->Draw = DrawRigged;
 	cubeObj->AddUser(cubeObj);
 	cubeObj->bb.pos.y = 1;
 	cubeObj->bb.scale = (Vec3){0.2,0.2,0.2};
-	cubeObj->bb.rot = (Vec3){0,0.3,0};
+	cubeObj->bb.rot = (Vec3){0,0,0};
 	cubeObj->bb.cube = (Cube){-2.5,0.1,-2.5,5,10,5};
 	World_UpdateObjectInOctree(cubeObj);
 
@@ -469,8 +467,6 @@ int main(int argc, char **argv){
 		 .into = 0,
 		 .anim = &cubeAnim,
 	};
-
-
 
 	// thoth = Thoth_Create(WINDOW_WIDTH, WINDOW_HEIGHT );
 	// Thoth_LoadFile(thoth, "main.c");
