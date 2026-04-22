@@ -264,14 +264,16 @@ static void BoneUpdate(Bone *bone, PlayingAnimation *anims, int nAnims, Vec4 *ma
 
 	bone->angVel = Math_QuatToEuler(rot);
 	bone->linVel = pos;// Math_QuatRotate(rot,pos);
-    bone->linVel = Math_Vec3AddVec3(bone->pos,bone->linVel);
+	 bone->linVel = Math_Vec3AddVec3(bone->pos,bone->linVel);
 	bone->angVel = Math_QuatToEuler(Math_QuatMult(bone->rot,Math_EulerToQuat(bone->angVel)));
 
     pos = bone->linVel;
 	rot = Math_EulerToQuat(bone->angVel);
-
+	
+	bone->localRot = rot;
+	bone->localPos = pos;
 	float matrix[16];
-    Math_TranslateMatrix(matrix, pos);
+	 Math_TranslateMatrix(matrix, pos);
 	 Math_MatrixFromQuat(rot, bone->absMatrix);
 
     Math_MatrixMatrixMult(bone->absMatrix, matrix, bone->absMatrix);
@@ -279,10 +281,10 @@ static void BoneUpdate(Bone *bone, PlayingAnimation *anims, int nAnims, Vec4 *ma
 	 if(bone->parent){
 	     Math_MatrixMatrixMult(bone->absMatrix, bone->parent->absMatrix, bone->absMatrix); 
 		memcpy(matrix, bone->absMatrix, sizeof(matrix));
-		bone->absPos = (Vec3){matrix[3], matrix[7], matrix[11]};
+		bone->worldPos = (Vec3){matrix[3], matrix[7], matrix[11]};
 		matrix[3] = matrix[7] = matrix[11] = 0;
-		bone->absRot = Math_MatrixToQuat(matrix);
-    }
+		bone->worldRot = Math_MatrixToQuat(matrix);
+	 }
 
 	for(j = 0; j < bone->nChildren; j++)
 		BoneUpdate(bone->children[j], anims, nAnims, matrices);

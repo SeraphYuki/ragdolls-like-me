@@ -2,6 +2,7 @@
 #include "window.h"
 #include "pathfinding.h"
 #include "particles.h"
+#include "physics.h"
 #include "freetype.h"
 //#include "thoth/thoth.h"
 #include "sound.h"
@@ -18,7 +19,9 @@
 #define NUM_GARBAGE 10
 
 
+static Pathfinder pf;
 //static Thoth_t *thoth;
+static PhysicsFigure_t figure;
 static ParticleSystem ps;
 static Particle particles[100];
 static Image particleImg, billboardImg;
@@ -35,7 +38,7 @@ float invPersp[16];
 float persp[16], view[16], model[16];
 static Vec2 rotation = {0,0};
 static Vec2 mousepos = {0,0};
-static Vec3 position = {-2,7,6};
+static Vec3 position = {-2,6,6};
 static Vec3 renderpos = {-2,4,4};
 static UI ui;
 static char movingDirs[5];
@@ -90,7 +93,7 @@ static void Update(){
 	     moveVec = Math_Vec3MultFloat(moveVec, Window_GetDeltaTime() * moveSpeed);
 
 	      //position.x += moveVec.x;
-						//position.z += moveVec.z;
+		//position.z += moveVec.z;
 	    cubeObj->bb.pos.x += moveVec.x;
 	    cubeObj->bb.pos.z += moveVec.z;
 	    cubeObj->bb.pos.y += moveVec.y;
@@ -317,25 +320,28 @@ static char Draw(){
 	Math_Identity(idenity);
 	Shaders_SetModelMatrix(idenity);
 
+	Skybox_Draw(&skybox);
+
 	int k;
 	for(k = 0; k < cubeObj->skelBb.numChildren; k++){
 		World_DrawSkeleton(&cubeObj->skelBb.children[k]);
 	}
 
 	Skeleton_Update(&cubeSkel, cubeAnims, 1);
-	Skeleton_Apply(&cubeSkel);
 
-	Skybox_Draw(&skybox);
-	int j;
-	for(j = 0; j < NUM_GARBAGE; j++){
-		cans[j]->bb.renderDebug = 1;
-	}
+	//ConeConstraint_Create(&figure.constraints[0],&figure.skel->bones[14],
+	//&figure.skel->bones[15],(Vec3){0,1,0},1);
+
 	Shaders_UseProgram(TEXTURELESS_SHADER);
 	Shaders_SetModelMatrix(cubeObj->bb.matrix);
-
+	//Physics_ApplyForces(&figure);
+	
+	Skeleton_Apply(&cubeSkel);
+	Pathfinding_RenderDebug(&pf);
 
 	World_Render(1);
 	Particles_DrawParticles(particleImg, &ps, particles, 100, 50, forward, renderpos, 0);
+	
 	
 	UI_Clear(&ui);
 	UI_Render(&ui);
@@ -379,8 +385,8 @@ int main(int argc, char **argv){
 	particleImg.nFramesY = 5;
 	billboardImg = ImageLoader_CreateImage("Resources/tex.png",1);	
 
-	Pathfinder pf;
 	Pathfinding_Init(&pf, 10,10);
+	Pathfinding_LoadNavMesh(&pf, "Resources/room.nav");
 	Pathfinding_SetClosed(&pf, 1,1);	
 	Pathfinding_SetClosed(&pf, 1,2);	
 	Pathfinding_SetClosed(&pf, 1,3);
@@ -414,6 +420,8 @@ int main(int argc, char **argv){
 	RiggedModel_Load(&cubeModel, &cubeSkel, "Resources/figure.yuk");
 	memset(&cubeAnim, 0, sizeof(Animation));
 	Animation_Load(&cubeAnim, "Resources/figure_ArmatureAction.anm");
+
+
 	
 
 	Object_SetModel(cubeObj, &cubeModel);
@@ -431,7 +439,7 @@ int main(int argc, char **argv){
 	Object_SetModel(groundObj, &groundModel);
 	groundObj->Draw = DrawModel;
 	groundObj->AddUser(groundObj);
-	groundObj->bb.rot = (Vec3){0,1,0};
+	groundObj->bb.rot = (Vec3){0,0,0};
 	moveToPos = cubeObj->bb.pos;
 	groundObj->ObjUpdate(groundObj);
 	World_UpdateObjectInOctree(groundObj);
@@ -468,6 +476,8 @@ int main(int argc, char **argv){
 		 .anim = &cubeAnim,
 	};
 
+
+	figure.skel = &cubeSkel;
 	// thoth = Thoth_Create(WINDOW_WIDTH, WINDOW_HEIGHT );
 	// Thoth_LoadFile(thoth, "main.c");
 	Window_MainLoop(Update, Event, Draw, Focus, OnResize, 1, 1);

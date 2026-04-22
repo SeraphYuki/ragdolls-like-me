@@ -49,6 +49,7 @@ void UI_Init(UI *ui, int w, int h){
 	ui->uiImg = ImageLoader_CreateImage("Resources/ui.png", 1);
 
 	FontRenderer_Init(&ui->fr, w, h);	
+	FontRenderer_SetSize(&ui->fr,16);
 
 	glGenVertexArrays(1, &ui->quadVao);
 	glBindVertexArray(ui->quadVao);
@@ -112,7 +113,6 @@ void UI_Render(UI *ui){
 	UI_RenderRectTex(ui, ui->uiImg, x,y,(u16)(438.0f * ui->stress),20,0,0,(u16)(430.0f * ui->stress),19,255,255,255,180);
 	glBlendFunc(GL_ONE,GL_ONE_MINUS_SRC_ALPHA);
 
-	FontRenderer_SetSize(&ui->fr,16);
 	FontRenderer_RenderString(&ui->fr, x+36, y, "stress",0,0,0,255);
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, ui->fb);

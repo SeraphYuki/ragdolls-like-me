@@ -21,8 +21,10 @@ struct Bone {
 	Vec3 			pos;
 	Quat 			rot;
 	Vec3			 posDisplacement;
-	Vec3 			absPos;
-	Quat 			absRot;
+	Vec3 			worldPos;
+	Quat 			worldRot;
+	Quat 			localRot;
+	Vec3 			localPos;
 	Vec3 			linVel;
 	Vec3 			angVel;
 	Bone 			*children[BONE_MAX_CHILDREN];

@@ -328,8 +328,6 @@ int BoundingBox_ResolveCollision(Object *obj1, BoundingBox *bb, Object *obj2, Bo
 	 	ret += BoundingBox_ResolveCollision(obj1, bb, obj2, &bb2->children[k]);
 	}
 
-	bb->renderDebug = 0;
-	bb2->renderDebug = 0;
 
 	Vec3 axis;
 	float overlap = 0;
@@ -340,8 +338,6 @@ int BoundingBox_ResolveCollision(Object *obj1, BoundingBox *bb, Object *obj2, Bo
 		}
 	}
 
-	bb->renderDebug = 1;
-	bb2->renderDebug = 1;
 	if(obj1 && (obj1->storeLastCollisions || obj1->OnCollision)){
 		
 		if(obj1->OnCollision) obj1->OnCollision(obj1, obj2, bb, bb2, axis, overlap);

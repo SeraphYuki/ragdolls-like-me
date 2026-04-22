@@ -14,7 +14,6 @@ static void RemoveUser(Object *obj){
 }
 
 static void ObjUpdate(Object *obj){
-	//obj->bb.renderDebug = 0;
 	BoundingBox_UpdatePoints(&obj->bb);
  	if(obj->model->numBB > 1)
 		Object_UpdateModel(obj, obj->model);
