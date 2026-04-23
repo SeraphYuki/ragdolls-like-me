@@ -48,6 +48,11 @@ typedef struct {
 } Ray;
 
 typedef struct {
+	  Vec3 start;
+	  Vec3 end;
+} Line;
+
+typedef struct {
 	  float x;
 	  float y;
 	  float z;

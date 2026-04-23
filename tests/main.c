@@ -19,6 +19,7 @@
 #define NUM_GARBAGE 10
 
 
+static int onPath = 0;
 static Pathfinder pf;
 //static Thoth_t *thoth;
 static PhysicsFigure_t figure;
@@ -58,9 +59,8 @@ static void onThrow(Object *obj, Object *obj2, BoundingBox *bb, BoundingBox *bb2
 }
 
 static void onCube(Object *obj, Object *obj2, BoundingBox *bb, BoundingBox *bb2, Vec3 axis, float overlap){
-	obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,Math_Vec3MultFloat(axis, -overlap));
-	
-	obj->ObjUpdate(obj);
+	//obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,Math_Vec3MultFloat(axis, -overlap));
+	//obj->ObjUpdate(obj);
 }
 
 static void Update(){
@@ -68,7 +68,7 @@ static void Update(){
 	 cubeObj->bb.pos.y -= Window_GetDeltaTime() / 1000.0f;
 	if(cubeObj->bb.pos.y < 0.2){
 	    cubeObj->bb.pos.y = 0.2;
-		moveToPos.y = cubeObj->bb.pos.y;
+		//moveToPos.y = cubeObj->bb.pos.y;
 	}
 
 	static float animDir = 1;
@@ -86,7 +86,7 @@ static void Update(){
 	Vec3 moveVec = {0,0,0};
 	moveVec = Math_Vec3SubVec3(moveToPos,cubeObj->bb.pos);
 
-		if(Math_Vec3Magnitude(moveVec)){
+	if(Math_Vec3Magnitude(moveVec)){
 
 	     moveVec = Math_Vec3Normalize(moveVec);
 
@@ -160,8 +160,7 @@ static void Event(SDL_Event ev){
 			World_GetAllCollisionsRay((Ray){renderpos, ray}, &distance, &collision, &collisionObj);
 			if(collisionObj){
 				collisionObj->model->materials[0].diffuse = (Vec4){1,1,1,1};
-
-				if(collisionObj->type == TYPE_CAN){
+					if(collisionObj->type == TYPE_CAN){
 					
 					ui.stress += 0.1;
 					
@@ -180,8 +179,10 @@ static void Event(SDL_Event ev){
 					}
 				} else {
 					if(collisionObj == groundObj){
-						moveToPos = Math_Vec3AddVec3(renderpos,
+						//moveToPos = Math_Vec3AddVec3(renderpos,
+						Pathfinding_FindPath(&pf,cubeObj->bb.pos,
 						Math_Vec3MultFloat(ray, distance));
+					
 					} else {
 						
 						rotatingObj = collisionObj;
@@ -335,7 +336,18 @@ static char Draw(){
 	Shaders_UseProgram(TEXTURELESS_SHADER);
 	Shaders_SetModelMatrix(cubeObj->bb.matrix);
 	//Physics_ApplyForces(&figure);
+
+		
+	moveToPos = pf.path[onPath];
+	if(onPath < pf.nPath && Math_Vec3Magnitude(Math_Vec3SubVec3(moveToPos,cubeObj->bb.pos)) < 0.1){
+		onPath++; 
+		if(onPath > pf.nPath) onPath = 0;
+		moveToPos = pf.path[onPath];
+		printf("%f %f %f\n", moveToPos.x,moveToPos.y,moveToPos.z);
+	}
 	
+
+
 	Skeleton_Apply(&cubeSkel);
 	Pathfinding_RenderDebug(&pf);
 
@@ -385,13 +397,22 @@ int main(int argc, char **argv){
 	particleImg.nFramesY = 5;
 	billboardImg = ImageLoader_CreateImage("Resources/tex.png",1);	
 
+
 	Pathfinding_Init(&pf, 10,10);
 	Pathfinding_LoadNavMesh(&pf, "Resources/room.nav");
-	Pathfinding_SetClosed(&pf, 1,1);	
-	Pathfinding_SetClosed(&pf, 1,2);	
-	Pathfinding_SetClosed(&pf, 1,3);
-	Pathfinding_FindPath(&pf, 0,0,3,3);
+	Pathfinding_SetClosed(&pf, 4,4);
+	Pathfinding_SetClosed(&pf, 4,5);
+	Pathfinding_SetClosed(&pf, 4,7);
+	Pathfinding_SetClosed(&pf, 4,3);
+	Pathfinding_SetClosed(&pf, 4,2);
+	Pathfinding_SetClosed(&pf, 4,1);
+	Pathfinding_SetClosed(&pf, 4,9);
+	Pathfinding_SetClosed(&pf, 4,8);
+	Pathfinding_FindPathGrid(&pf, 5,0,10,0);
 
+
+	
+	
 	World_InitOctree((Vec3){-100, -100, -100}, 200, 25);
 
 	glClearColor(0,0,0,1);
@@ -427,7 +448,10 @@ int main(int argc, char **argv){
 	Object_SetModel(cubeObj, &cubeModel);
 	cubeObj->Draw = DrawRigged;
 	cubeObj->AddUser(cubeObj);
+
 	cubeObj->bb.pos.y = 1;
+	cubeObj->bb.pos = moveToPos = pf.path[onPath];
+	
 	cubeObj->bb.scale = (Vec3){0.2,0.2,0.2};
 	cubeObj->bb.rot = (Vec3){0,0,0};
 	cubeObj->bb.cube = (Cube){-2.5,0.1,-2.5,5,10,5};

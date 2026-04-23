@@ -1,36 +1,61 @@
 #ifndef PATHFINDING_DEF
 #define PATHFINDING_DEF
 
-#define MAX_PATHFINDING_NODES 1024
+#define MAX_PATHFINDING_NODES 2048
 #include "math.h"
 
-typedef struct {
-		int g;
-		int f;
+typedef struct AStarNode AStarNode;
+struct AStarNode {
+		float g;
+		float f;
 		int index;
-} AStarNode;
+		AStarNode *parent;
+} ;
 
 typedef struct {
-	AStarNode open[MAX_PATHFINDING_NODES];
-	int nOpen;
-	AStarNode closed[MAX_PATHFINDING_NODES];
-	int nClosed;
+	
+} PathfindingPortal;
+
+typedef struct PathfindingTri PathfindingTri;
+
+struct PathfindingTri{
+	Vec3 points[3];
+	Vec3 centroid;
+	float radius;
+	PathfindingTri *neighbors[MAX_PATHFINDING_NODES];
+	int nNeighbors;
+	Line portals[MAX_PATHFINDING_NODES];
+	int nPortals;
+	int index;
+};
+
+typedef struct {
 	int w;
 	int h;
+	AStarNode open[MAX_PATHFINDING_NODES];
+	AStarNode closed[MAX_PATHFINDING_NODES];
+	AStarNode nodes[MAX_PATHFINDING_NODES];
+	Vec3 path[MAX_PATHFINDING_NODES];
+	int pathIndicies[MAX_PATHFINDING_NODES];
+	int nPath;
+	int nOpen;
+	int nClosed;
 	int ebo;
 	int vao;
 	int vbo;
-	int nElements;
+	Vec3 verts[MAX_PATHFINDING_NODES];
+	int nVerts;
+	PathfindingTri tris[MAX_PATHFINDING_NODES];
+	int nFaces;
 	Cube cube;
 	Vec3 pos;
 } Pathfinder;
 
 void Pathfinding_RenderDebug(Pathfinder *pf);
 void Pathfinding_LoadNavMesh(Pathfinder *pf, const char *path);
-int Pathfinding_FindPath(Pathfinder *pf, int x, int y, int gx, int gy);
+int Pathfinding_FindPathGrid(Pathfinder *pf, int x, int y, int gx, int gy);
 void Pathfinding_SetClosed(Pathfinder *pf, int x, int y);
+int Pathfinding_FindPath(Pathfinder *pf, Vec3 pos, Vec3 goal);
 void Pathfinding_Init(Pathfinder *pf, int w, int h);
-void Pathfinding_SetClosed(Pathfinder *pf, int x, int y);
-int Pathfinding_FindPath(Pathfinder *pf, int x, int y, int tx, int ty);
 
 #endif
