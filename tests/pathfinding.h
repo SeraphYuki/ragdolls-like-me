@@ -37,6 +37,8 @@ typedef struct {
 	AStarNode nodes[MAX_PATHFINDING_NODES];
 	Vec3 path[MAX_PATHFINDING_NODES];
 	int pathIndicies[MAX_PATHFINDING_NODES];
+	Line channel[MAX_PATHFINDING_NODES];
+	int nChannel;						
 	int nPath;
 	int nOpen;
 	int nClosed;

@@ -36,12 +36,12 @@ static float GetOverlap(float minA, float maxA, float minB, float maxB){
     return smallest;
  }
 
-static int CheckCollision(Vec3 *axes, Vec3 *pointsA, int nPointsA, Vec3 *pointsB, int nPointsB, 
+static int CheckCollision(Vec3 *axes, int nAxes, Vec3 *pointsA, int nPointsA, Vec3 *pointsB, int nPointsB, 
 	float *minOverlap, Vec3 *minAxis){
 
 	*minOverlap = HUGE_VAL;
 	int k;
-	for(k = 0; k < 15; k++){
+	for(k = 0; k < nAxes; k++){
 
 		float minA = HUGE_VAL, maxA = -HUGE_VAL, minB = HUGE_VAL, maxB = -HUGE_VAL;
 
@@ -102,7 +102,7 @@ float SAT_Collision(Vec3 *pointsA, Vec3 *pointsB, Vec3 *axesA, Vec3 *axesB, floa
 			Math_Vec3Cross(axesA[2], axesB[2])
 		};
 
-		if(CheckCollision(axes, pointsA,8,pointsB, 8, overlap, axis))
+		if(CheckCollision(axes, 15, pointsA,8,pointsB, 8, overlap, axis))
 			return 1;
 
 
@@ -328,6 +328,9 @@ int BoundingBox_ResolveCollision(Object *obj1, BoundingBox *bb, Object *obj2, Bo
 	 	ret += BoundingBox_ResolveCollision(obj1, bb, obj2, &bb2->children[k]);
 	}
 
+	if(bb->noCollisions || bb2->noCollisions) return ret;
+	bb->renderDebug = 1;
+	bb2->renderDebug = 1;
 
 	Vec3 axis;
 	float overlap = 0;
@@ -336,6 +339,16 @@ int BoundingBox_ResolveCollision(Object *obj1, BoundingBox *bb, Object *obj2, Bo
 		if(!BoundingBox_SATCollision(bb, bb2, &overlap, &axis)){
 			return ret;	
 		}
+	} else {
+
+		Vec3 axes[] = {
+			(Vec3){1,0,0},
+			(Vec3){0,1,0},
+			(Vec3){0,0,1},
+		};
+
+		if(!CheckCollision(axes, 3, bb->points,8,bb2->points, 8, &overlap,&axis))
+			return 0;
 	}
 
 	if(obj1 && (obj1->storeLastCollisions || obj1->OnCollision)){
@@ -444,7 +457,7 @@ void BoundingBox_UpdatePoints(BoundingBox *bb){
 }
 
 int BoundingBox_IsSAT(BoundingBox *bb){
-	if(bb->noCollisions != 0){
+	if(bb->noCollisions != 0 || (bb->axes[0].x == 1 && bb->axes[1].y == 1 && bb->axes[2].z == 1)){
 		return 0;
 	}
 	return 1;

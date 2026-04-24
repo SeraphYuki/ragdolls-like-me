@@ -100,6 +100,7 @@ void vcpy(float *v1, float *v2){
 }
 
 void stringPull(Pathfinder *pf, Line *portals, int nPortals){
+
 	 Vec3 pts[MAX_PATHFINDING_NODES];
 	int nPts = 0;
 	 // Init scan state
@@ -181,15 +182,15 @@ void stringPull(Pathfinder *pf, Line *portals, int nPortals){
 	   pts[nPts++] = (portals[nPortals - 1].start);
 	 }
 	
+	Vec3 lastPoint = (Vec3){0,0};
 	int k;
 	for(k = 0; k < nPts; k++){
+		if(AlmostEqualVec3(pts[k],lastPoint)) continue;
 		pf->path[k] = pts[k];
-		//printf("%f %f %f\n", pts[k].x,pts[k].y,pts[k].z);
+		lastPoint = pts[k];
+		printf("%f %f %f\n", pts[k].x,pts[k].y,pts[k].z);
 	}
 	pf->nPath = nPts;
-
-    //this.path = pts;
-	 //return pts;
  }
 
 
@@ -248,6 +249,7 @@ void Pathfinding_LoadNavMesh(Pathfinder *pf, const char *path){
 	     pf->tris[k].points[0]  = pf->verts[k*3];
 	     pf->tris[k].points[1]  = pf->verts[(k*3) + 1];
 	     pf->tris[k].points[2]  = pf->verts[(k*3) + 2];
+		pf->tris[k].index = k;
 	     pf->tris[k].centroid = Math_Vec3MultFloat(Math_Vec3AddVec3(
 						Math_Vec3AddVec3(pf->tris[k].points[0],pf->tris[k].points[1]),
 									pf->tris[k].points[0]), 1.0f/3);
@@ -351,18 +353,22 @@ void Pathfinding_RenderDebug(Pathfinder *pf){
 	//glDrawArrays(GL_LINE_STRIP, 0, pf->nVerts);
 
 	int k;
-	for(k = 0; k < pf->nFaces; k++){
+	for(k = 0; k < pf->nChannel; k++){
 		
-		PathfindingTri tri = pf->tris[k];
-		int m;
-		for(m = 0; m < tri.nNeighbors; m++){
+		//PathfindingTri tri = pf->tris[k];
+		//int m;
+		//for(m = 0; m < tri.nPortals; m++){
+
 			//printf("%i %i\n", k, m);
 			Shaders_SetUniformColor((Vec4){1,1,1,1});		
-			PathfindingTri *tri2 = pf->tris[k].neighbors[m];
+
+			//Line line = tri.portals[m];
+			Line line = pf->channel[k];
+			
 			 glBindBuffer(GL_ARRAY_BUFFER, pf->vbo);
-			 glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(Vec3), (float *)&tri2->points[0].x, GL_STATIC_DRAW);
-			glDrawArrays(GL_LINE_STRIP, 0, 3);
-		}			
+			 glBufferData(GL_ARRAY_BUFFER, 2 * sizeof(Vec3), (float *)&line.start.x, GL_STATIC_DRAW);
+			//glDrawArrays(GL_LINES, 0, 2);
+		//}			
 	}
 
 
@@ -453,13 +459,12 @@ int Pathfinding_FindPath(Pathfinder *pf, Vec3 pos, Vec3 goal){
 				pf->path[k] = pathReversed[pf->nPath-1-k];
 				pf->pathIndicies[k] = pathIndicies[pf->nPath-1-k];
 			}
+			pf->nChannel = 0;
 			
-			Line channel[MAX_PATHFINDING_NODES];
-			int nChannel;						
-			for(k = 0; k < pf->nPath; k++){
+			for(k = 0; k < pf->nPath-1; k++){
 				PathfindingTri tri = pf->tris[pf->pathIndicies[k]];
 				PathfindingTri tri2 = pf->tris[pf->pathIndicies[k + 1]];
-			
+							
 				Line portal;
 				int f;
 				for(f = 0; f < tri.nNeighbors; f++){
@@ -468,11 +473,11 @@ int Pathfinding_FindPath(Pathfinder *pf, Vec3 pos, Vec3 goal){
 					}
 				}
 
-				channel[nChannel++] = portal;
+				pf->channel[pf->nChannel++] = portal;
  			}
-			channel[nChannel++] = (Line){goal, goal};	
+			//pf->channel[pf->nChannel++] = (Line){goal, goal};	
 
-			stringPull(pf, channel, nChannel);
+			stringPull(pf, pf->channel, pf->nChannel);
 			
 			return 0;			
 		}
