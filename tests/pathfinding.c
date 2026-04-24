@@ -19,11 +19,16 @@ float triArea(PathfindingTri tri){
 }
 
  float triarea2(Vec3 a, Vec3 b, Vec3 c){
-	 const float ax = b.x - a.x;
-	 const float ay = b.y - a.y;
-	 const float bx = c.x - a.x;
-	 const float by = c.y - a.y;
-	 return bx*ay - ax*by;
+
+	Vec3 v1 = Math_Vec3SubVec3(b, a);
+	Vec3 v2 = Math_Vec3SubVec3(c, a);
+	return Math_Vec3Magnitude(Math_Vec3Cross(v1,v2));
+
+	 //const float ax = b.x - a.x;
+	 //const float ay = b.y - a.y;
+	 //const float bx = c.x - a.x;
+	 //const float by = c.y - a.y;
+	 //return bx*ay - ax*by;
 }
 
 
@@ -71,6 +76,8 @@ float GetOverlap( Line line1, Line line2, Line *ret){
 		else if (a.point.x > b.point.x) return 1;
 		if (a.point.y < b.point.y) return -1;
 		else if (a.point.y > b.point.y) return 1;
+		//if (a.point.z < b.point.z) return -1;
+		//else if (a.point.z > b.point.z) return 1;
 		return 0;
 	} 
 	
@@ -79,10 +86,14 @@ float GetOverlap( Line line1, Line line2, Line *ret){
 
     // If the first two points in the array come from the same line, no overlap
 	 int noOverlap = points[0].index == points[1].index;
+
 	 // If the two middle points in the array are the same coordinates, then there is a
 	 // single point of overlap.
+
 	 int singlePointOverlap = equalMagnitude(points[1].point, points[2].point);
+
 	 if (noOverlap || singlePointOverlap) return 0;
+
 	*ret = (Line){points[1].point, points[2].point};
 	 return 1;
 }
@@ -193,12 +204,11 @@ void stringPull(Pathfinder *pf, Line *portals, int nPortals){
 	pf->nPath = nPts;
  }
 
-
-void Pathfinding_LoadNavMesh(Pathfinder *pf, const char *path){
+static void LoadNavFile(Pathfinder *pf, const char *path){
 	int k;
 	 u16 stride = sizeof(Vec3);
 	
-    void *offset = (void *)sizeof(Vec3);
+	 void *offset = (void *)sizeof(Vec3);
 
 	 FILE *fp = fopen(path, "rb");
 
@@ -244,8 +254,9 @@ void Pathfinding_LoadNavMesh(Pathfinder *pf, const char *path){
 
     glBindBuffer(GL_ARRAY_BUFFER, pf->vbo);
 	 glBufferData(GL_ARRAY_BUFFER, size, vboData, GL_STATIC_DRAW);
-
-    for(k = 0; k < pf->nFaces; k++){
+	 fclose(fp);
+	
+	 for(k = 0; k < pf->nFaces; k++){
 	     pf->tris[k].points[0]  = pf->verts[k*3];
 	     pf->tris[k].points[1]  = pf->verts[(k*3) + 1];
 	     pf->tris[k].points[2]  = pf->verts[(k*3) + 2];
@@ -254,7 +265,6 @@ void Pathfinding_LoadNavMesh(Pathfinder *pf, const char *path){
 						Math_Vec3AddVec3(pf->tris[k].points[0],pf->tris[k].points[1]),
 									pf->tris[k].points[0]), 1.0f/3);
 
-	printf("%f %f %f\n", pf->tris[k].centroid.x,pf->tris[k].centroid.y,pf->tris[k].centroid.z);
 		float mag1 = Math_Vec3Magnitude(Math_Vec3SubVec3(pf->tris[k].points[0],pf->tris[k].points[1]));
 		float mag2 = Math_Vec3Magnitude(Math_Vec3SubVec3(pf->tris[k].points[0],pf->tris[k].points[2]));
 		pf->tris[k].radius = mag1 > mag2 ? mag1 : mag2;
@@ -265,6 +275,60 @@ void Pathfinding_LoadNavMesh(Pathfinder *pf, const char *path){
 		pf->tris[k].index = k;
 	}
 
+}
+
+float triangleArea(Vec2 a, Vec2 b, Vec2 c){
+	return (a.x - c.x) * (b.y - c.y) - (b.x - c.x) * (a.y - c.y);
+}
+
+Vec3 barycentric(Vec2 a, Vec2 b, Vec2 c, Vec2 p) { 
+    Vec3 u = Math_Vec3Cross((Vec3){c.x-a.x, b.x-a.x, a.x-p.x}, (Vec3){c.y-a.y, b.y-a.y, a.y-p.y});
+    if(fabs(u.z)<1) return (Vec3){-1,1,1};
+    return (Vec3){1.f-(u.x+u.y)/u.z, u.y/u.z, u.x/u.z}; 
+} 
+void Pathfinding_LoadNavGrid(Pathfinder *pf, const char *path){
+	
+	LoadNavFile(pf, path);
+
+	pf->w = ceil(pf->cube.w) * PATHFINDING_NODE_GRID_SIZE;
+	pf->h = ceil(pf->cube.d) * PATHFINDING_NODE_GRID_SIZE;
+	
+	int k;
+	int x = 0, y = 0;
+	for(x = 0; x < pf->w; x++){
+		for(y = 0; y < pf->h; y++){
+
+			Vec2 p = (Vec2){x,y};
+			int inTriangle = 0;
+			for(k = 0; k < pf->nFaces; k++){
+
+				Vec3 p0 = pf->tris[k].points[0];
+				Vec3 p1 = pf->tris[k].points[1];
+				Vec3 p2 = pf->tris[k].points[2];
+				
+				Vec2 v0 = {p0.x-pf->cube.x,p0.z-pf->cube.z};
+				Vec2 v1 = {p1.x-pf->cube.x,p1.z-pf->cube.z};
+				Vec2 v2 = {p2.x-pf->cube.x,p2.z-pf->cube.z};
+
+				float w0 =  triangleArea(v1, v0, p);
+				float w1 =  triangleArea(v2, v1, p);
+				float w2 =  triangleArea(v0, v2, p);
+				float hasNeg = w0 < 0 || w1 < 0 || w2 < 0;
+				float hasPos = w0 > 0 || w1 > 0 || w2 > 0;
+				if((hasNeg && hasPos)) continue;
+				inTriangle = 1;				
+				break;
+			}
+			if(!inTriangle)
+				Pathfinding_SetClosed(pf, x, y);
+		}
+	}
+}
+
+void Pathfinding_LoadNavMesh(Pathfinder *pf, const char *path){
+
+	LoadNavFile(pf, path);
+	int k;
 	 for(k = 0; k < pf->nFaces; k++){
 		int j;
 		PathfindingTri *tri = &pf->tris[k];
@@ -329,7 +393,6 @@ void Pathfinding_LoadNavMesh(Pathfinder *pf, const char *path){
 	}
 
 
-	 fclose(fp);
 
     glBindVertexArray(0);
 
@@ -344,32 +407,29 @@ void Pathfinding_RenderDebug(Pathfinder *pf){
 	Math_TranslateMatrix(matrix,pf->pos);
 	Shaders_SetModelMatrix(matrix);
 	Shaders_UpdateModelMatrix();
+	Shaders_UpdateViewMatrix();
+	Shaders_UpdateProjectionMatrix();
 
 	glBindVertexArray(pf->vao);
 	glCullFace(GL_BACK);
 
     //glBindBuffer(GL_ARRAY_BUFFER, pf->vbo);
+	//glPolygonMode(GL_FRONT_AND_BACK,GL_LINES);
 	 //glBufferData(GL_ARRAY_BUFFER, pf->nVerts * sizeof(Vec3), (float *)&pf->verts[0].x, GL_STATIC_DRAW);
-	//glDrawArrays(GL_LINE_STRIP, 0, pf->nVerts);
-
-	int k;
-	for(k = 0; k < pf->nChannel; k++){
+	//glDrawArrays(GL_TRIANGLES, 0, pf->nVerts);
+	//glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+	
+	//int k;
+	//for(k = 0; k < pf->nChannel; k++){
 		
-		//PathfindingTri tri = pf->tris[k];
-		//int m;
-		//for(m = 0; m < tri.nPortals; m++){
+		//Shaders_SetUniformColor((Vec4){1,1,1,1});		
 
-			//printf("%i %i\n", k, m);
-			Shaders_SetUniformColor((Vec4){1,1,1,1});		
-
-			//Line line = tri.portals[m];
-			Line line = pf->channel[k];
-			
-			 glBindBuffer(GL_ARRAY_BUFFER, pf->vbo);
-			 glBufferData(GL_ARRAY_BUFFER, 2 * sizeof(Vec3), (float *)&line.start.x, GL_STATIC_DRAW);
-			//glDrawArrays(GL_LINES, 0, 2);
-		//}			
-	}
+		//Line line = pf->channel[k];
+		
+		 //glBindBuffer(GL_ARRAY_BUFFER, pf->vbo);
+		 //glBufferData(GL_ARRAY_BUFFER, 2 * sizeof(Vec3), (float *)&line.start.x, GL_STATIC_DRAW);
+		//glDrawArrays(GL_LINES, 0, 2);
+	//}
 
 
 
@@ -379,6 +439,12 @@ void Pathfinding_RenderDebug(Pathfinder *pf){
 	glDrawArrays(GL_LINE_STRIP, 0, pf->nPath);
 	Shaders_SetUniformColor((Vec4){1,1,1,1});		
 
+	//Shaders_SetUniformColor((Vec4){0,1,1,1});
+	//glBindBuffer(GL_ARRAY_BUFFER, pf->vbo);
+	//glPointSize(10);
+	//glBufferData(GL_ARRAY_BUFFER, pf->nClosed  * sizeof(Vec3), (float *)&pf->closedVerts[0].x, GL_STATIC_DRAW);
+	//glDrawArrays(GL_POINTS, 0, pf->nClosed);
+	//Shaders_SetUniformColor((Vec4){1,1,1,1});		
 
 	glBindVertexArray(0);
 
@@ -435,8 +501,9 @@ int Pathfinding_FindPath(Pathfinder *pf, Vec3 pos, Vec3 goal){
 		pf->closed[pf->nClosed++] = *curr;
 
 		curr = &pf->closed[pf->nClosed-1];
-
-		pf->open[m] = pf->open[0];
+		
+		if(m >= 0)
+			pf->open[m] = pf->open[0];
 
 		pf->nOpen--;
 		for(m = 0; m < pf->nOpen; m++){
@@ -475,9 +542,9 @@ int Pathfinding_FindPath(Pathfinder *pf, Vec3 pos, Vec3 goal){
 
 				pf->channel[pf->nChannel++] = portal;
  			}
-			//pf->channel[pf->nChannel++] = (Line){goal, goal};	
+			pf->channel[pf->nChannel++] = (Line){goal, goal};	
 
-			stringPull(pf, pf->channel, pf->nChannel);
+			//stringPull(pf, pf->channel, pf->nChannel);
 			
 			return 0;			
 		}
@@ -506,7 +573,7 @@ int Pathfinding_FindPath(Pathfinder *pf, Vec3 pos, Vec3 goal){
 						Math_Vec3Magnitude(Math_Vec3SubVec3(neighbor->centroid, goal));
 					pf->open[m].g = tentative_gscore;
 					pf->open[m].index = neighbor->index;
-					pf->open[m].parent = &pf->closed[pf->nClosed-1];
+					pf->open[m].parent = curr;
 				}
 				continue;
 			}
@@ -515,7 +582,7 @@ int Pathfinding_FindPath(Pathfinder *pf, Vec3 pos, Vec3 goal){
 					Math_Vec3Magnitude(Math_Vec3SubVec3(neighbor->centroid, goal));
 			pf->open[pf->nOpen].g = tentative_gscore;
 			pf->open[pf->nOpen].index = neighbor->index;
-			pf->open[pf->nOpen].parent = &pf->closed[pf->nClosed-1];
+			pf->open[pf->nOpen].parent = curr;
 			pf->nOpen++;
 		}
 	}
@@ -530,7 +597,7 @@ void Pathfinding_Init(Pathfinder *pf, int w, int h){
 	pf->h = h;
 
 
-    glGenVertexArrays(1, &pf->vao);
+	 glGenVertexArrays(1, &pf->vao);
 	 glBindVertexArray(pf->vao);
 
     glGenBuffers(1, &pf->ebo);
@@ -547,33 +614,44 @@ void Pathfinding_Init(Pathfinder *pf, int w, int h){
 void Pathfinding_SetClosed(Pathfinder *pf, int x, int y){
 	int index = x + (y * pf->w);
 	AStarNode node;
+	Vec3 pos = (Vec3){(x * PATHFINDING_NODE_GRID_SIZE), 1, 
+		(y * PATHFINDING_NODE_GRID_SIZE)};
+		pos.x += pf->cube.x;
+		pos.z += pf->cube.z;
+
+	pf->closedVerts[pf->nClosed] = pos;
 	node.index = index;
 	pf->closed[pf->nClosed] = node;
 	pf->nClosed++;
+	pf->nClosedObstacles = pf->nClosed;
 }
 
-
-int Pathfinding_FindPathGrid(Pathfinder *pf, int x, int y, int gx, int gy){
-
+int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal){
+	int x =  ( pos.x - pf->cube.x) * PATHFINDING_NODE_GRID_SIZE;
+	int y =  ( pos.z - pf->cube.z) * PATHFINDING_NODE_GRID_SIZE;	
+	int gx = (  goal.x - pf->cube.x) * PATHFINDING_NODE_GRID_SIZE;
+	int gy = (  goal.z - pf->cube.z) * PATHFINDING_NODE_GRID_SIZE;	
+	
+	printf("%i %i %i %i\n", x,y, gx, gy);
+	
 	AStarNode *curr = &pf->open[0];
 	curr->index = x + (y * pf->w); 
 	curr->f = HUGE_VAL;
 	curr->g = 0;
+	pf->nPath = 0;
 	curr->parent = NULL;
+	pf->nClosed = pf->nClosedObstacles;	
+	pf->nOpen = 1;
 	
-	pf->nOpen++;
-	
-	int goal = gx + (gy * pf->w);	
-
+	int goalIndex = gx + (gy * pf->w);	
 	while(pf->nOpen > 0 && pf->nClosed < MAX_PATHFINDING_NODES){
 		
 		curr = &pf->open[0];
 
 		int m;
 		for(m = pf->nOpen-1; m >= 0; m--){
-			if( pf->open[m].f <= curr->f){
+			if( pf->open[m].f < curr->f){
 				curr = &pf->open[m];
-				break;
 			}	
 		}
 
@@ -581,29 +659,37 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, int x, int y, int gx, int gy){
 				
 		curr = &pf->closed[pf->nClosed-1];
 
-		pf->open[m] = pf->open[0];
+		if(m >= 0)
+			pf->open[m] = pf->open[0];
 
 		pf->nOpen--;
 		for(m = 0; m < pf->nOpen; m++){
 			pf->open[m] = pf->open[m+1];
-		}		
-		
-		if(curr->index == goal){ 
-			printf("goal\n");
+		}
+
+		if(curr->index == goalIndex){ 
+			pf->nPath = 0;
+			Vec3 pathReversed[MAX_PATHFINDING_NODES];
 			while(curr){
 				float nx = (float)((int)curr->index % pf->w);
 				float ny = (float)((int)curr->index / pf->w);
 		
-		
-			
-				Vec3 pos = (Vec3){-5.0 + (nx ), 1, -5.0 + (ny)};
-				pf->path[pf->nPath++] = pos;
+				Vec3 pos = (Vec3){(nx * PATHFINDING_NODE_GRID_SIZE), 1, 
+				(ny * PATHFINDING_NODE_GRID_SIZE)};
+				pos.x += pf->cube.x;
+				pos.z += pf->cube.z;
+				pathReversed[pf->nPath++] = pos;
 				curr = curr->parent;
-			} 
-			return 0; 
+			}
+			
+			int k;
+			for(k = 0; k < pf->nPath; k++){
+				pf->path[k] = pathReversed[pf->nPath-1-k];
+			}
+			return 0;
 		}
 
-		int neighbors[] = {
+			int neighbors[] = {
 			curr->index + 1,
 			curr->index + pf->w,
 			curr->index - 1,
@@ -612,14 +698,14 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, int x, int y, int gx, int gy){
 		
 		int f;
 		for(f = 0; f < 4; f++){
-			if(neighbors[f] < 0 || neighbors[f] > pf->w * pf->h) continue;
 
-			printf("%i\n", curr->index);	
+			//if(neighbors[f] < 0 || neighbors[f] > pf->w * pf->h) continue;
+			
 			int m;
 			for(m = 0; m < pf->nClosed; m++){
 				if(pf->closed[m].index == neighbors[f]) break;
 			}
-			if(m != pf->nClosed || pf->nClosed == 0) {
+			if(m != pf->nClosed &&  pf->nClosed > 0) {
 				continue;
 			}
 			
@@ -641,9 +727,8 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, int x, int y, int gx, int gy){
 				continue;
 			}
 			
+			
 			pf->open[pf->nOpen].f = tentative_gscore + ((nx-gx)*(nx-gx)) + ((ny-gy)*(ny-gy));
-			printf("%i %f %f %i %i %i\n", goal, curr->f, pf->open[pf->nOpen].f, curr->index, 
-			neighbors[f], pf->nOpen);
 			pf->open[pf->nOpen].g = tentative_gscore;
 			pf->open[pf->nOpen].index = neighbors[f];
 			pf->open[pf->nOpen].parent = curr;

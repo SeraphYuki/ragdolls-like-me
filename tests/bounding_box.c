@@ -329,8 +329,8 @@ int BoundingBox_ResolveCollision(Object *obj1, BoundingBox *bb, Object *obj2, Bo
 	}
 
 	if(bb->noCollisions || bb2->noCollisions) return ret;
-	bb->renderDebug = 1;
-	bb2->renderDebug = 1;
+	//bb->renderDebug = 1;
+	//bb2->renderDebug = 1;
 
 	Vec3 axis;
 	float overlap = 0;

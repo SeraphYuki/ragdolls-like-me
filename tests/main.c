@@ -59,8 +59,8 @@ static void onThrow(Object *obj, Object *obj2, BoundingBox *bb, BoundingBox *bb2
 }
 
 static void onCube(Object *obj, Object *obj2, BoundingBox *bb, BoundingBox *bb2, Vec3 axis, float overlap){
-	obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,Math_Vec3MultFloat(axis, -overlap));
-	obj->ObjUpdate(obj);
+	//obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,Math_Vec3MultFloat(axis, -overlap));
+	//obj->ObjUpdate(obj);
 }
 
 static void Update(){
@@ -72,7 +72,7 @@ static void Update(){
 	}
 
 	static float animDir = 1;
-	 cubeAnims[0].into += animDir * Window_GetDeltaTime() / 100.1f;
+	 cubeAnims[0].into += animDir * Window_GetDeltaTime() / 40.1f;
 
     if(cubeAnims[0].into > cubeAnim.length || cubeAnims[0].into < 0){
 		animDir = - animDir;
@@ -85,20 +85,29 @@ static void Update(){
 	
 	Vec3 moveVec = {0,0,0};
 	
-	if(movingDirs[0]) moveVec.z += 1;
-	if(movingDirs[1]) moveVec.z -= 1;
-	if(movingDirs[2]) moveVec.x += 1;
-	if(movingDirs[3]) moveVec.x -= 1;
-	if(movingDirs[4]) moveVec.y += 1;
-	//moveVec = Math_Vec3SubVec3(moveToPos,cubeObj->bb.pos);
+	//if(movingDirs[0]) moveVec.z += 1;
+	//if(movingDirs[1]) moveVec.z -= 1;
+	//if(movingDirs[2]) moveVec.x += 1;
+	//if(movingDirs[3]) moveVec.x -= 1;
+	//if(movingDirs[4]) moveVec.y += 1;
+	moveVec = Math_Vec3SubVec3(moveToPos,cubeObj->bb.pos);
 
 	if(Math_Vec3Magnitude(moveVec)){
 
 	     moveVec = Math_Vec3Normalize(moveVec);
 
+		
+		Vec3 xz = moveVec;
+		xz.y = 0;
+		if(Math_Vec3Magnitude(xz) > 0){
+			xz = Math_Vec3Normalize(xz);
+			Vec3 forward = Math_Rotate((Vec3){0,0,-1},cubeObj->bb.rot);
+			float dot = Math_Vec3Dot(forward,xz);
+			cubeObj->bb.rot.y -= dot * moveSpeed;
+		}   
 	     moveVec = Math_Vec3MultFloat(moveVec, Window_GetDeltaTime() * moveSpeed);
 
-	      //position.x += moveVec.x;
+	   //position.x += moveVec.x;
 		//position.z += moveVec.z;
 	    cubeObj->bb.pos.x += moveVec.x;
 	    cubeObj->bb.pos.z += moveVec.z;
@@ -165,7 +174,8 @@ static void Event(SDL_Event ev){
 	
 			World_GetAllCollisionsRay((Ray){renderpos, ray}, &distance, &collision, &collisionObj);
 			if(collisionObj){
-				collisionObj->model->materials[0].diffuse = (Vec4){1,1,1,1};
+				if(collisionObj != groundObj)
+					collisionObj->model->materials[0].diffuse = (Vec4){1,1,1,1};
 					if(collisionObj->type == TYPE_CAN){
 					
 					ui.stress += 0.1;
@@ -185,10 +195,15 @@ static void Event(SDL_Event ev){
 					}
 				} else {
 					if(collisionObj == groundObj){
-						moveToPos = Math_Vec3AddVec3(renderpos,
-						Math_Vec3MultFloat(ray, distance));
 						
-						//Pathfinding_FindPath(&pf,cubeObj->bb.pos,
+						//Pathfinding_FindPathGrid(&pf,cubeObj->bb.pos,
+						//Math_Vec3AddVec3(renderpos,
+						//Math_Vec3MultFloat(ray, distance)));
+						
+						Pathfinding_FindPath(&pf,cubeObj->bb.pos,
+						Math_Vec3AddVec3(renderpos,
+						Math_Vec3MultFloat(ray, distance)));
+						
 						onPath = 0;
 					} else {
 						
@@ -271,6 +286,7 @@ static void DrawRigged(Object *obj){
 
 	glBindVertexArray(0);
 }
+
 static void DrawModel(Object *obj){
 
 	Shaders_UseProgram(TEXTURED_SHADER);
@@ -332,7 +348,7 @@ static char Draw(){
 
 	int k;
 	for(k = 0; k < cubeObj->skelBb.numChildren; k++){
-		World_DrawSkeleton(&cubeObj->skelBb.children[k]);
+		//World_DrawSkeleton(&cubeObj->skelBb.children[k]);
 	}
 
 	Skeleton_Update(&cubeSkel, cubeAnims, 1);
@@ -345,13 +361,13 @@ static char Draw(){
 	//Physics_ApplyForces(&figure);
 
 		
-	//moveToPos = pf.path[onPath];
-	//if(onPath < pf.nPath-1 && Math_Vec3Magnitude(Math_Vec3SubVec3(moveToPos,cubeObj->bb.pos)) < 0.1){
-		//onPath++; 
-		//if(onPath >= pf.nPath) onPath = 0;
-		//if(onPath < pf.nPath)
-			//moveToPos = pf.path[onPath];
-	//}
+	if(pf.nPath > 0 && onPath < pf.nPath-1 && Math_Vec3Magnitude(Math_Vec3SubVec3(moveToPos,cubeObj->bb.pos)) < 0.1){
+		moveToPos = pf.path[onPath];
+		onPath++; 
+		if(onPath >= pf.nPath) onPath = 0;
+		if(onPath < pf.nPath)
+			moveToPos = pf.path[onPath];
+	}
 	
 
 
@@ -405,21 +421,12 @@ int main(int argc, char **argv){
 	billboardImg = ImageLoader_CreateImage("Resources/tex.png",1);	
 
 
-	//Pathfinding_Init(&pf, 10,10);
-	////Pathfinding_LoadNavMesh(&pf, "Resources/room.nav");
-	//Pathfinding_SetClosed(&pf, 4,4);
-	//Pathfinding_SetClosed(&pf, 4,5);
-	//Pathfinding_SetClosed(&pf, 4,7);
-	//Pathfinding_SetClosed(&pf, 4,3);
-	//Pathfinding_SetClosed(&pf, 4,2);
-	//Pathfinding_SetClosed(&pf, 4,1);
-	//Pathfinding_SetClosed(&pf, 4,9);
-	//Pathfinding_SetClosed(&pf, 4,8);
-	//Pathfinding_FindPathGrid(&pf, 5,0,10,0);
+	Pathfinding_Init(&pf, 10,10);
+	//Pathfinding_LoadNavGrid(&pf, "Resources/roomnavgrid.nav");
+	Pathfinding_LoadNavMesh(&pf, "Resources/room.nav");
 
 
-	
-	
+
 	World_InitOctree((Vec3){-100, -100, -100}, 200, 25);
 
 	glClearColor(0,0,0,1);
@@ -457,11 +464,11 @@ int main(int argc, char **argv){
 	cubeObj->AddUser(cubeObj);
 
 	cubeObj->bb.pos.y = 0;
-	//cubeObj->bb.pos = moveToPos = pf.path[onPath];
+	cubeObj->bb.pos = moveToPos = pf.path[onPath];
 	
 	cubeObj->bb.scale = (Vec3){0.2,0.2,0.2};
 	cubeObj->bb.rot = (Vec3){0,0,0};
-	cubeObj->bb.renderDebug = 1;
+	//cubeObj->bb.renderDebug = 1;
 	cubeObj->bb.cube = (Cube){-2.5,0.1,-2.5,5,10,5};
 	World_UpdateObjectInOctree(cubeObj);
 
