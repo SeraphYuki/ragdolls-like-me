@@ -468,12 +468,12 @@ static void LoadModel(Model *model, FILE *fp, u16 stride){
 	     }
 	 }
 
-    int nVerts = 0;
-	 fread(&nVerts, 1, sizeof(int), fp);
+	 fread(&model->nVerts, 1, sizeof(int), fp);
 
-    int size = stride * nVerts;
+    int size = stride * model->nVerts;
 
     u8 *vboData = (u8 *)Memory_StackAlloc(TEMP_STACK, size);
+	 model->verts = (Vec3 *)Memory_StackAlloc(MAIN_STACK, sizeof(Vec3) * model->nVerts);
 
     // Deflate_Read(fp, vboData, size);
 	 
@@ -482,8 +482,9 @@ static void LoadModel(Model *model, FILE *fp, u16 stride){
 	model->bb[0].cube.x = model->bb[0].cube.y = model->bb[0].cube.z = HUGE_VAL;
 	model->bb[0].cube.w = model->bb[0].cube.h = model->bb[0].cube.d = -HUGE_VAL;
 
-    for(k = 0; k < nVerts; k++){
+    for(k = 0; k < model->nVerts; k++){
 	     Vec3 *pos = (Vec3 *)&vboData[(stride * k)];
+		model->verts[k] = *pos;
 	     if(pos->x < model->bb[0].cube.x)
 	         model->bb[0].cube.x = pos->x;
 	     if(pos->x > model->bb[0].cube.w)
@@ -525,20 +526,62 @@ static void LoadModel(Model *model, FILE *fp, u16 stride){
     u32 *elements = (u32 *)Memory_StackAlloc(TEMP_STACK, sizeof(u32) * totalElements);
 
     fread(elements, totalElements, sizeof(u32), fp);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model->ebo);
+	 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model->ebo);
 	 glBufferData(GL_ELEMENT_ARRAY_BUFFER, totalElements * sizeof(u32), elements, GL_STATIC_DRAW);
 
+    Memory_StackPop(TEMP_STACK, 1);
 
-	 Memory_StackPop(TEMP_STACK, 1);
+    int totalShapeKeyElements = 0;
+	fread(&model->nShapeKeys,1, sizeof(int), fp);
+	for(k = 0; k < model->nShapeKeys; k++){
 
+        fread(&model->nShapeKeyElements[k], 1, sizeof(int), fp);
+	     totalShapeKeyElements += model->nShapeKeyElements[k];
+	 }
+	
+	if(model->nShapeKeys){
+	    model->shapeKeyElements = (u32 *)Memory_StackAlloc(MAIN_STACK, sizeof(u32) * totalShapeKeyElements);
+	    fread(model->shapeKeyElements, totalShapeKeyElements, sizeof(u32), fp);
+	}
+	
+	 model->shapeKeyVerts = (Vec3 *)Memory_StackAlloc(MAIN_STACK, sizeof(Vec3) * totalShapeKeyElements);
+	int totalShapeKeyVerts = 0;
+	for(k = 0; k < model->nShapeKeys; k++){
+		int nElements = model->nShapeKeyElements[k];
+		fread(&model->shapeKeyVerts[totalShapeKeyVerts], 1, nElements * sizeof(Vec3), fp);
+		totalShapeKeyVerts += nElements;
+	}
+	
+}
+
+void Model_SetShapeKey(Model *model, int index, float weight){
+	
+	if(index > model->nShapeKeys) return;
+	
+	glBindVertexArray(model->vao);
+	glBindBuffer(GL_ARRAY_BUFFER, model->vbo);
+	
+	int k;
+
+	int start = 0;
+	for(k = 0; k < index; k++) start += model->nShapeKeyElements[k];
+	
+	int nElements = model->nShapeKeyElements[index];
+	for(k = 0; k < nElements; k++){
+		int element = model->shapeKeyElements[start+k];
+		Vec3 vert = model->shapeKeyVerts[start+k];
+		Vec3 vert2 = model->verts[element];
+		Vec3 vec = Math_LerpVec3(vert, vert2, weight);
+		glBufferSubData(GL_ARRAY_BUFFER, (element) * model->stride, sizeof(Vec3), &vec.x);
+	}
+	
 }
 
 void Model_Load(Model *model, const char *path){
 
-    // u16 stride = sizeof(Vec2) + (sizeof(Vec3) * 4);
-	 // u16 stride = sizeof(Vec2) + (sizeof(Vec3) * 3);
-	 u16 stride = sizeof(Vec2) + (sizeof(Vec3) * 2) + sizeof(Vec4);
+    // model->stride = sizeof(Vec2) + (sizeof(Vec3) * 4);
+	 // model->stride = sizeof(Vec2) + (sizeof(Vec3) * 3);
+	 model->stride = sizeof(Vec2) + (sizeof(Vec3) * 2) + sizeof(Vec4);
 
     glGenVertexArrays(1, &model->vao);
 	 glBindVertexArray(model->vao);
@@ -557,36 +600,36 @@ void Model_Load(Model *model, const char *path){
 	 glEnableVertexAttribArray(normAttribute);
 	 glEnableVertexAttribArray(tangentAttribute);
 
-    glVertexAttribPointer(positionAttribute, 3, GL_FLOAT, GL_FALSE, stride, 0);
+    glVertexAttribPointer(positionAttribute, 3, GL_FLOAT, GL_FALSE, model->stride, 0);
 
     void *offset = (void *)sizeof(Vec3);
 
-    glVertexAttribPointer(uvAttribute, 2, GL_FLOAT, GL_FALSE, stride, (void*)offset);
+    glVertexAttribPointer(uvAttribute, 2, GL_FLOAT, GL_FALSE, model->stride, (void*)offset);
 
     offset += sizeof(Vec2);
 
-    glVertexAttribPointer(normAttribute, 3, GL_FLOAT, GL_FALSE, stride, (void*)offset);
+    glVertexAttribPointer(normAttribute, 3, GL_FLOAT, GL_FALSE, model->stride, (void*)offset);
 
     offset += sizeof(Vec3);
 
-    glVertexAttribPointer(tangentAttribute, 4, GL_FLOAT, GL_FALSE, stride, (void*)offset);
+    glVertexAttribPointer(tangentAttribute, 4, GL_FLOAT, GL_FALSE, model->stride, (void*)offset);
 	 
 	 // offset += sizeof(Vec4);
 
  //    glEnableVertexAttribArray(TANGENT_LOC);
- //    glVertexAttribPointer(TANGENT_LOC, 3, GL_FLOAT, GL_FALSE, stride, (void*)offset);
+ //    glVertexAttribPointer(TANGENT_LOC, 3, GL_FLOAT, GL_FALSE, model->stride, (void*)offset);
 	 
 	 // offset += sizeof(Vec3);
 
     // glEnableVertexAttribArray(BITANGENT_LOC);
-	 // glVertexAttribPointer(BITANGENT_LOC, 3, GL_FLOAT, GL_FALSE, stride, (void*)offset);
+	 // glVertexAttribPointer(BITANGENT_LOC, 3, GL_FLOAT, GL_FALSE, model->stride, (void*)offset);
 	 
 	 // offset += sizeof(Vec3);
 
 
 	 FILE *fp = fopen(path, "rb");
 
-    LoadModel(model, fp, stride);
+    LoadModel(model, fp, model->stride);
 
     fclose(fp);
 
@@ -663,7 +706,7 @@ void Animation_Free(Animation anim){
 
 static void InitBone(Skeleton *skeleton, Bone *bone){
 
-    static float matrix[16];
+    float matrix[16];
 	 Math_TranslateMatrix(matrix, bone->pos);
 	 Math_MatrixFromQuat(bone->rot, bone->absMatrix);
 	 Math_MatrixMatrixMult(bone->absMatrix, matrix, bone->absMatrix);
@@ -708,7 +751,8 @@ static void LoadSkeleton(Skeleton *skeleton, FILE *fp){
 
     fread(&skeleton->nBones, 1, sizeof(int), fp);
 
-    int k;
+
+	 int k;
 	 for(k = 0; k < skeleton->nBones; k++){
 
         int index;
@@ -724,6 +768,8 @@ static void LoadSkeleton(Skeleton *skeleton, FILE *fp){
         fread(&bone->pos, 1, sizeof(Vec3), fp);
 	     fread(&bone->rot, 1, sizeof(Quat), fp);
 	     fread(&bone->cube, 1, sizeof(Cube), fp);
+		
+
 	     if(parentIndex >= 0){
 
             bone->parent = &skeleton->bones[parentIndex];
@@ -774,9 +820,9 @@ void RiggedModel_Load(Model *model, Skeleton *skeleton, const char *path){
 
     memset(model, 0, sizeof(Model));
 
-    // u16 stride = sizeof(Vec2) + (sizeof(Vec3) * 4) + (sizeof(Vec4) * 2);
-	 // u16 stride = sizeof(Vec2) + (sizeof(Vec3) * 3) + (sizeof(Vec4) * 2);
-	 u16 stride = sizeof(Vec2) + (sizeof(Vec3) * 2) + (sizeof(Vec4) * 3);
+    // model->stride = sizeof(Vec2) + (sizeof(Vec3) * 4) + (sizeof(Vec4) * 2);
+	 // model->stride = sizeof(Vec2) + (sizeof(Vec3) * 3) + (sizeof(Vec4) * 2);
+	 model->stride = sizeof(Vec2) + (sizeof(Vec3) * 2) + (sizeof(Vec4) * 3);
 
     glGenVertexArrays(1, &model->vao);
 	 glBindVertexArray(model->vao);
@@ -797,46 +843,46 @@ void RiggedModel_Load(Model *model, Skeleton *skeleton, const char *path){
 	 GLuint boneIndicesAttrib = glGetAttribLocation(Shaders_GetProgram(SKELETAL_ANIMATION_SHADER), SHADERS_BONES_ATTRIB);
 
     glEnableVertexAttribArray(positionAttribute);
-	 glVertexAttribPointer(positionAttribute, 3, GL_FLOAT, GL_FALSE, stride, 0);
+	 glVertexAttribPointer(positionAttribute, 3, GL_FLOAT, GL_FALSE, model->stride, 0);
 
     void *offset = (void *)sizeof(Vec3);
 
     glEnableVertexAttribArray(uvAttribute);
-	 glVertexAttribPointer(uvAttribute, 2, GL_FLOAT, GL_FALSE, stride, (void*)offset);
+	 glVertexAttribPointer(uvAttribute, 2, GL_FLOAT, GL_FALSE, model->stride, (void*)offset);
 	 
 	 offset += sizeof(Vec2);
 
     glEnableVertexAttribArray(normAttribute);
-	 glVertexAttribPointer(normAttribute, 3, GL_FLOAT, GL_FALSE, stride, (void*)offset);
+	 glVertexAttribPointer(normAttribute, 3, GL_FLOAT, GL_FALSE, model->stride, (void*)offset);
 	 
 	 offset += sizeof(Vec3);
 
     glEnableVertexAttribArray(tangentAttribute);
-	 glVertexAttribPointer(tangentAttribute, 4, GL_FLOAT, GL_FALSE, stride, (void*)offset);
+	 glVertexAttribPointer(tangentAttribute, 4, GL_FLOAT, GL_FALSE, model->stride, (void*)offset);
 	 
 	 offset += sizeof(Vec4);
 
     // glEnableVertexAttribArray(TANGENT_LOC);
-	 // glVertexAttribPointer(TANGENT_LOC, 3, GL_FLOAT, GL_FALSE, stride, (void*)offset);
+	 // glVertexAttribPointer(TANGENT_LOC, 3, GL_FLOAT, GL_FALSE, model->stride, (void*)offset);
 	 
 	 // offset += sizeof(Vec3);
 
  //    glEnableVertexAttribArray(BITANGENT_LOC);
- //    glVertexAttribPointer(BITANGENT_LOC, 3, GL_FLOAT, GL_FALSE, stride, (void*)offset);
+ //    glVertexAttribPointer(BITANGENT_LOC, 3, GL_FLOAT, GL_FALSE, model->stride, (void*)offset);
 	 
 	 // offset += sizeof(Vec3);
 
     glEnableVertexAttribArray(weightsAttribute);
-	 glVertexAttribPointer(weightsAttribute, 4, GL_FLOAT, GL_FALSE, stride, (void*)offset);
+	 glVertexAttribPointer(weightsAttribute, 4, GL_FLOAT, GL_FALSE, model->stride, (void*)offset);
 	 
 	 offset += sizeof(Vec4);
 
     glEnableVertexAttribArray(boneIndicesAttrib);
-	 glVertexAttribPointer(boneIndicesAttrib, 4, GL_FLOAT, GL_FALSE, stride, (void*)offset);
+	 glVertexAttribPointer(boneIndicesAttrib, 4, GL_FLOAT, GL_FALSE, model->stride, (void*)offset);
 
     FILE *fp = fopen(path, "rb");
 
-    LoadModel(model, fp, stride);
+    LoadModel(model, fp, model->stride);
 
     LoadSkeleton(skeleton, fp);
 

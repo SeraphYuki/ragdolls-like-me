@@ -6,6 +6,7 @@
 #include "memory.h"
 
 #define MAX_MODEL_MATERIALS 	16
+#define MAX_MODEL_SHAPE_KEYS 	16
 #define MAX_BONES 				64
 #define BONE_MAX_CHILDREN 		6
 #define ANIMATION_FRAME_RATE 	60
@@ -90,12 +91,19 @@ typedef struct {
 	u8 				nMaterials;
 	u8 				nTextures;
 	u8 				nNormalTextures;
-	u16 			nElements[MAX_MODEL_MATERIALS];
-	Material 		materials[MAX_MODEL_MATERIALS];
+	u16			 stride;
 	u32		 	vao;
 	u32		 	vbo;
 	u32		 	ebo;
 	int   		  numBB;
+	int 			nShapeKeys;
+	u16 			nElements[MAX_MODEL_MATERIALS];
+	Vec3 	  	*verts; // for shape keys
+	int			 nVerts;
+	u16 			nShapeKeyElements[MAX_MODEL_SHAPE_KEYS];
+	u32 			*shapeKeyElements;
+	Vec3 			*shapeKeyVerts;
+	Material 		materials[MAX_MODEL_MATERIALS];
 	BoundingShape 	bb[MODEL_MAX_BOUNDING_BOXES];
 } Model;
 
@@ -111,6 +119,7 @@ void Model_Load(Model *model, const char *path);
 void Model_DeleteTextures(Model *model);
 void Skeleton_BlendAnims(PlayingAnimation *anims, int nAnims, float dt);
 void Model_LoadCollisions(Model *model, const char *path);
+void Model_SetShapeKey(Model *model, int index, float weight);
 void Skeleton_UpdateVelocities(Skeleton *skeleton);
 
 #endif

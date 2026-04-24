@@ -59,8 +59,8 @@ static void onThrow(Object *obj, Object *obj2, BoundingBox *bb, BoundingBox *bb2
 }
 
 static void onCube(Object *obj, Object *obj2, BoundingBox *bb, BoundingBox *bb2, Vec3 axis, float overlap){
-	//obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,Math_Vec3MultFloat(axis, -overlap));
-	//obj->ObjUpdate(obj);
+	obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,Math_Vec3MultFloat(axis, -overlap));
+	obj->ObjUpdate(obj);
 }
 
 static void Update(){
@@ -73,7 +73,7 @@ static void Update(){
 
 	static float animDir = 1;
 	 cubeAnims[0].into += animDir * Window_GetDeltaTime() / 40.1f;
-
+		Model_SetShapeKey(&cubeModel, 1,Window_GetDeltaTime() / 40.0f);
     if(cubeAnims[0].into > cubeAnim.length || cubeAnims[0].into < 0){
 		animDir = - animDir;
 	}
@@ -176,6 +176,7 @@ static void Event(SDL_Event ev){
 			if(collisionObj){
 				if(collisionObj != groundObj)
 					collisionObj->model->materials[0].diffuse = (Vec4){1,1,1,1};
+					
 					if(collisionObj->type == TYPE_CAN){
 					
 					ui.stress += 0.1;
@@ -455,10 +456,7 @@ int main(int argc, char **argv){
 	RiggedModel_Load(&cubeModel, &cubeSkel, "Resources/figure.yuk");
 	memset(&cubeAnim, 0, sizeof(Animation));
 	Animation_Load(&cubeAnim, "Resources/figure_ArmatureAction.anm");
-
-
 	
-
 	Object_SetModel(cubeObj, &cubeModel);
 	cubeObj->Draw = DrawRigged;
 	cubeObj->AddUser(cubeObj);
@@ -516,7 +514,6 @@ int main(int argc, char **argv){
 		 .into = 0,
 		 .anim = &cubeAnim,
 	};
-
 
 	figure.skel = &cubeSkel;
 	// thoth = Thoth_Create(WINDOW_WIDTH, WINDOW_HEIGHT );
