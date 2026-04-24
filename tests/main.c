@@ -39,8 +39,8 @@ float invPersp[16];
 float persp[16], view[16], model[16];
 static Vec2 rotation = {0,0};
 static Vec2 mousepos = {0,0};
-static Vec3 position = {-2,6,6};
-static Vec3 renderpos = {-2,4,4};
+static Vec3 position = {-2,4,4};
+static Vec3 renderpos = {-2,9,9};
 static UI ui;
 static char movingDirs[5];
 static Vec3 moveToPos;
@@ -73,8 +73,15 @@ static void Update(){
 
 	static float animDir = 1;
 	 cubeAnims[0].into += animDir * Window_GetDeltaTime() / 40.1f;
-		Model_SetShapeKey(&cubeModel, 1,Window_GetDeltaTime() / 40.0f);
-    if(cubeAnims[0].into > cubeAnim.length || cubeAnims[0].into < 0){
+		
+	static float shapeKeyDir = 1;
+	static float shapeKeyInto = 0;
+	shapeKeyInto += shapeKeyDir * Window_GetDeltaTime() / 400.0f;
+    if(shapeKeyInto > 1 || shapeKeyInto < 0)
+		shapeKeyDir = -shapeKeyDir;
+		
+	Model_SetShapeKey(&cubeModel, 1,shapeKeyInto);
+	if(cubeAnims[0].into > cubeAnim.length || cubeAnims[0].into < 0){
 		animDir = - animDir;
 	}
 
@@ -290,28 +297,28 @@ static void DrawRigged(Object *obj){
 
 static void DrawModel(Object *obj){
 
-	Shaders_UseProgram(TEXTURED_SHADER);
+	//Shaders_UseProgram(TEXTURED_SHADER);
 
-	Shaders_SetModelMatrix(obj->bb.matrix);
-	Shaders_UpdateModelMatrix();
+	//Shaders_SetModelMatrix(obj->bb.matrix);
+	//Shaders_UpdateModelMatrix();
 
-	glActiveTexture(GL_TEXTURE0);
+	//glActiveTexture(GL_TEXTURE0);
 
-	glBindVertexArray(obj->model->vao);
-	glCullFace(GL_BACK);
-	int curr = 0;
+	//glBindVertexArray(obj->model->vao);
+	//glCullFace(GL_BACK);
+	//int curr = 0;
 
 
-	int k;
-	for(k = 0; k < obj->model->nMaterials; k++){
-		glBindTexture(GL_TEXTURE_2D, obj->model->materials[k].texture);
-		glUniform4fv(Shaders_GetDiffuseLocation(), 1, (float *)&obj->model->materials[k].diffuse);
-		glUniform4fv(Shaders_GetSpecularLocation(), 1, (float *)&obj->model->materials[k].specular);
-		glDrawElements(GL_TRIANGLES, obj->model->nElements[k], GL_UNSIGNED_INT, (void *)(curr * sizeof(GLuint)));
-		curr += obj->model->nElements[k];
-	}
+	//int k;
+	//for(k = 0; k < obj->model->nMaterials; k++){
+		//glBindTexture(GL_TEXTURE_2D, obj->model->materials[k].texture);
+		//glUniform4fv(Shaders_GetDiffuseLocation(), 1, (float *)&obj->model->materials[k].diffuse);
+		//glUniform4fv(Shaders_GetSpecularLocation(), 1, (float *)&obj->model->materials[k].specular);
+		//glDrawElements(GL_TRIANGLES, obj->model->nElements[k], GL_UNSIGNED_INT, (void *)(curr * sizeof(GLuint)));
+		//curr += obj->model->nElements[k];
+	//}
 
-	glBindVertexArray(0);
+	//glBindVertexArray(0);
 }
 static char Draw(){
 	float persp[16];
@@ -466,7 +473,7 @@ int main(int argc, char **argv){
 	
 	cubeObj->bb.scale = (Vec3){0.2,0.2,0.2};
 	cubeObj->bb.rot = (Vec3){0,0,0};
-	//cubeObj->bb.renderDebug = 1;
+	cubeObj->bb.renderDebug = 1;
 	cubeObj->bb.cube = (Cube){-2.5,0.1,-2.5,5,10,5};
 	World_UpdateObjectInOctree(cubeObj);
 

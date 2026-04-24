@@ -571,7 +571,7 @@ void Model_SetShapeKey(Model *model, int index, float weight){
 		int element = model->shapeKeyElements[start+k];
 		Vec3 vert = model->shapeKeyVerts[start+k];
 		Vec3 vert2 = model->verts[element];
-		Vec3 vec = Math_LerpVec3(vert, vert2, weight);
+		Vec3 vec = Math_LerpVec3(vert2, vert, weight);
 		glBufferSubData(GL_ARRAY_BUFFER, (element) * model->stride, sizeof(Vec3), &vec.x);
 	}
 	
