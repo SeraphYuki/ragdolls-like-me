@@ -96,13 +96,13 @@ static void UpdateBoneSpring(Bone *bone, Quat displacement){
 
         Vec3 force = Math_Vec3MultFloat(sinaxis, -bone->spring);
 
-        force = Math_Vec3AddVec3(force, Math_Vec3MultFloat(bone->angVel, -bone->damping));
+        force = Math_Vec3AddVec3(force, Math_Vec3MultFloat(bone->springAngVel, -bone->damping));
 
-        force = Math_Vec3MultFloat(force, dt);
+        force = Math_Vec3MultFloat(force, (float)dt);
 
-        bone->angVel = Math_Vec3AddVec3(bone->angVel, force);
+        bone->springAngVel = Math_Vec3AddVec3(bone->angVel, force);
 
-        Vec3 vec = Math_Vec3Normalize(bone->angVel);
+	     Vec3 vec = Math_Vec3Normalize(bone->angVel);
 
         float angle = -dt * Math_Vec3Magnitude(bone->angVel);
 
@@ -154,7 +154,7 @@ static void BoneUpdateSprings(Bone *bone, Vec4 *matrices){
 	     BoneUpdateSprings(bone->children[j], matrices);
 }
 
-static void BoneUpdate(Bone *bone, PlayingAnimation *anims, int nAnims, Vec4 *matrices){
+static void BoneUpdate(Bone *parent, Bone *bone, PlayingAnimation *anims, int nAnims, Vec4 *matrices){
 
 	//Quat rot = (Quat){0,0,0,1};
 	//Vec3 pos = (Vec3){0,0,0};
@@ -284,10 +284,16 @@ static void BoneUpdate(Bone *bone, PlayingAnimation *anims, int nAnims, Vec4 *ma
 		bone->worldPos = (Vec3){matrix[3], matrix[7], matrix[11]};
 		matrix[3] = matrix[7] = matrix[11] = 0;
 		bone->worldRot = Math_MatrixToQuat(matrix);
-	 }
+	 } else if(parent){
+	     Math_MatrixMatrixMult(bone->absMatrix, parent->absMatrix, bone->absMatrix); 
+		memcpy(matrix, bone->absMatrix, sizeof(matrix));
+		bone->worldPos = (Vec3){matrix[3], matrix[7], matrix[11]};
+		matrix[3] = matrix[7] = matrix[11] = 0;
+		bone->worldRot = Math_MatrixToQuat(matrix);
+	}
 
 	for(j = 0; j < bone->nChildren; j++)
-		BoneUpdate(bone->children[j], anims, nAnims, matrices);
+		BoneUpdate(parent, bone->children[j], anims, nAnims, matrices);
 
 
 }
@@ -389,7 +395,7 @@ void Skeleton_Update(Skeleton *skeleton, PlayingAnimation *anims, int nAnims){
     if(nAnims > 1)
 	     NormalizeAnimWeights(anims, nAnims);
 
-    BoneUpdate(skeleton->root, anims, nAnims, skeleton->matrices);
+    BoneUpdate(skeleton->parent, skeleton->root, anims, nAnims, skeleton->matrices);
 
 }
 void Skeleton_Apply(Skeleton *skeleton){
@@ -420,7 +426,7 @@ static void LoadModel(Model *model, FILE *fp, u16 stride){
 	     fread(&model->materials[k].specular, 1, sizeof(Vec4), fp);
 	 }
 
-    u32 textures[MAX_MODEL_MATERIALS];
+    struct { u32 tex; u32 w; u32 h; } textures[MAX_MODEL_MATERIALS];
 
     int nTextures = 0;
 	 fread(&nTextures, 1, sizeof(int), fp);
@@ -431,14 +437,15 @@ static void LoadModel(Model *model, FILE *fp, u16 stride){
 	     fread(&h, 1, sizeof(int), fp);
 	     fread(&channels, 1, sizeof(int), fp);
 
-        glGenTextures(1, &textures[k]);
-	     glBindTexture(GL_TEXTURE_2D, textures[k]);
-
+        glGenTextures(1, &textures[k].tex);
+	     glBindTexture(GL_TEXTURE_2D, textures[k].tex);
+		textures[k].w = w;
+		textures[k].h = h;
         int size = w * h * channels;
 
         u8 *data = (u8 *)Memory_StackAlloc(TEMP_STACK, size);
-	     // Deflate_Read(fp, data, size);
-	     fread(data, sizeof(u8), size, fp);
+	      Deflate_Read(fp, data, size);
+	     //fread(data, sizeof(u8), size, fp);
 
         if(channels == 3) channels = GL_RGB;
 	     else if(channels == 4) channels = GL_RGBA;
@@ -459,12 +466,16 @@ static void LoadModel(Model *model, FILE *fp, u16 stride){
 
         if(model->materials[k].texture > 0 && model->materials[k].texture < MAX_MODEL_MATERIALS){
 	         ++model->nTextures;
-	         model->materials[k].texture = textures[model->materials[k].texture-1];
+	         model->materials[k].w = textures[model->materials[k].texture-1].w;
+	         model->materials[k].h = textures[model->materials[k].texture-1].h;
+	         model->materials[k].texture = textures[model->materials[k].texture-1].tex;
 	     }
 
         if(model->materials[k].normalTexture > 0 && model->materials[k].normalTexture < MAX_MODEL_MATERIALS){
 	         ++model->nNormalTextures;
-	         model->materials[k].normalTexture = textures[model->materials[k].normalTexture-1];
+	         model->materials[k].w = textures[model->materials[k].normalTexture-1].w;
+	         model->materials[k].h = textures[model->materials[k].normalTexture-1].h;
+	         model->materials[k].normalTexture = textures[model->materials[k].normalTexture-1].tex;
 	     }
 	 }
 
@@ -520,7 +531,7 @@ static void LoadModel(Model *model, FILE *fp, u16 stride){
 
         totalElements += model->nElements[k];
 
-        // Deflate_Read(fp, model->elements[k], sizeof(u16) * model->nElements[k]);
+		      // Deflate_Read(fp, model->elements[k], sizeof(u16) * model->nElements[k]);
 	 }
 
     u32 *elements = (u32 *)Memory_StackAlloc(TEMP_STACK, sizeof(u32) * totalElements);
@@ -745,6 +756,34 @@ static void InitBone(Skeleton *skeleton, Bone *bone){
 	     InitBone(skeleton, bone->children[k]);
 }
 
+void Skeleton_Copy(Skeleton *skel, Skeleton *skel2){
+
+    memcpy(skel, skel2, sizeof(Skeleton));
+
+	 int k;
+	 for(k = 0; k < skel->nBones; k++){
+		skel->bones[k].nChildren = 0; // we need the fresh pointers
+	}
+	
+	for(k = 0; k < skel->nBones; k++){
+
+        Bone *fromBone = &skel2->bones[k];
+	     Bone *bone = &skel->bones[k];
+
+	     if(fromBone->parent){
+	         bone->parent = &skel->bones[fromBone->parent->index];
+
+	         if(bone->parent->nChildren < BONE_MAX_CHILDREN)
+	             bone->parent->children[bone->parent->nChildren++] = bone;
+
+	     } else {
+	         skel->root = bone;
+	     }
+	 }
+
+    InitBone(skel, skel->root);
+}
+
 static void LoadSkeleton(Skeleton *skeleton, FILE *fp){
 
     memset(skeleton, 0, sizeof(Skeleton));
@@ -789,7 +828,9 @@ static void LoadSkeleton(Skeleton *skeleton, FILE *fp){
 
 void Animation_Load(Animation *animation, const char *path){
 
-    FILE *fp = fopen(path, "rb");
+	memset(animation, 0, sizeof(Animation));
+	
+	 FILE *fp = fopen(path, "rb");
 
     LoadAnimation(animation, fp);
 
@@ -816,7 +857,11 @@ void Model_LoadCollisions(Model *model, const char *path){
 	 fclose(fp);
 }
 
-void RiggedModel_Load(Model *model, Skeleton *skeleton, const char *path){
+void Skeleton_ParentToBone(Skeleton *skel, Bone *parent){
+	skel->parent = parent;
+}
+
+void RiggedModel_Load(Model *model, const char *path){
 
     memset(model, 0, sizeof(Model));
 
@@ -884,7 +929,7 @@ void RiggedModel_Load(Model *model, Skeleton *skeleton, const char *path){
 
     LoadModel(model, fp, model->stride);
 
-    LoadSkeleton(skeleton, fp);
+    LoadSkeleton(&model->skeleton, fp);
 
     fclose(fp);
 

@@ -282,9 +282,9 @@ float triangleArea(Vec2 a, Vec2 b, Vec2 c){
 }
 
 Vec3 barycentric(Vec2 a, Vec2 b, Vec2 c, Vec2 p) { 
-    Vec3 u = Math_Vec3Cross((Vec3){c.x-a.x, b.x-a.x, a.x-p.x}, (Vec3){c.y-a.y, b.y-a.y, a.y-p.y});
-    if(fabs(u.z)<1) return (Vec3){-1,1,1};
-    return (Vec3){1.f-(u.x+u.y)/u.z, u.y/u.z, u.x/u.z}; 
+	 Vec3 u = Math_Vec3Cross((Vec3){c.x-a.x, b.x-a.x, a.x-p.x}, (Vec3){c.y-a.y, b.y-a.y, a.y-p.y});
+	 if(fabs(u.z)<1) return (Vec3){-1,1,1};
+	 return (Vec3){1.f-(u.x+u.y)/u.z, u.y/u.z, u.x/u.z}; 
 } 
 void Pathfinding_LoadNavGrid(Pathfinder *pf, const char *path){
 	

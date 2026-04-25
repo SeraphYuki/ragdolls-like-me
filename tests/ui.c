@@ -11,6 +11,8 @@
 #define RENDER_VRAM_SIZE 1024*6
 const static u8 RectTriangleVerts[] = {0,0,1,0,1,1,1,1,0,1,0,0};
 
+void UI_SliderCreate(UI *ui, UI_Element *element, Rect2D dragrect);
+
 static void CreateFrameBuffer(UI *ui){
 
 	glGenFramebuffers(1,&ui->fb);
@@ -43,6 +45,11 @@ static void CreateFrameBuffer(UI *ui){
 
 void UI_Init(UI *ui, int w, int h){
 
+
+	UI_SliderCreate(ui, &ui->elements[ui->nElements++], (Rect2D){100,100,200,40});
+	UI_SliderCreate(ui, &ui->elements[ui->nElements++], (Rect2D){100,150,200,40});	
+	
+	ui->mouserect = (Rect2D){0,0,1,1};
 	ui->stress = 0;
 	ui->viewport.w = w;
 	ui->viewport.h = h;
@@ -86,6 +93,12 @@ void UI_Init(UI *ui, int w, int h){
 
 void UI_Free(UI *ui){
 
+	int k;
+	for(k = 0; k < ui->nElements; k++){
+		if(ui->elements[k].Free) ui->elements[k].Free(ui, &ui->elements[k]);
+		if(ui->elements[k].data) free(ui->elements[k].data);
+	}
+	
 	glDeleteVertexArrays(1, &ui->quadVao);
 	glDeleteBuffers(1, &ui->quadVbo);
 
@@ -107,6 +120,12 @@ void UI_Resize(UI *ui, int w, int h){
 }
 
 void UI_Render(UI *ui){
+
+
+	int k;
+	for(k = 0; k < ui->nElements; k++){
+		if(ui->elements[k].Render) ui->elements[k].Render(ui, &ui->elements[k]); 
+	}
 
 	int x = 0, y = 0;	
 	glBlendFunc(GL_ONE,GL_ONE);
@@ -134,6 +153,67 @@ void UI_Render(UI *ui){
 	glCullFace(GL_FRONT);
 	glBindTexture(GL_TEXTURE_2D, ui->fbTexture);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+void UI_SliderUpdate(UI *ui, UI_Element *element){
+	
+}
+
+void UI_SliderRender(UI *ui, UI_Element *element){
+	UI_Slider *slider = (UI_Slider *)element->data;
+	
+	UI_RenderRect(ui, slider->dragrect.x, slider->dragrect.y,slider->dragrect.w,
+	slider->dragrect.h, 100, 100, 100, 100);
+	UI_RenderRect(ui, slider->sliderrect.x, slider->sliderrect.y,slider->sliderrect.w,
+	slider->sliderrect.h, 0, 0, 0, 100);
+	
+}
+
+void UI_SliderEvent(UI *ui, UI_Element *element, SDL_Event ev){
+	UI_Slider *slider = (UI_Slider *)element->data;	
+
+	if(ev.type == SDL_MOUSEMOTION && slider->dragging){
+			int x = ev.motion.x - slider->dragrect.x;
+			if(x < 0) x = 0;
+			if(x  > slider->dragrect.w) x = slider->dragrect.w;
+			slider->sliderrect.x = slider->dragrect.x + x;
+			slider->value = x / slider->dragrect.w;
+	} else if(ev.type == SDL_MOUSEBUTTONDOWN){
+		if(Math_CheckCollisionRect2D(slider->dragrect, ui->mouserect)){
+			slider->dragging = 1;
+		} 
+	} else if(ev.type == SDL_MOUSEBUTTONUP){
+		slider->dragging = 0;
+	}
+}
+
+void UI_SliderCreate(UI *ui, UI_Element *element, Rect2D dragrect){
+
+	element->data = malloc(sizeof(UI_Slider));
+	UI_Slider *slider = (UI_Slider *)element->data;		
+	slider->dragrect = dragrect;
+	slider->sliderrect = dragrect;
+	slider->sliderrect.w = 10;
+	element->type = UI_TYPE_SLIDER;
+	element->Event = UI_SliderEvent;	
+	element->Render = UI_SliderRender;	
+	element->Update = UI_SliderUpdate;
+}
+
+void UI_Event(UI *ui, SDL_Event ev){
+	
+	if(ev.type == SDL_MOUSEMOTION){
+		ui->mouserect.x = ev.motion.x;
+		ui->mouserect.y = ev.motion.y;
+	}
+	
+	int k;
+	for(k = 0; k < ui->nElements; k++){
+		ui->elements[k].Event(ui, &ui->elements[k], ev);
+	}
+	
+	ui->sliderValue = ((UI_Slider *)(ui->elements[0].data))->value;
+	ui->sliderValue2 = ((UI_Slider *)(ui->elements[1].data))->value;
 }
 
 void UI_Clear(UI *ui){

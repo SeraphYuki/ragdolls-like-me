@@ -7,6 +7,8 @@
 #include "mesh.h"
 #include <stdio.h>
 
+
+// cast *data into types in future
 enum {
 	TYPE_CAN = 1,
 };
@@ -32,7 +34,6 @@ struct Object {
 	void (*ObjUpdate)(Object *this);
 	Object *(*Copy)(Object *this);
 
-	Model *model;
 
 	float matrix[16];
 	float matrixInvTranspose[16];
@@ -42,6 +43,8 @@ struct Object {
 
 	u8 occluder;
 	u8 transparent;
+
+	Model *model;
 	Skeleton *skeleton;
 
 	int shader;

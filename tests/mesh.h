@@ -28,6 +28,7 @@ struct Bone {
 	Vec3 			localPos;
 	Vec3 			linVel;
 	Vec3 			angVel;
+	Vec3 			springAngVel;
 	Bone 			*children[BONE_MAX_CHILDREN];
 	float 			absMatrix[16];
 	float 			invBindMatrix[16];
@@ -64,16 +65,19 @@ typedef struct {
 } PlayingAnimation;
 
 typedef struct {
-	u8 				nBones;
+	u8 			  nBones;
 	Vec4 			matrices[MAX_BONES * 3];
 	Bone 			bones[MAX_BONES];
 	Bone 			*root;
+	Bone			 *parent; // for attachments
 } Skeleton;
 
 typedef struct {
-	int				useSSS;
 	u32 			texture;
 	u32 			normalTexture;
+	u32			 w;
+	u32 			h;
+	int				useSSS;
 	float 			specularHardness;
 	float 			ambient;
 	Vec4 			diffuse;
@@ -105,13 +109,15 @@ typedef struct {
 	Vec3 			*shapeKeyVerts;
 	Material 		materials[MAX_MODEL_MATERIALS];
 	BoundingShape 	bb[MODEL_MAX_BOUNDING_BOXES];
+	Skeleton		 skeleton;
 } Model;
 
+void Skeleton_ParentToBone(Skeleton *skel, Bone *parent);
 void Skeleton_Apply(Skeleton *skeleton);
 void Animation_Load(Animation *animation, const char *path);
 void Animation_Free(Animation animation);
 void RiggedModel_Free(Model *model);
-void RiggedModel_Load(Model *model, Skeleton *skeleton, const char *path);
+void RiggedModel_Load(Model *model, const char *path);
 void Skeleton_Update(Skeleton *skeleton, PlayingAnimation *anims, int nAnims);
 void Skeleton_UpdateSprings(Skeleton *skeleton);
 void Model_Free(Model *model);
@@ -121,5 +127,5 @@ void Skeleton_BlendAnims(PlayingAnimation *anims, int nAnims, float dt);
 void Model_LoadCollisions(Model *model, const char *path);
 void Model_SetShapeKey(Model *model, int index, float weight);
 void Skeleton_UpdateVelocities(Skeleton *skeleton);
-
+void Skeleton_Copy(Skeleton *skel, Skeleton *skel2);
 #endif
