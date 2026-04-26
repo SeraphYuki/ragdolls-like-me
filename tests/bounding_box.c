@@ -457,7 +457,8 @@ void BoundingBox_UpdatePoints(BoundingBox *bb){
 }
 
 int BoundingBox_IsSAT(BoundingBox *bb){
-	if(bb->noCollisions != 0 || (bb->axes[0].x == 1 && bb->axes[1].y == 1 && bb->axes[2].z == 1)){
+	if(bb->noCollisions != 0 ||
+	(fabs(bb->axes[0].x) == 1 && fabs(bb->axes[1].y) == 1 && fabs(bb->axes[2].z) == 1)){
 		return 0;
 	}
 	return 1;
@@ -472,7 +473,26 @@ static int SameSide(Vec3 p, Vec3 a, Vec3 b, Vec3 c){
 }
 
  int BoundingBox_CheckCollisionRay(BoundingBox *bb, Ray r, BoundingBox **b, float *dist){
-	*b = NULL;
+
+	
+	//if(!BoundingBox_IsSAT(bb)){
+		//float d = Math_CubeCheckCollisionRay(bb->wsCube, r);
+
+		//if(d < *dist ){
+			//if(bb->noCollisions = 0){
+				//*b = bb;
+				//*dist = d;
+			//}
+			
+			//if(bb->numChildren){
+				//int k;
+				//for(k = 0; k < bb->numChildren; k++){
+					//BoundingBox_CheckCollisionRay(&bb->children[k],r, b, dist);
+				//}
+			//}
+		//}
+		//return 1;
+	//}
 
 	Vec3 planes[6][4] = {
 		{bb->points[0],bb->points[1],bb->points[2],bb->points[3]},
@@ -483,15 +503,21 @@ static int SameSide(Vec3 p, Vec3 a, Vec3 b, Vec3 c){
 		{bb->points[4],bb->points[0],bb->points[3],bb->points[7]},
 	};
 
-	int k;
-	for(k = 0; k < 6; k++){
 
-		Vec3 v0 = Math_Vec3SubVec3(planes[k][0], planes[k][1]);
-		Vec3 v1 = Math_Vec3SubVec3(planes[k][0], planes[k][2]);
-		Vec3 n = Math_Vec3Normalize(Math_Vec3Cross(v0,v1));
+	int k;	
+	for(k = 0; k < 3; k++){
+		Vec3 n;
+		n = bb->axes[k];
+		
+		//if(!BoundingBox_IsSAT(bb)){
+			//Vec3 v0 = Math_Vec3SubVec3(planes[k][0], planes[k][1]);
+			//Vec3 v1 = Math_Vec3SubVec3(planes[k][0], planes[k][2]);
+			//n = Math_Vec3Normalize(Math_Vec3Cross(v0,v1));
+		//} else {
+		//}
 
 		float d = Math_Vec3Dot( Math_Vec3SubVec3(planes[k][0], r.pos), n) / Math_Vec3Dot(r.line, n);
-		if(d < 0) continue;
+		if(d < 0 || d > *dist) continue;
 
 		Vec3 collisionPoint = Math_Vec3AddVec3(r.pos, Math_Vec3MultFloat(r.line,d));
 
@@ -500,7 +526,8 @@ static int SameSide(Vec3 p, Vec3 a, Vec3 b, Vec3 c){
 			SameSide(collisionPoint, (planes[k][3]), (planes[k][0]),(planes[k][1])) &&
 			SameSide(collisionPoint, (planes[k][0]), (planes[k][1]), (planes[k][2]))){
 	
-			if(bb->noCollisions == 0){
+
+			if(bb->noCollisions == 0 ){
 				*b = bb;
 				*dist = d;
 			}
@@ -508,13 +535,7 @@ static int SameSide(Vec3 p, Vec3 a, Vec3 b, Vec3 c){
 			if(bb->numChildren){
 				int k;
 				for(k = 0; k < bb->numChildren; k++){
-					BoundingBox *child = NULL;
-					float distance = HUGE_VAL;
-					BoundingBox_CheckCollisionRay(&bb->children[k],r, &child, &distance);
-					if(child && (distance < *dist || !*b) && bb->children[k].noCollisions == 0){
-						*dist = distance;
-						*b = child;
-					}
+					BoundingBox_CheckCollisionRay(&bb->children[k],r, b, dist);
 				}
 			}
 		}

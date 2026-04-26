@@ -439,12 +439,12 @@ void Pathfinding_RenderDebug(Pathfinder *pf){
 	glDrawArrays(GL_LINE_STRIP, 0, pf->nPath);
 	Shaders_SetUniformColor((Vec4){1,1,1,1});		
 
-	//Shaders_SetUniformColor((Vec4){0,1,1,1});
-	//glBindBuffer(GL_ARRAY_BUFFER, pf->vbo);
-	//glPointSize(10);
-	//glBufferData(GL_ARRAY_BUFFER, pf->nClosed  * sizeof(Vec3), (float *)&pf->closedVerts[0].x, GL_STATIC_DRAW);
-	//glDrawArrays(GL_POINTS, 0, pf->nClosed);
-	//Shaders_SetUniformColor((Vec4){1,1,1,1});		
+	Shaders_SetUniformColor((Vec4){0,1,1,1});
+	glBindBuffer(GL_ARRAY_BUFFER, pf->vbo);
+	glPointSize(10);
+	glBufferData(GL_ARRAY_BUFFER, pf->nClosed  * sizeof(Vec3), (float *)&pf->closedVerts[0].x, GL_STATIC_DRAW);
+	glDrawArrays(GL_POINTS, 0, pf->nClosed);
+	Shaders_SetUniformColor((Vec4){1,1,1,1});		
 
 	glBindVertexArray(0);
 
@@ -619,6 +619,20 @@ void Pathfinding_SetClosed(Pathfinder *pf, int x, int y){
 		pos.x += pf->cube.x;
 		pos.z += pf->cube.z;
 
+	pf->closedVerts[pf->nClosed] = pos;
+	node.index = index;
+	pf->closed[pf->nClosed] = node;
+	pf->nClosed++;
+	pf->nClosedObstacles = pf->nClosed;
+}
+
+void Pathfinding_SetClosedGrid(Pathfinder *pf, Vec3 pos){
+	AStarNode node;
+	int x = (pos.x / PATHFINDING_NODE_GRID_SIZE) - pf->cube.x;
+	int y = (pos.z / PATHFINDING_NODE_GRID_SIZE) - pf->cube.z;
+	int index = x + (y * pf->w);
+
+	pos.y += 0.4;
 	pf->closedVerts[pf->nClosed] = pos;
 	node.index = index;
 	pf->closed[pf->nClosed] = node;

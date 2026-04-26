@@ -180,6 +180,11 @@ void UI_SliderEvent(UI *ui, UI_Element *element, SDL_Event ev){
 			slider->value = x / slider->dragrect.w;
 	} else if(ev.type == SDL_MOUSEBUTTONDOWN){
 		if(Math_CheckCollisionRect2D(slider->dragrect, ui->mouserect)){
+			int x = ev.motion.x - slider->dragrect.x;
+			if(x < 0) x = 0;
+			if(x  > slider->dragrect.w) x = slider->dragrect.w;
+			slider->sliderrect.x = slider->dragrect.x + x;
+			slider->value = x / slider->dragrect.w;
 			slider->dragging = 1;
 		} 
 	} else if(ev.type == SDL_MOUSEBUTTONUP){

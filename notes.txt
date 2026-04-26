@@ -17,7 +17,7 @@ Jtranspose lm
 iterating is the minimum of the sum of scalers
 and solving 1 not breaking another
 
-for every var{for every var{ }}f
+for every var{for every var{ }}
 float jmk[nvariables][nvariables]
 
 

@@ -185,7 +185,8 @@ static void Event(SDL_Event ev){
 		BoundingBox *collision = NULL;
 
 		World_GetAllCollisionsRay((Ray){renderpos, ray}, &distance, &collision, &collisionObj);
-		if(collisionObj){
+
+		if(collision && collisionObj){
 			if(collisionObj != groundObj)
 				collisionObj->model->materials[0].diffuse = (Vec4){1,1,1,1};
 				
@@ -208,14 +209,24 @@ static void Event(SDL_Event ev){
 					}
 				} else {
 					if(collisionObj == groundObj){
+
+						Pathfinding_SetClosedGrid(&pf,
+						Math_Vec3AddVec3(renderpos,
+						Math_Vec3MultFloat(ray, distance)));
+
+						printf("%i\n", BoundingBox_IsSAT(collision));
+						collision->renderDebug = 1;
+						printf("%f %f %f %f %f %f\n", collision->wsCube.x,collision->wsCube.y,
+						collision->wsCube.z,collision->wsCube.w,collision->wsCube.h,
+						collision->wsCube.d);
 						
 						//Pathfinding_FindPathGrid(&pf,cubeObj->bb.pos,
 						//Math_Vec3AddVec3(renderpos,
 						//Math_Vec3MultFloat(ray, distance)));
 						
-						Pathfinding_FindPath(&pf,cubeObj->bb.pos,
-						Math_Vec3AddVec3(renderpos,
-						Math_Vec3MultFloat(ray, distance)));
+						//Pathfinding_FindPath(&pf,cubeObj->bb.pos,
+						//Math_Vec3AddVec3(renderpos,
+						//Math_Vec3MultFloat(ray, distance)));
 						
 						onPath = 0;
 					} else {
@@ -346,7 +357,7 @@ static void DrawModel(Object *obj){
 }
 static char Draw(){
 	float persp[16];
-	//rotation.y += mouseSensitivity * Window_GetDeltaTime();
+	rotation.y += mouseSensitivity * Window_GetDeltaTime();
 	
 	renderpos = Math_Rotate(position, (Vec3){0,rotation.y,0});
 	Vec3 forward = Math_Vec3Normalize(lookatPos);
@@ -418,7 +429,7 @@ static char Draw(){
 	img.h = cubeObj->model->materials[0].h;
 	img.nFramesX = img.nFramesY = 1;
 
-	UI_RenderRectTex(&ui, img, 50,50, 100,100, 
+	UI_RenderRectTex(&ui, img, 0,0, 100,100, 
 	0,0, img.w,img.h, 255,255,255,255);
 
 	UI_Render(&ui);
@@ -465,9 +476,7 @@ int main(int argc, char **argv){
 
 	Pathfinding_Init(&pf, 10,10);
 	//Pathfinding_LoadNavGrid(&pf, "Resources/roomnavgrid.nav");
-	Pathfinding_LoadNavMesh(&pf, "Resources/room.nav");
-
-
+	//Pathfinding_LoadNavMesh(&pf, "Resources/room.nav");
 
 	World_InitOctree((Vec3){-100, -100, -100}, 200, 25);
 
@@ -514,7 +523,7 @@ int main(int argc, char **argv){
 	
 	cubeObj->bb.scale = (Vec3){0.2,0.2,0.2};
 	cubeObj->bb.rot = (Vec3){0,0,0};
-	cubeObj->bb.renderDebug = 1;
+	cubeObj->bb.renderDebug = 0;
 	cubeObj->bb.cube = (Cube){-2.5,0.1,-2.5,5,10,5};
 	World_UpdateObjectInOctree(cubeObj);
 

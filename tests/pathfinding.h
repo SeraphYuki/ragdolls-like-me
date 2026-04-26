@@ -61,6 +61,7 @@ void Pathfinding_RenderDebug(Pathfinder *pf);
 void Pathfinding_LoadNavMesh(Pathfinder *pf, const char *path);
 void Pathfinding_LoadNavGrid(Pathfinder *pf, const char *path);
 int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal);
+void Pathfinding_SetClosedGrid(Pathfinder *pf, Vec3 pos);
 void Pathfinding_SetClosed(Pathfinder *pf, int x, int y);
 int Pathfinding_FindPath(Pathfinder *pf, Vec3 pos, Vec3 goal);
 void Pathfinding_Init(Pathfinder *pf, int w, int h);

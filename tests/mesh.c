@@ -441,7 +441,7 @@ static void LoadModel(Model *model, FILE *fp, u16 stride){
 	     glBindTexture(GL_TEXTURE_2D, textures[k].tex);
 		textures[k].w = w;
 		textures[k].h = h;
-        int size = w * h * channels;
+	     int size = w * h * channels;
 
         u8 *data = (u8 *)Memory_StackAlloc(TEMP_STACK, size);
 	      Deflate_Read(fp, data, size);
@@ -845,12 +845,12 @@ void Model_LoadCollisions(Model *model, const char *path){
     fread(&model->numBB, 1, sizeof(int), fp);
 	 int k;
 	 for (k = 0; k < model->numBB; k++){
-	     fread(&model->bb[k].cube, 1, sizeof(Cube), fp);
+		fread(&model->bb[k].cube, 1, sizeof(Cube), fp);
 		fread(&model->bb[k].pos, 1, sizeof(Vec3), fp);
-	     Quat rot;
+		Quat rot;
 		fread(&rot, 1, sizeof(Quat), fp);
 		model->bb[k].rot = Math_QuatToEuler(rot);
-	     fread(&model->bb[k].scale, 1, sizeof(Vec3), fp);
+		fread(&model->bb[k].scale, 1, sizeof(Vec3), fp);
 	}
 
 

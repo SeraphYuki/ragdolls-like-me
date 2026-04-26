@@ -364,14 +364,14 @@ static void DrawBoundingBoxes(BoundingBox *bb){
 
 	Shaders_SetUniformColor((Vec4){0,1,0,1});
 	
-	if(!bb->renderDebug) return;
-	
-	 if(BoundingBox_IsSAT(bb)){
-		World_DrawSAT(bb);
+	//if(!bb->renderDebug) return;
+
+	 //if(BoundingBox_IsSAT(bb)){
+		//World_DrawSAT(bb);
 	 	//return;
-	 }
+	 //}
 	
-	 //World_DrawCube(bb->wsCube);
+	 World_DrawCube(bb->wsCube);
 }
 
 void World_Free(){
