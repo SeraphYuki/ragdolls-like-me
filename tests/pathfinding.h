@@ -3,10 +3,10 @@
 #define PATHFINDING_DEF
 
 #define MAX_PATHFINDING_NODES 4096
-#define PATHFINDING_NODE_GRID_SIZE 0.8
+#define PATHFINDING_NODE_GRID_SIZE 0.7
 
 #include "math.h"
-
+#include "bounding_box.h"
 typedef struct AStarNode AStarNode;
 struct AStarNode {
 		float g;
@@ -67,5 +67,6 @@ void Pathfinding_SetClosed(Pathfinder *pf, int x, int y);
 int Pathfinding_FindPath(Pathfinder *pf, Vec3 pos, Vec3 goal);
 void Pathfinding_Init(Pathfinder *pf, int w, int h);
 void Pathfinding_SetOpenGrid(Pathfinder *pf, Vec3 pos);
+void Pathfinding_SetClosedBoundingBox(Pathfinder *pf, BoundingBox *bb);
 
 #endif

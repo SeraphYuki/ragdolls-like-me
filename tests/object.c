@@ -6,6 +6,19 @@ static void AddUser(Object *obj){
 	 obj->numUsers++;
 }
 
+static void RecursivePathfindingSet(Pathfinder *pf, BoundingBox *bb){
+	int k;
+	for(k = 0; k < bb->numChildren; k++ ){
+		if(bb->children[k].noPathfinding == 0 && bb->children[k].noCollisions == 0)
+			Pathfinding_SetClosedBoundingBox(pf, &bb->children[k]);
+	}
+	if(bb->noCollisions == 0)
+		Pathfinding_SetClosedBoundingBox(pf, &bb->children[k]);		
+}
+
+void Object_SetPathfindingClosed(Pathfinder *pf,Object *obj){
+	RecursivePathfindingSet(pf, &obj->bb);
+}
 
 static void RemoveUser(Object *obj){
 	 obj->numUsers--;

@@ -39,7 +39,7 @@ float invPersp[16];
 float persp[16], view[16], model[16];
 static Vec2 rotation = {0,-1};
 static Vec2 mousepos = {0,0};
-static Vec3 position = {4,5,4};
+static Vec3 position = {4,6,4};
 static Vec3 renderpos = {-2,5,4};
 static Vec3 lookatPos = {0,2,0};
 static UI ui;
@@ -69,7 +69,6 @@ static void Update(){
 	 cubeObj->bb.pos.y -= Window_GetDeltaTime() / 1000.0f;
 	if(cubeObj->bb.pos.y < 0.2){
 	    cubeObj->bb.pos.y = 0.2;
-		//moveToPos.y = cubeObj->bb.pos.y;
 	}
 
 	static float animDir = 1;
@@ -88,7 +87,6 @@ static void Update(){
 	Skeleton_Update(&cubeSkel, cubeAnims, 1);
 	//Skeleton_Update(&hairSkel, hairAnims, 0);
 	cubeObj->ObjUpdate(cubeObj);
-	
 	Object_UpdateSkeleton(cubeObj, &cubeSkel);
 	Object_UpdateModel(groundObj, &groundModel);
 	
@@ -100,7 +98,7 @@ static void Update(){
 	//if(movingDirs[3]) moveVec.x -= 1;
 	//if(movingDirs[4]) moveVec.y += 1;
 	moveVec = Math_Vec3SubVec3(moveToPos,cubeObj->bb.pos);
-
+	moveToPos.y = cubeObj->bb.pos.y;
 	if(Math_Vec3Magnitude(moveVec)){
 
 	     moveVec = Math_Vec3Normalize(moveVec);
@@ -146,14 +144,7 @@ static void Update(){
 static void Event(SDL_Event ev){
 	UI_Event(&ui, ev); 
 	
-	     //Thoth_Event(thoth, ev);
-	      //if(ev.window.event == SDL_WINDOWEVENT_RESIZED || 
-	          //ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED){
-	          //int w = ev.window.data1;
-	          //int h = ev.window.data2;
-
-	          //Thoth_Resize(thoth, 0, 0, w, h);
-	      //}
+	  //Thoth_Event(thoth, ev);
 	if(ev.type == SDL_MOUSEBUTTONDOWN){
 
 		rotatingObj = NULL;
@@ -416,12 +407,11 @@ static char Draw(){
 
 	Skeleton_Apply(&cubeSkel);
 	//Skeleton_Apply(&hairSkel);
-	Pathfinding_RenderDebug(&pf);
 
 	World_Render(1);
 	Particles_DrawParticles(particleImg, &ps, particles, 100, 50, forward, renderpos, 0);
 	
-	
+	Pathfinding_RenderDebug(&pf);	
 	UI_Clear(&ui);
 
 	Image img;
@@ -437,7 +427,7 @@ static char Draw(){
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 
-//	Thoth_RenderIntoTexture(thoth, &img.glTexture, &img.w, &img.h);
+	//Thoth_RenderIntoTexture(thoth, &img.glTexture, &img.w, &img.h);
 
 	//UI_RenderRectTex(&ui, img, 0,0, img.w/2,img.h, 
 	//0,0, img.w/2,img.h, 255,255,255,255);
@@ -459,8 +449,8 @@ static void OnResize(){
 int main(int argc, char **argv){
 
 	Window_Open("Editor", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,WINDOW_WIDTH, WINDOW_HEIGHT, 0);
-
-
+	
+	printf("%s\n", SDL_GetError());
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_DEPTH_TEST);
@@ -478,10 +468,6 @@ int main(int argc, char **argv){
 
 	Particles_Init(&ps);
 	
-	//thoth = Thoth_Create(WINDOW_WIDTH, WINDOW_HEIGHT );
-	//Thoth_Resize(thoth, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-	//Thoth_LoadFile(thoth, "main.c");
-
 
 	particleImg = ImageLoader_CreateImage("Resources/smoke.png",1);
 	particleImg.nFramesX = 5;
@@ -530,8 +516,8 @@ int main(int argc, char **argv){
 	cubeObj->Draw = DrawRigged;
 	cubeObj->AddUser(cubeObj);
 
-	cubeObj->bb.pos.y = 0;
 	cubeObj->bb.pos = moveToPos = pf.path[onPath];
+	cubeObj->bb.pos.y =1;
 	
 	cubeObj->bb.scale = (Vec3){0.2,0.2,0.2};
 	cubeObj->bb.rot = (Vec3){0,0,0};
@@ -556,6 +542,9 @@ int main(int argc, char **argv){
 	Pathfinding_Init(&pf, 200,200);
 	pf.cube.x = groundObj->bb.wsCube.x;
 	pf.cube.z = groundObj->bb.wsCube.z;
+	groundObj->bb.children[0].noPathfinding = 1;
+	Object_SetPathfindingClosed(&pf, groundObj);
+	
 	//Pathfinding_LoadNavGrid(&pf, "Resources/roomnavgrid.nav");
 	//Pathfinding_LoadNavMesh(&pf, "Resources/room.nav");
 	
@@ -601,7 +590,7 @@ int main(int argc, char **argv){
 	figure.skel = &cubeSkel;
 	 //thoth = Thoth_Create(WINDOW_WIDTH, WINDOW_HEIGHT );
 	 //Thoth_LoadFile(thoth, "main.c");
-
+	
 	Window_MainLoop(Update, Event, Draw, Focus, OnResize, 1, 1);
 	
 

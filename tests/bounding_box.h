@@ -17,6 +17,7 @@ typedef struct _BoundingBox {
 	Vec3 rot;
 	Vec3 scale;
 	int noCollisions;
+	int noPathfinding;
 	char **types;
 	int nTypes;
 	int renderDebug;

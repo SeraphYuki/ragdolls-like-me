@@ -294,7 +294,7 @@ void World_DrawX(Cube r){
 	  lines[5] = (Vec3){points[3].x, points[3].y, points[3].z};
 	  lines[6] = (Vec3){points[2].x, points[2].y, points[2].z};
 	  lines[7] = (Vec3){points[0].x, points[0].y, points[0].z};	
-    World_DrawLines(lines, 8);
+	 World_DrawLines(lines, 8);
 }
 
 void World_DrawCube(Cube r){
@@ -383,7 +383,7 @@ static void DrawBoundingBoxes(BoundingBox *bb){
 	for(k = 0; k < bb->numChildren; k++)
 		DrawBoundingBoxes(&bb->children[k]);
 
-	Shaders_SetUniformColor((Vec4){0,1,0,1});
+	Shaders_SetUniformColor((Vec4){1,1,1,1});
 	
 	//if(!bb->renderDebug) return;
 

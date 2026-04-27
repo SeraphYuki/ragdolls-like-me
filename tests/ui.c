@@ -46,8 +46,8 @@ static void CreateFrameBuffer(UI *ui){
 void UI_Init(UI *ui, int w, int h){
 
 
-	UI_SliderCreate(ui, &ui->elements[ui->nElements++], (Rect2D){100,100,200,40});
-	UI_SliderCreate(ui, &ui->elements[ui->nElements++], (Rect2D){100,150,200,40});	
+	UI_SliderCreate(ui, &ui->elements[ui->nElements++], (Rect2D){500,100,200,40});
+	UI_SliderCreate(ui, &ui->elements[ui->nElements++], (Rect2D){500,150,200,40});	
 	
 	ui->mouserect = (Rect2D){0,0,1,1};
 	ui->stress = 0;
@@ -154,9 +154,9 @@ void UI_SliderRender(UI *ui, UI_Element *element){
 	UI_Slider *slider = (UI_Slider *)element->data;
 	
 	UI_RenderRect(ui, slider->dragrect.x, slider->dragrect.y,slider->dragrect.w,
-	slider->dragrect.h, 100, 100, 100, 100);
+	slider->dragrect.h, 255, 255, 255, 200);
 	UI_RenderRect(ui, slider->sliderrect.x, slider->sliderrect.y,slider->sliderrect.w,
-	slider->sliderrect.h, 0, 0, 0, 100);
+	slider->sliderrect.h, 0, 0, 0, 200);
 	
 }
 

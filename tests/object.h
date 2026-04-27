@@ -1,6 +1,7 @@
 #ifndef OBJECT_DEF
 #define OBJECT_DEF
 
+#include "pathfinding.h"
 #include "bounding_box.h"
 #include "math.h"
 #include "game.h"
@@ -71,6 +72,7 @@ Object *Object_Create();
 Object *Object_Copy(Object *obj);
 void Object_UpdateSkeleton(Object *obj, Skeleton *skel);
 
+void Object_SetPathfindingClosed(Pathfinder *pf,Object *obj);
 int Object_SkeletonCollision(BoundingBox *bb1, BoundingBox *bb2, Vec3 *axis, float *overlap);
 void Object_Free(Object *obj);
 void Object_Freeze(Object *obj);

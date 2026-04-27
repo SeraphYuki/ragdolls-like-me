@@ -399,14 +399,14 @@ void BoundingBox_UpdateWorldSpaceCube(BoundingBox *bb){
 
 void BoundingBox_UpdatePoints(BoundingBox *bb){
 
-	bb->points[0] = (Vec3){bb->cube.x, bb->cube.y+bb->cube.h, bb->cube.z+bb->cube.d};
 	bb->points[1] = (Vec3){bb->cube.x, bb->cube.y, bb->cube.z+bb->cube.d};
-	bb->points[2] = (Vec3){bb->cube.x, bb->cube.y+bb->cube.h, bb->cube.z};
-	bb->points[3] = (Vec3){bb->cube.x, bb->cube.y, bb->cube.z};
-	bb->points[4] = (Vec3){bb->cube.x+bb->cube.w, bb->cube.y+bb->cube.h, bb->cube.z+bb->cube.d};
 	bb->points[5] = (Vec3){bb->cube.x+bb->cube.w, bb->cube.y, bb->cube.z+bb->cube.d};
-	bb->points[6] = (Vec3){bb->cube.x+bb->cube.w, bb->cube.y+bb->cube.h, bb->cube.z};
+	bb->points[3] = (Vec3){bb->cube.x, bb->cube.y, bb->cube.z};
 	bb->points[7] = (Vec3){bb->cube.x+bb->cube.w, bb->cube.y, bb->cube.z};
+	bb->points[0] = (Vec3){bb->cube.x, bb->cube.y+bb->cube.h, bb->cube.z+bb->cube.d};
+	bb->points[2] = (Vec3){bb->cube.x, bb->cube.y+bb->cube.h, bb->cube.z};
+	bb->points[4] = (Vec3){bb->cube.x+bb->cube.w, bb->cube.y+bb->cube.h, bb->cube.z+bb->cube.d};
+	bb->points[6] = (Vec3){bb->cube.x+bb->cube.w, bb->cube.y+bb->cube.h, bb->cube.z};
 
 	float rmatrix[16];
 	Vec3 rot = bb->rot;
@@ -474,7 +474,6 @@ static int SameSide(Vec3 p, Vec3 a, Vec3 b, Vec3 c){
 
  int BoundingBox_CheckCollisionRay(BoundingBox *bb, Ray r, BoundingBox **b, float *dist){
 
-	
 	//if(!BoundingBox_IsSAT(bb)){
 		//float d = Math_CubeCheckCollisionRay(bb->wsCube, r);
 
@@ -509,13 +508,6 @@ static int SameSide(Vec3 p, Vec3 a, Vec3 b, Vec3 c){
 		Vec3 n;
 		n = bb->axes[k];
 		
-		//if(!BoundingBox_IsSAT(bb)){
-			//Vec3 v0 = Math_Vec3SubVec3(planes[k][0], planes[k][1]);
-			//Vec3 v1 = Math_Vec3SubVec3(planes[k][0], planes[k][2]);
-			//n = Math_Vec3Normalize(Math_Vec3Cross(v0,v1));
-		//} else {
-		//}
-
 		float d = Math_Vec3Dot( Math_Vec3SubVec3(planes[k][0], r.pos), n) / Math_Vec3Dot(r.line, n);
 		if(d < 0 || d > *dist) continue;
 
