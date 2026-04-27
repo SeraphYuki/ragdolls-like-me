@@ -151,7 +151,7 @@ void World_ResolveCollisions(Object *obj, BoundingBox *box){
 void World_DrawLines(Vec3 *lines, int num){
 
 	Shaders_UseProgram(TEXTURELESS_SHADER);
-	Shaders_SetUniformColor((Vec4){1,1,1,1});
+	//Shaders_SetUniformColor((Vec4){1,1,1,1});
 
 	glBindVertexArray(vao);
 
@@ -276,6 +276,27 @@ void World_DrawSAT(BoundingBox *bb){
     World_DrawLines(lines, 18);
 }
 
+void World_DrawX(Cube r){
+
+    Vec3 points[4];
+
+	  points[0] = (Vec3){r.x+r.w, r.y+r.h, r.z};
+	  points[1] = (Vec3){r.x, r.y+r.h, r.z};
+	  points[2] = (Vec3){r.x+r.w, r.y+r.h, r.z+r.d};
+	  points[3] = (Vec3){r.x, r.y+r.h, r.z+r.d};
+
+	Vec3 lines[8];	
+	  lines[0] = (Vec3){points[3].x, points[3].y, points[3].z};
+	  lines[1] = (Vec3){points[2].x, points[2].y, points[2].z};
+	  lines[2] = (Vec3){points[1].x, points[1].y, points[1].z};
+	  lines[3] = (Vec3){points[0].x, points[0].y, points[0].z};	
+	  lines[4] = (Vec3){points[1].x, points[1].y, points[1].z};
+	  lines[5] = (Vec3){points[3].x, points[3].y, points[3].z};
+	  lines[6] = (Vec3){points[2].x, points[2].y, points[2].z};
+	  lines[7] = (Vec3){points[0].x, points[0].y, points[0].z};	
+    World_DrawLines(lines, 8);
+}
+
 void World_DrawCube(Cube r){
 
     Vec3 points[8];
@@ -366,10 +387,10 @@ static void DrawBoundingBoxes(BoundingBox *bb){
 	
 	//if(!bb->renderDebug) return;
 
-	 //if(BoundingBox_IsSAT(bb)){
-		//World_DrawSAT(bb);
-	 	//return;
-	 //}
+	 if(BoundingBox_IsSAT(bb)){
+		World_DrawSAT(bb);
+	 	return;
+	 }
 	
 	 World_DrawCube(bb->wsCube);
 }

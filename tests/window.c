@@ -164,8 +164,8 @@ void Window_MainLoop(void (*Update)(), void (*Event)(SDL_Event ), char (*Draw)()
         if(display_fps){
 	         int currTime = SDL_GetTicks();
 	         if(currTime - prevDisplayFPS > 1000 ){
-	             printf("%f ms\n", ((float)currTime - (float)prevDisplayFPS) / frames );
-	             printf("%i fps\n", frames );
+	             //printf("%f ms\n", ((float)currTime - (float)prevDisplayFPS) / frames );
+	             //printf("%i fps\n", frames );
 	             prevDisplayFPS = currTime;
 	             frames = 0;
 	         }

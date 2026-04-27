@@ -7,6 +7,7 @@
 
 void World_DrawSAT(BoundingBox *bb);
 void World_DrawCube(Cube r);
+void World_DrawX(Cube r);
 Object *World_GetVisibleObjects();
 void World_DrawBoundingBox(BoundingBox *box);
 void World_InitOctree(Vec3 pos, float size, float octantWidth);

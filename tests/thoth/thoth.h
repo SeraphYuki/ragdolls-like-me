@@ -23,6 +23,7 @@ HFONT Config_GetFont();
 int Config_GetWidth();
 int Config_GetHeight();
 #endif
+void Thoth_RenderIntoTexture(Thoth_t *t, int *texture, int *w, int *h);
 void Thoth_LoadFile(Thoth_t *t, char *path);
 int Thoth_Event(Thoth_t *t, SDL_Event ev);
 void Thoth_Destroy(Thoth_t *t);

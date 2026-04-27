@@ -154,9 +154,8 @@ static void Event(SDL_Event ev){
 
 	          //Thoth_Resize(thoth, 0, 0, w, h);
 	      //}
-	if(ev.type == SDL_MOUSEBUTTONUP){
+	if(ev.type == SDL_MOUSEBUTTONDOWN){
 
-	if(ev.button.button == SDL_BUTTON_LEFT){
 		rotatingObj = NULL;
 		moveToPos = cubeObj->bb.pos;
 		cubeObj->model->materials[0].diffuse = (Vec4){0.8,0.6,0.6,1};
@@ -209,24 +208,25 @@ static void Event(SDL_Event ev){
 					}
 				} else {
 					if(collisionObj == groundObj){
-
+						
+						if(ev.button.button == SDL_BUTTON_LEFT){
+						
 						Pathfinding_SetClosedGrid(&pf,
 						Math_Vec3AddVec3(renderpos,
 						Math_Vec3MultFloat(ray, distance)));
-
-						printf("%i\n", BoundingBox_IsSAT(collision));
-						collision->renderDebug = 1;
-						printf("%f %f %f %f %f %f\n", collision->wsCube.x,collision->wsCube.y,
-						collision->wsCube.z,collision->wsCube.w,collision->wsCube.h,
-						collision->wsCube.d);
-						
-						//Pathfinding_FindPathGrid(&pf,cubeObj->bb.pos,
-						//Math_Vec3AddVec3(renderpos,
-						//Math_Vec3MultFloat(ray, distance)));
-						
+					} else if(ev.button.button == SDL_BUTTON_MIDDLE){
+							Pathfinding_FindPathGrid(&pf,cubeObj->bb.pos,
+						Math_Vec3AddVec3(renderpos,
+						Math_Vec3MultFloat(ray, distance)));
 						//Pathfinding_FindPath(&pf,cubeObj->bb.pos,
 						//Math_Vec3AddVec3(renderpos,
 						//Math_Vec3MultFloat(ray, distance)));
+					} else if(ev.button.button == SDL_BUTTON_RIGHT){ 
+						
+						Pathfinding_SetOpenGrid(&pf,
+						Math_Vec3AddVec3(renderpos,
+						Math_Vec3MultFloat(ray, distance)));
+					}
 						
 						onPath = 0;
 					} else {
@@ -235,7 +235,6 @@ static void Event(SDL_Event ev){
 					}
 				}
 			}
-		}
 
 	} else if(ev.type == SDL_MOUSEMOTION){
 
@@ -357,6 +356,7 @@ static void DrawModel(Object *obj){
 }
 static char Draw(){
 	float persp[16];
+	glBindFramebuffer(GL_FRAMEBUFFER,0);
 	rotation.y += mouseSensitivity * Window_GetDeltaTime();
 	
 	renderpos = Math_Rotate(position, (Vec3){0,rotation.y,0});
@@ -388,6 +388,7 @@ static char Draw(){
 	Shaders_SetModelMatrix(idenity);
 
 	Skybox_Draw(&skybox);
+
 
 	int k;
 	for(k = 0; k < cubeObj->skelBb.numChildren; k++){
@@ -429,10 +430,24 @@ static char Draw(){
 	img.h = cubeObj->model->materials[0].h;
 	img.nFramesX = img.nFramesY = 1;
 
-	UI_RenderRectTex(&ui, img, 0,0, 100,100, 
-	0,0, img.w,img.h, 255,255,255,255);
+
+	
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+
+//	Thoth_RenderIntoTexture(thoth, &img.glTexture, &img.w, &img.h);
+
+	//UI_RenderRectTex(&ui, img, 0,0, img.w/2,img.h, 
+	//0,0, img.w/2,img.h, 255,255,255,255);
 
 	UI_Render(&ui);
+
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
+	
+
 	return 1;
 }
 
@@ -474,9 +489,6 @@ int main(int argc, char **argv){
 	billboardImg = ImageLoader_CreateImage("Resources/tex.png",1);	
 
 
-	Pathfinding_Init(&pf, 10,10);
-	//Pathfinding_LoadNavGrid(&pf, "Resources/roomnavgrid.nav");
-	//Pathfinding_LoadNavMesh(&pf, "Resources/room.nav");
 
 	World_InitOctree((Vec3){-100, -100, -100}, 200, 25);
 
@@ -541,6 +553,11 @@ int main(int argc, char **argv){
 	
 	World_UpdateObjectInOctree(groundObj);
 	
+	Pathfinding_Init(&pf, 200,200);
+	pf.cube.x = groundObj->bb.wsCube.x;
+	pf.cube.z = groundObj->bb.wsCube.z;
+	//Pathfinding_LoadNavGrid(&pf, "Resources/roomnavgrid.nav");
+	//Pathfinding_LoadNavMesh(&pf, "Resources/room.nav");
 	
 	//throwObj = Object_Create();
 	//Model_Load(&throwModel, "Resources/cube.yuk");
@@ -582,8 +599,9 @@ int main(int argc, char **argv){
 	};
 
 	figure.skel = &cubeSkel;
-	// thoth = Thoth_Create(WINDOW_WIDTH, WINDOW_HEIGHT );
-	// Thoth_LoadFile(thoth, "main.c");
+	 //thoth = Thoth_Create(WINDOW_WIDTH, WINDOW_HEIGHT );
+	 //Thoth_LoadFile(thoth, "main.c");
+
 	Window_MainLoop(Update, Event, Draw, Focus, OnResize, 1, 1);
 	
 

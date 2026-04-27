@@ -18,7 +18,7 @@ CFLAGS =  $(shell pkg-config --cflags sdl3) $(shell pkg-config --cflags freetype
 FREETYPELIBS = $(shell pkg-config --libs freetype2)
 GLEWLIBS = $(shell pkg-config  --libs glew)
 SDLLIBS = $(shell pkg-config --libs sdl2)
-LIBS = -lm -lpng  $(GLEWLIBS) $(SDLLIBS) $(FREETYPELIBS) 
+LIBS = -L. -lthoth -lm -lpng  $(GLEWLIBS) $(SDLLIBS) $(FREETYPELIBS) 
 
 SOURCES=main.c image_loader.c math.c shaders.c window.c mesh.c \
 bounding_box.c octree.c world.c skybox.c hash_table.c object.c deflate.c log.c memory.c \

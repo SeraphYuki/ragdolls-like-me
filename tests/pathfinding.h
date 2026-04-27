@@ -1,8 +1,9 @@
+
 #ifndef PATHFINDING_DEF
 #define PATHFINDING_DEF
 
-#define MAX_PATHFINDING_NODES 2048
-#define PATHFINDING_NODE_GRID_SIZE 1
+#define MAX_PATHFINDING_NODES 4096
+#define PATHFINDING_NODE_GRID_SIZE 0.8
 
 #include "math.h"
 
@@ -39,7 +40,7 @@ typedef struct {
 	AStarNode nodes[MAX_PATHFINDING_NODES];
 	Vec3 path[MAX_PATHFINDING_NODES];
 	Vec3 closedVerts[MAX_PATHFINDING_NODES];
-		int pathIndicies[MAX_PATHFINDING_NODES];
+	int pathIndicies[MAX_PATHFINDING_NODES];
 	Line channel[MAX_PATHFINDING_NODES];
 	int nChannel;						
 	int nPath;
@@ -65,5 +66,6 @@ void Pathfinding_SetClosedGrid(Pathfinder *pf, Vec3 pos);
 void Pathfinding_SetClosed(Pathfinder *pf, int x, int y);
 int Pathfinding_FindPath(Pathfinder *pf, Vec3 pos, Vec3 goal);
 void Pathfinding_Init(Pathfinder *pf, int w, int h);
+void Pathfinding_SetOpenGrid(Pathfinder *pf, Vec3 pos);
 
 #endif

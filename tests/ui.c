@@ -127,32 +127,23 @@ void UI_Render(UI *ui){
 		if(ui->elements[k].Render) ui->elements[k].Render(ui, &ui->elements[k]); 
 	}
 
-	int x = 0, y = 0;	
-	glBlendFunc(GL_ONE,GL_ONE);
-	UI_RenderRectTex(ui, ui->uiImg, x,y,(u16)(438.0f * ui->stress),20,0,0,(u16)(430.0f * ui->stress),19,255,255,255,180);
-	glBlendFunc(GL_ONE,GL_ONE_MINUS_SRC_ALPHA);
-
-	FontRenderer_RenderString(&ui->fr, x+36, y, "stress",0,0,0,255);
-	
-	glBindFramebuffer(GL_FRAMEBUFFER, ui->fb);
-	FontRenderer_Render(&ui->fr, ui->viewport.w, ui->viewport.h);
-	glBlendFunc(GL_ONE,GL_ONE);
-	UI_RenderRectTex(ui, ui->uiImg, x,y,(u16)(438.0f * ui->stress),20,0,20,(u16)(430.0f * ui->stress),20,0,0,0,40);
-	glBlendFunc(GL_ONE,GL_ONE_MINUS_SRC_ALPHA);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glBindVertexArray(ui->quadVao);
 
-	glViewport(ui->viewport.x, ui->viewport.y, ui->viewport.w, ui->viewport.h);
+	//glViewport(ui->viewport.x, ui->viewport.y, ui->viewport.w, ui->viewport.h);
 
 	Shaders_UseProgram(QUAD_SHADER);
 
 	glUniform2f(Shaders_GetInvViewportLocation(), 1.0f, 1.0f);
 
+	glActiveTexture(GL_TEXTURE0);
+	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
 	glBindTexture(GL_TEXTURE_2D, ui->fbTexture);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glCullFace(GL_BACK);
 }
 
 void UI_SliderUpdate(UI *ui, UI_Element *element){
@@ -229,6 +220,7 @@ void UI_Clear(UI *ui){
 
 	glClear(GL_COLOR_BUFFER_BIT);
 	glCullFace(GL_BACK);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void UI_RenderRect(UI *ui, float x, float y, u16 w, u16 h, u8 r, u8 g, u8 b, u8 a){
@@ -286,7 +278,7 @@ u16 ix, u16 iy, u16 iw, u16 ih, u8 r, u8 g, u8 b, u8 a){
 		pos[0] = x + ((s16)RectTriangleVerts[k] * w);
 		pos[1] = y + ((s16)RectTriangleVerts[k+1] * h);
 		coord[0] = (ix + ((s16)RectTriangleVerts[k] * iw)) * 1.0f/img.w;
-		coord[1] = 1-((iy + ((s16)RectTriangleVerts[k+1] *ih)) * 1.0f/img.h);
+		coord[1] = ((iy + ((s16)RectTriangleVerts[k+1] *ih)) * 1.0f/img.h);
 		glBindBuffer(GL_ARRAY_BUFFER, ui->posVbo);
 		glBufferSubData(GL_ARRAY_BUFFER, offset*sizeof(pos), sizeof(pos), pos);
 		glBindBuffer(GL_ARRAY_BUFFER, ui->uvVbo);
