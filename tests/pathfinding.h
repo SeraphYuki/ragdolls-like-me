@@ -7,6 +7,7 @@
 
 #include "math.h"
 #include "bounding_box.h"
+
 typedef struct AStarNode AStarNode;
 struct AStarNode {
 		float g;
@@ -31,6 +32,11 @@ struct PathfindingTri{
 	int nPortals;
 	int index;
 };
+typedef struct {
+	Vec3 path[MAX_PATHFINDING_NODES];
+	int nPath;	
+	int pathIndicies[MAX_PATHFINDING_NODES];
+} PathfinderPath;
 
 typedef struct {
 	int w;
@@ -38,12 +44,9 @@ typedef struct {
 	AStarNode open[MAX_PATHFINDING_NODES];
 	AStarNode closed[MAX_PATHFINDING_NODES];
 	AStarNode nodes[MAX_PATHFINDING_NODES];
-	Vec3 path[MAX_PATHFINDING_NODES];
 	Vec3 closedVerts[MAX_PATHFINDING_NODES];
-	int pathIndicies[MAX_PATHFINDING_NODES];
 	Line channel[MAX_PATHFINDING_NODES];
 	int nChannel;						
-	int nPath;
 	int nOpen;
 	int nClosed;
 	int nClosedObstacles;
@@ -58,13 +61,12 @@ typedef struct {
 	Vec3 pos;
 } Pathfinder;
 
-void Pathfinding_RenderDebug(Pathfinder *pf);
 void Pathfinding_LoadNavMesh(Pathfinder *pf, const char *path);
 void Pathfinding_LoadNavGrid(Pathfinder *pf, const char *path);
-int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal);
+int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath *path);
 void Pathfinding_SetClosedGrid(Pathfinder *pf, Vec3 pos);
 void Pathfinding_SetClosed(Pathfinder *pf, int x, int y);
-int Pathfinding_FindPath(Pathfinder *pf, Vec3 pos, Vec3 goal);
+int Pathfinding_FindPath(Pathfinder *pf, Vec3 pos, Vec3 goal, PathfinderPath *path);
 void Pathfinding_Init(Pathfinder *pf, int w, int h);
 void Pathfinding_SetOpenGrid(Pathfinder *pf, Vec3 pos);
 void Pathfinding_SetClosedBoundingBox(Pathfinder *pf, BoundingBox *bb);

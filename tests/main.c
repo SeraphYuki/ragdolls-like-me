@@ -1,6 +1,8 @@
 #include <GL/glew.h>
 #include "window.h"
+#include "minion.h"
 #include "pathfinding.h"
+#include "game.h"
 #include "particles.h"
 #include "physics.h"
 #include "freetype.h"
@@ -16,36 +18,57 @@
 #define WINDOW_WIDTH 960 
 #define WINDOW_HEIGHT 544
 
-#define NUM_GARBAGE 10
+#define NUM_MINIONS 3
 
+enum {
+	MODEL_WORLD=1,
+	MODEL_MINION,
+	MODEL_PLAYER,
+	NUM_MODELS,
+};
+
+enum {
+	ANIMATION_PLAYER = 1,
+	NUM_ANIMATIONS,
+};
+
+static Game game;
+
+static Model models[NUM_MODELS];
 
 static float invView[16]; 
 static float invPersp[16];
+
 static int onPath = 0;
-static Pathfinder pf;
+static PathfinderPath pfpath;
+
 //static Thoth_t *thoth;
+
 static PhysicsFigure_t figure;
+
 static ParticleSystem ps;
 static Particle particles[100];
 static Image particleImg, billboardImg;
-static Object *rotatingObj = NULL;
-static Object *cubeObj, *groundObj, *throwObj, *cans[NUM_GARBAGE];
-static Model hairModel, cubeModel, groundModel, throwModel, canModel;
-static Animation cubeAnim, hairAnim;
-static Skeleton cubeSkel, hairSkel;
-static PlayingAnimation cubeAnims[1], hairAnims[1];
+
+static Animation animations[ANIMATION_PLAYER];
+static Skeleton playerSkel;
+static PlayingAnimation playingAnims[1];
+
 static Skybox skybox;
+
 static float mouseSensitivity = 0.0005;
 static float moveSpeed = 0.005;
+static char movingDirs[5];
+static Vec3 moveToPos;
+
 float persp[16], view[16], model[16];
-static Vec2 rotation = {0,-1};
+static Vec3 rotation = {0,0,0};
 static Vec2 mousepos = {0,0};
 static Vec3 position = {4,6,-4};
 static Vec3 renderpos = {-2,5,4};
 static Vec3 lookatPos = {0,2,0};
+
 static UI ui;
-static char movingDirs[5];
-static Vec3 moveToPos;
 
 float GetDeltaTime(void){
 	  return Window_GetDeltaTime();
@@ -67,29 +90,30 @@ static void onCube(Object *obj, Object *obj2, BoundingBox *bb, BoundingBox *bb2,
 
 static void Update(){
 
-	 cubeObj->bb.pos.y -= Window_GetDeltaTime() / 1000.0f;
-	if(cubeObj->bb.pos.y < 0.2){
-	    cubeObj->bb.pos.y = 0.2;
+
+	World_Update(&game);
+	 game.player->bb.pos.y -= Window_GetDeltaTime() / 1000.0f;
+	if(game.player->bb.pos.y < 0.2){
+	    game.player->bb.pos.y = 0.2;
 	}
 
 	static float animDir = 1;
-	 cubeAnims[0].into += animDir * Window_GetDeltaTime() / 40.1f;
-	 hairAnims[0].into += animDir * Window_GetDeltaTime() / 40.1f;
+	 playingAnims[0].into += animDir * Window_GetDeltaTime() / 40.1f;
 			
 	static float shapeKeyDir = 1;
 	
-	Model_SetShapeKey(&cubeModel, 1,ui.sliderValue);
-	cubeObj->model->materials[0].diffuse = (Vec4){ui.sliderValue2,1,1,1};;
+	Model_SetShapeKey(&models[MODEL_PLAYER-1], 1,ui.sliderValue);
+	game.player->model->materials[0].diffuse = (Vec4){ui.sliderValue2,1,1,1};;
 		
-	if(cubeAnims[0].into > cubeAnim.length || cubeAnims[0].into < 0){
+	if(playingAnims[0].into > animations[ANIMATION_PLAYER-1].length || playingAnims[0].into < 0){
 		animDir = - animDir;
 	}
 
-	Skeleton_Update(&cubeSkel, cubeAnims, 1);
+	Skeleton_Update(&playerSkel, playingAnims, 1);
 	//Skeleton_Update(&hairSkel, hairAnims, 0);
-	cubeObj->ObjUpdate(cubeObj);
-	Object_UpdateSkeleton(cubeObj, &cubeSkel);
-	Object_UpdateModel(groundObj, &groundModel);
+	game.player->ObjUpdate(game.player);
+	Object_UpdateSkeleton(game.player, &playerSkel);
+	Object_UpdateModel(game.world, &models[MODEL_WORLD-1]);
 	
 	Vec3 moveVec = {0,0,0};
 	
@@ -98,8 +122,8 @@ static void Update(){
 	//if(movingDirs[2]) moveVec.x += 1;
 	//if(movingDirs[3]) moveVec.x -= 1;
 	//if(movingDirs[4]) moveVec.y += 1;
-	moveVec = Math_Vec3SubVec3(moveToPos,cubeObj->bb.pos);
-	moveToPos.y = cubeObj->bb.pos.y;
+	moveVec = Math_Vec3SubVec3(moveToPos,game.player->bb.pos);
+	moveToPos.y = game.player->bb.pos.y;
 	if(Math_Vec3Magnitude(moveVec)){
 
 	     moveVec = Math_Vec3Normalize(moveVec);
@@ -109,22 +133,22 @@ static void Update(){
 		xz.y = 0;
 		if(Math_Vec3Magnitude(xz) > 0){
 			xz = Math_Vec3Normalize(xz);
-			Vec3 forward = Math_Rotate((Vec3){0,0,-1},cubeObj->bb.rot);
+			Vec3 forward = Math_Rotate((Vec3){0,0,-1},game.player->bb.rot);
 			float dot = Math_Vec3Dot(forward,xz);
-			cubeObj->bb.rot.y -= dot * moveSpeed;
+			game.player->bb.rot.y -= dot * moveSpeed;
 		}   
 	     moveVec = Math_Vec3MultFloat(moveVec, Window_GetDeltaTime() * moveSpeed);
 
-	    cubeObj->bb.pos.x += moveVec.x;
-	    cubeObj->bb.pos.z += moveVec.z;
-	    cubeObj->bb.pos.y += moveVec.y;
+	    game.player->bb.pos.x += moveVec.x;
+	    game.player->bb.pos.z += moveVec.z;
+	    game.player->bb.pos.y += moveVec.y;
 	}
 
-	cubeObj->ObjUpdate(cubeObj);
-	cubeObj->OnCollision = onCube;
-	World_UpdateObjectInOctree(cubeObj);
-	World_ResolveCollisions(cubeObj, &cubeObj->bb);
-	cubeObj->ObjUpdate(cubeObj);
+	game.player->ObjUpdate(game.player);
+	game.player->OnCollision = onCube;
+	World_UpdateObjectInOctree(game.player);
+	World_ResolveCollisions(game.player, &game.player->bb);
+	game.player->ObjUpdate(game.player);
 
 	
 
@@ -146,12 +170,11 @@ static void Event(SDL_Event ev){
 	  //Thoth_Event(thoth, ev);
 	if(ev.type == SDL_MOUSEBUTTONDOWN){
 
-		rotatingObj = NULL;
-		moveToPos = cubeObj->bb.pos;
-		cubeObj->model->materials[0].diffuse = (Vec4){0.8,0.6,0.6,1};
+		moveToPos = game.player->bb.pos;
+		game.player->model->materials[0].diffuse = (Vec4){0.8,0.6,0.6,1};
 
 		//throwObj->model->materials[0].diffuse = (Vec4){0.8,0.6,0.6,1};
-		groundObj->model->materials[0].diffuse = (Vec4){0.8,0.6,0.6,1};
+		game.world->model->materials[0].diffuse = (Vec4){0.8,0.6,0.6,1};
 
 		Vec4 rayWorld = (Vec4){
 			(2.0 * (mousepos.x / WINDOW_WIDTH)) - 1.0, 
@@ -167,17 +190,16 @@ static void Event(SDL_Event ev){
 		float distance = HUGE_VAL;
 		Object *collisionObj = NULL;
 		BoundingBox *collision = NULL;
-		//renderpos = Math_Vec3AddVec3(cubeObj->bb.pos,position);
 		World_GetAllCollisionsRay((Ray){renderpos, ray}, &distance, &collision, &collisionObj);
 
 		if(collision && collisionObj){
-			if(collisionObj != groundObj)
+			if(collisionObj != game.world)
 				collisionObj->model->materials[0].diffuse = (Vec4){1,1,1,1};
 				
-				if(collisionObj->type == TYPE_CAN){
+				if(collisionObj->type == TYPE_MINION){
 				
 					ui.stress += 0.1;
-					
+					World_RemoveOffScreenUpdatedObject(collisionObj);
 					World_RemoveObjectFromOctree(collisionObj);
 
 					int j;
@@ -192,34 +214,30 @@ static void Event(SDL_Event ev){
 						(-5 + (rand()%10))/10000.0f};
 					}
 				} else {
-					if(collisionObj == groundObj){
+					if(collisionObj == game.world){
 						
 						if(ev.button.button == SDL_BUTTON_LEFT){
 						
-						//Pathfinding_SetClosedGrid(&pf,
+						//Pathfinding_SetClosedGrid(&game.pf,
 						//Math_Vec3AddVec3(renderpos,
 						//Math_Vec3MultFloat(ray, distance)));
 					} else if(ev.button.button == SDL_BUTTON_MIDDLE){
-							Pathfinding_FindPathGrid(&pf,cubeObj->bb.pos,
+							Pathfinding_FindPathGrid(&game.pf,game.player->bb.pos,
 						Math_Vec3AddVec3(renderpos,
-						Math_Vec3MultFloat(ray, distance)));
-						//Pathfinding_FindPath(&pf,cubeObj->bb.pos,
+						Math_Vec3MultFloat(ray, distance)), &pfpath);
+						//Pathfinding_FindPath(&game.pf,game.player->bb.pos,
 						//Math_Vec3AddVec3(renderpos,
 						//Math_Vec3MultFloat(ray, distance)));
 						onPath = 0;
 					} else if(ev.button.button == SDL_BUTTON_RIGHT){ 
 						
-						//Pathfinding_SetOpenGrid(&pf,
+						//Pathfinding_SetOpenGrid(&game.pf,
 						//Math_Vec3AddVec3(renderpos,
 						//Math_Vec3MultFloat(ray, distance)));
 					}
-						
-					} else {
-						
-						rotatingObj = collisionObj;
-					}
 				}
 			}
+		}
 
 	} else if(ev.type == SDL_MOUSEMOTION){
 
@@ -271,7 +289,7 @@ static void DrawRigged(Object *obj){
 	Shaders_SetModelMatrix(obj->bb.matrix);
 	Shaders_UpdateModelMatrix();
 
-	if(obj == cubeObj){
+	if(obj == game.player){
 
 		//glUniform4fv(Shaders_GetBonesLocation(), hairSkel.nBones * 3, &hairSkel.matrices[0].x);
 		//glActiveTexture(GL_TEXTURE0);
@@ -342,11 +360,12 @@ static void DrawModel(Object *obj){
 static char Draw(){
 	float persp[16];
 	glBindFramebuffer(GL_FRAMEBUFFER,0);
-	//rotation.y += mouseSensitivity * Window_GetDeltaTime();
-	renderpos = Math_Vec3AddVec3(cubeObj->bb.pos,position);
-	Vec3 forward = Math_Vec3Normalize(Math_Vec3SubVec3(renderpos, cubeObj->bb.pos));
+	rotation.y += mouseSensitivity * Window_GetDeltaTime();
+	
+	renderpos = Math_Vec3AddVec3(game.player->bb.pos,Math_Rotate(position,rotation));
+	Vec3 forward = Math_Rotate(Math_Vec3Normalize(Math_Vec3SubVec3(renderpos, game.player->bb.pos)),rotation);
 		
-	Math_LookAt(view, renderpos, cubeObj->bb.pos, (Vec3){0,1,0});
+	Math_LookAt(view, renderpos, game.player->bb.pos, (Vec3){0,1,0});
 	Shaders_SetViewMatrix(view);
 	memcpy(invView,view,sizeof(invView));
 	Math_InverseMatrix(invView);
@@ -377,8 +396,8 @@ static char Draw(){
 
 
 	int k;
-	for(k = 0; k < cubeObj->skelBb.numChildren; k++){
-		World_DrawSkeleton(&cubeObj->skelBb.children[k]);
+	for(k = 0; k < game.player->skelBb.numChildren; k++){
+		//World_DrawSkeleton(&game.player->skelBb.children[k]);
 	}
 
 
@@ -386,33 +405,31 @@ static char Draw(){
 	//&figure.skel->bones[15],(Vec3){0,1,0},1);
 
 	Shaders_UseProgram(TEXTURELESS_SHADER);
-	Shaders_SetModelMatrix(cubeObj->bb.matrix);
+	Shaders_SetModelMatrix(game.player->bb.matrix);
 	//Physics_ApplyForces(&figure);
 
 		
-	if(pf.nPath > 0 && onPath < pf.nPath-1 && Math_Vec3Magnitude(Math_Vec3SubVec3(moveToPos,cubeObj->bb.pos)) < 0.1){
-		moveToPos = pf.path[onPath];
+	if(pfpath.nPath > 0 && onPath < pfpath.nPath-1 && Math_Vec3Magnitude(Math_Vec3SubVec3(moveToPos,game.player->bb.pos)) < 0.1){
+		moveToPos = pfpath.path[onPath];
 		onPath++; 
-		if(onPath >= pf.nPath) onPath = 0;
-		if(onPath < pf.nPath)
-			moveToPos = pf.path[onPath];
+		if(onPath >= pfpath.nPath) onPath = 0;
+		if(onPath < pfpath.nPath)
+			moveToPos = pfpath.path[onPath];
 	}
 	
 
 
-	Skeleton_Apply(&cubeSkel);
-	//Skeleton_Apply(&hairSkel);
+	Skeleton_Apply(&playerSkel);
 
 	World_Render(1);
 	Particles_DrawParticles(particleImg, &ps, particles, 100, 50, forward, renderpos, 0);
 	
-	Pathfinding_RenderDebug(&pf);	
 	UI_Clear(&ui);
 
 	Image img;
-	img.glTexture = cubeObj->model->materials[0].texture;
-	img.w = cubeObj->model->materials[0].w;
-	img.h = cubeObj->model->materials[0].h;
+	img.glTexture = game.player->model->materials[0].texture;
+	img.w = game.player->model->materials[0].w;
+	img.h = game.player->model->materials[0].h;
 	img.nFramesX = img.nFramesY = 1;
 
 
@@ -485,112 +502,66 @@ int main(int argc, char **argv){
 	Shaders_UseProgram(SKELETAL_ANIMATION_SHADER);
 	Shaders_SetProjectionMatrix(persp);
 	Shaders_UpdateProjectionMatrix();
-	(model);
 	Shaders_UpdateModelMatrix();
 	Shaders_SetViewMatrix(view);
 	Shaders_UpdateViewMatrix();
 	Shaders_UpdateProjectionMatrix();
-	memset(&cubeSkel, 0, sizeof(Skeleton));
 
-	cubeObj = Object_Create();
-	cubeObj->skeleton = &cubeSkel;
-	memcpy(cubeObj->matrix, Math_Identity, sizeof(Math_Identity));
-	
-	RiggedModel_Load(&cubeModel, "Resources/figure.yuk");
-	//RiggedModel_Load(&hairModel, "Resources/hair.yuk");
-	Skeleton_Copy(&cubeSkel, &cubeModel.skeleton);
-	//Skeleton_Copy(&hairSkel, &hairModel.skeleton);	
-	
-	Skeleton_ParentToBone(&hairSkel, &cubeSkel.bones[15]);
-	Animation_Load(&cubeAnim, "Resources/figure_ArmatureAction.anm");
-	Animation_Load(&hairAnim, "Resources/hair_Armature.001Action.anm");
 
+	game.player = Object_Create();
+	game.player->skeleton = &playerSkel;
+	memcpy(game.player->matrix, Math_Identity, sizeof(Math_Identity));
 	
-	Object_SetModel(cubeObj, &cubeModel);
-	cubeObj->Draw = DrawRigged;
-	cubeObj->AddUser(cubeObj);
+	RiggedModel_Load(&models[MODEL_PLAYER-1], "Resources/figure.yuk");
+	Skeleton_Copy(&playerSkel, &models[MODEL_PLAYER-1].skeleton);
+	Animation_Load(&animations[ANIMATION_PLAYER-1], "Resources/figure_ArmatureAction.anm");
 
-	cubeObj->bb.pos = moveToPos = pf.path[onPath];
-	cubeObj->bb.pos.y =1;
-	
-	cubeObj->bb.scale = (Vec3){0.2,0.2,0.2};
-	cubeObj->bb.rot = (Vec3){0,0,0};
-	cubeObj->bb.renderDebug = 0;
-	cubeObj->bb.cube = (Cube){-2.5,0.1,-2.5,5,10,5};
-	World_UpdateObjectInOctree(cubeObj);
+	Object_SetModel(game.player, &models[MODEL_PLAYER-1]);
+	game.player->Draw = DrawRigged;
+	game.player->AddUser(game.player);
+	game.player->bb.pos = moveToPos = pfpath.path[onPath];
+	game.player->bb.pos.y =1;
+	game.player->bb.scale = (Vec3){0.2,0.2,0.2};
+	game.player->bb.rot = (Vec3){0,0,0};
+	game.player->bb.renderDebug = 0;
+	game.player->bb.cube = (Cube){-2.5,0.1,-2.5,5,10,5};
+	World_UpdateObjectInOctree(game.player);
+	playingAnims[0] = (PlayingAnimation){
+		 .active = 1,
+		 .weight = 1,
+		 .into = 0,
+		 .anim = &animations[ANIMATION_PLAYER-1],
+	};
 
-	groundObj = Object_Create();
-	Model_Load(&groundModel, "Resources/room.yuk");
-	Model_LoadCollisions(&groundModel, "Resources/room.col");
-	Object_SetModel(groundObj, &groundModel);
-	groundObj->Draw = DrawModel;
-	groundObj->AddUser(groundObj);
+	game.world = Object_Create();
+	Model_Load(&models[MODEL_WORLD-1], "Resources/room.yuk");
+	Model_LoadCollisions(&models[MODEL_WORLD-1], "Resources/room.col");
+	Object_SetModel(game.world, &models[MODEL_WORLD-1]);
+	game.world->Draw = DrawModel;
+	game.world->AddUser(game.world);
 	
 	// if not set it wont collide
-	groundObj->bb.rot = (Vec3){0,0,0};
-	moveToPos = cubeObj->bb.pos;
-	groundObj->ObjUpdate(groundObj);
+	game.world->bb.rot = (Vec3){0,0,0};
+	moveToPos = game.player->bb.pos;
+	game.world->ObjUpdate(game.world);
 	
-	World_UpdateObjectInOctree(groundObj);
+	World_UpdateObjectInOctree(game.world);
 	
-	Pathfinding_Init(&pf, 200,200);
-	pf.cube.x = groundObj->bb.wsCube.x;
-	pf.cube.z = groundObj->bb.wsCube.z;
-	groundObj->bb.children[0].noPathfinding = 1;
-	Object_SetPathfindingClosed(&pf, groundObj);
+	Pathfinding_Init(&game.pf, 200,200);
+	game.pf.cube.x = game.world->bb.wsCube.x;
+	game.pf.cube.z = game.world->bb.wsCube.z;
+	game.world->bb.children[0].noPathfinding = 1;
+	Object_SetPathfindingClosed(&game.pf, game.world);
 	
-	//Pathfinding_LoadNavGrid(&pf, "Resources/roomnavgrid.nav");
-	//Pathfinding_LoadNavMesh(&pf, "Resources/room.nav");
-	
-	//throwObj = Object_Create();
-	//Model_Load(&throwModel, "Resources/cube.yuk");
-	//Object_SetModel(throwObj, &throwModel);
-	//throwObj->Draw = DrawModel;
-	//throwObj->bb.pos = (Vec3){0,1,0};
-	//throwObj->bb.scale = (Vec3){0.5,0.5,0.5};
-	//throwObj->AddUser(throwObj);
-	//throwObj->ObjUpdate(throwObj);
-	//World_UpdateObjectInOctree(throwObj);
-
-	Model_Load(&canModel, "Resources/can.yuk");
+	RiggedModel_Load(&models[MODEL_MINION-1], "Resources/minion.yuk");
 
 	int j;
-	for(j = 0; j < NUM_GARBAGE; j++){
-			cans[j] = Object_Create();
-			Object_SetModel(cans[j], &canModel);
-			cans[j]->Draw = DrawModel;
-			cans[j]->bb.renderDebug = 0;
-			cans[j]->bb.pos = Math_Vec3AddVec3(cans[j]->bb.pos,
-			(Vec3){ (-50 + rand()%100)/20.0f, 1, (-50 + rand()%100)/20.0f});
-			cans[j]->bb.scale = (Vec3){1,1,1};
-			cans[j]->bb.rot.y = 1;
-			cans[j]->bb.pos.z += 10;
-			cans[j]->type = TYPE_CAN;
-			cans[j]->ObjUpdate(cans[j]);
-			World_UpdateObjectInOctree(cans[j]);
+	for(j = 0; j < NUM_MINIONS; j++){
+		game.minions[j] = Minion_Create(&models[MODEL_MINION-1]);
 	}
 
-	cubeAnims[0] = (PlayingAnimation){
-		 .active = 1,
-		 .weight = 1,
-		 .into = 0,
-		 .anim = &cubeAnim,
-	};
-	hairAnims[0] = (PlayingAnimation){
-		 .active = 1,
-		 .weight = 1,
-		 .into = 0,
-		 .anim = &hairAnim,
-	};
-
-	figure.skel = &cubeSkel;
-	 //thoth = Thoth_Create(WINDOW_WIDTH, WINDOW_HEIGHT );
-	 //Thoth_LoadFile(thoth, "main.c");
-	
 	Window_MainLoop(Update, Event, Draw, Focus, OnResize, 1, 1);
-	
-
-    //Thoth_Destroy(thoth);
+	 //Thoth_Destroy(thoth);
 
 	World_Free();
 	Shaders_Close();

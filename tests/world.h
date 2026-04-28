@@ -5,6 +5,7 @@
 #include "object.h"
 #include "bounding_box.h"
 
+void World_Update(Game *game);
 void World_DrawSAT(BoundingBox *bb);
 void World_DrawCube(Cube r);
 void World_DrawX(Cube r);

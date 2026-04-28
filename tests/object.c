@@ -6,6 +6,7 @@ static void AddUser(Object *obj){
 	 obj->numUsers++;
 }
 
+
 static void RecursivePathfindingSet(Pathfinder *pf, BoundingBox *bb){
 	int k;
 	for(k = 0; k < bb->numChildren; k++ ){
@@ -31,6 +32,10 @@ static void ObjUpdate(Object *obj){
  	if(obj->model->numBB > 1)
 		Object_UpdateModel(obj, obj->model);
  }
+
+void Object_SetSkeleton(Object *obj, Skeleton *skel){
+	obj->skeleton = skel;
+}
 
 
 Object *Object_Create(){

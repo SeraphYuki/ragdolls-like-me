@@ -11,7 +11,7 @@
 
 // cast *data into types in future
 enum {
-	TYPE_CAN = 1,
+	TYPE_MINION = 1,
 };
 typedef struct _OctreeLeaf OctreeLeaf;
 
@@ -30,7 +30,7 @@ struct Object {
 	void (*AddUser)(Object *this);
 	void (*RemoveUser)(Object *this);
 	void (*OnCollision)(Object *this, Object *obj2, BoundingBox *bb1, BoundingBox *bb2, Vec3 axis, float overlap);
-	void (*Update)(Object *this);
+	void (*Update)(Game *game, Object *this);
 	void (*Draw)(Object *this);
 	void (*ObjUpdate)(Object *this);
 	Object *(*Copy)(Object *this);
@@ -78,5 +78,6 @@ void Object_Free(Object *obj);
 void Object_Freeze(Object *obj);
 void Object_SetModel(Object *obj, Model *model);
 void Object_UpdateModel(Object *obj, Model *model);
+void Object_SetSkeleton(Object *obj, Skeleton *skel);
 
 #endif

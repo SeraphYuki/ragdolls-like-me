@@ -169,8 +169,8 @@ void OctreeLeaf_Free(OctreeLeaf *o){
 void OctreeLeaf_ResolveCollisionsRay(OctreeLeaf *o, Ray ray, float *dist,  BoundingBox **closest,
 	 Object **collisionObj){
 
-	//if(Math_CubeCheckCollisionRay(o->cube, ray) == HUGE_VAL)
-		//return;
+	if(Math_CubeCheckCollisionRay(o->cube, ray) == HUGE_VAL)
+		return;
 
 	int k;
 	for(k = 0; k < o->numObjects; k++){

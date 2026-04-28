@@ -41,6 +41,13 @@ static void RemoveObjectFromArr(Object *obj, Object ***objects, int *nObjects){
 		}
 	}
 }
+void World_Update(Game *game){
+	int k;
+	for(k = 0; k < numOffScreenUpdatedObjects; k++){
+		if(offScreenUpdatedObjects[k]->Update)
+			offScreenUpdatedObjects[k]->Update(game, offScreenUpdatedObjects[k]);
+	}
+}
 
 void World_AddOffScreenUpdatedObject(Object *obj){
 	AddObjectToArr(obj, &offScreenUpdatedObjects, &numOffScreenUpdatedObjects);
@@ -389,7 +396,7 @@ static void DrawBoundingBoxes(BoundingBox *bb){
 
 	 if(BoundingBox_IsSAT(bb)){
 		World_DrawSAT(bb);
-	 	return;
+	 	//return;
 	 }
 	
 	 World_DrawCube(bb->wsCube);

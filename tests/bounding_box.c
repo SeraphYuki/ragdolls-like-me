@@ -420,10 +420,6 @@ static int SameSide(Vec3 p, Vec3 a, Vec3 b, Vec3 c){
 
  int BoundingBox_CheckCollisionRay(BoundingBox *bb, Ray r, BoundingBox **b, float *dist){
 	// oob make ray in localspace for cube. shouldnt be hard
-	//Quat q = Math_QuatInv(Math_EulerToQuat(bb->rot));
-	//r.line = Math_QuatRotate(q, r.line);
-	//r.pos = Math_Vec3SubVec3(r.pos, Math_QuatRotate(q,bb->pos));
-
 	float d = Math_CubeCheckCollisionRay(bb->wsCube, r);
 	
 

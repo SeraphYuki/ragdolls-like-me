@@ -4,7 +4,23 @@
 #include <stdint.h>
 
 #include "window.h"
+#include "pathfinding.h"
 
+typedef struct Object Object;
+#define MAX_CHARACTERS 100
+#define MAX_MINIONS 100
+
+typedef struct {
+
+	Object *player;
+	Object *world;		
+
+	Object *characters[MAX_CHARACTERS];
+	int 	nCharacters;		
+	Object *minions[MAX_MINIONS];
+	int 	nMinions;
+	Pathfinder pf;	
+} Game;
 
 #define CAMERA_FOV (60.0f * (PI / 180.0f))
 #define CAMERA_FAR 70

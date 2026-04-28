@@ -3,6 +3,8 @@
 
 #include "math.h"
 
+typedef struct Object Object;
+
 typedef struct _BoundingBox {
 	struct _BoundingBox *parent;
 	struct _BoundingBox *children;
@@ -26,7 +28,6 @@ typedef struct _BoundingBox {
 	int renderDebug;
 } BoundingBox;
 
-typedef struct Object Object;
 
 int BoundingBox_IsSAT(BoundingBox *bb);
 
