@@ -19,6 +19,8 @@
 #define NUM_GARBAGE 10
 
 
+static float invView[16]; 
+static float invPersp[16];
 static int onPath = 0;
 static Pathfinder pf;
 //static Thoth_t *thoth;
@@ -35,11 +37,10 @@ static PlayingAnimation cubeAnims[1], hairAnims[1];
 static Skybox skybox;
 static float mouseSensitivity = 0.0005;
 static float moveSpeed = 0.005;
-float invPersp[16];
 float persp[16], view[16], model[16];
 static Vec2 rotation = {0,-1};
 static Vec2 mousepos = {0,0};
-static Vec3 position = {4,6,4};
+static Vec3 position = {4,6,-4};
 static Vec3 renderpos = {-2,5,4};
 static Vec3 lookatPos = {0,2,0};
 static UI ui;
@@ -114,8 +115,6 @@ static void Update(){
 		}   
 	     moveVec = Math_Vec3MultFloat(moveVec, Window_GetDeltaTime() * moveSpeed);
 
-	   //position.x += moveVec.x;
-		//position.z += moveVec.z;
 	    cubeObj->bb.pos.x += moveVec.x;
 	    cubeObj->bb.pos.z += moveVec.z;
 	    cubeObj->bb.pos.y += moveVec.y;
@@ -154,9 +153,6 @@ static void Event(SDL_Event ev){
 		//throwObj->model->materials[0].diffuse = (Vec4){0.8,0.6,0.6,1};
 		groundObj->model->materials[0].diffuse = (Vec4){0.8,0.6,0.6,1};
 
-		float invView[16];
-		Shaders_GetInvViewMatrix(invView);
-		
 		Vec4 rayWorld = (Vec4){
 			(2.0 * (mousepos.x / WINDOW_WIDTH)) - 1.0, 
 			1.0 - (2.0 * (mousepos.y / WINDOW_HEIGHT)), -1.0,1};
@@ -165,15 +161,13 @@ static void Event(SDL_Event ev){
 		rayWorld.z = -1;
 		rayWorld.w = 0;
 		rayWorld = Math_MatrixMult4(rayWorld, invView);
-		
 		Vec3 ray = (Vec3){rayWorld.x, rayWorld.y, rayWorld.z};
 		
 		ray = Math_Vec3Normalize(ray);
-
 		float distance = HUGE_VAL;
 		Object *collisionObj = NULL;
 		BoundingBox *collision = NULL;
-
+		//renderpos = Math_Vec3AddVec3(cubeObj->bb.pos,position);
 		World_GetAllCollisionsRay((Ray){renderpos, ray}, &distance, &collision, &collisionObj);
 
 		if(collision && collisionObj){
@@ -185,7 +179,7 @@ static void Event(SDL_Event ev){
 					ui.stress += 0.1;
 					
 					World_RemoveObjectFromOctree(collisionObj);
-					
+
 					int j;
 					for(j = 0; j < 100; j++){
 						particles[j].createTime = SDL_GetTicks();
@@ -202,9 +196,9 @@ static void Event(SDL_Event ev){
 						
 						if(ev.button.button == SDL_BUTTON_LEFT){
 						
-						Pathfinding_SetClosedGrid(&pf,
-						Math_Vec3AddVec3(renderpos,
-						Math_Vec3MultFloat(ray, distance)));
+						//Pathfinding_SetClosedGrid(&pf,
+						//Math_Vec3AddVec3(renderpos,
+						//Math_Vec3MultFloat(ray, distance)));
 					} else if(ev.button.button == SDL_BUTTON_MIDDLE){
 							Pathfinding_FindPathGrid(&pf,cubeObj->bb.pos,
 						Math_Vec3AddVec3(renderpos,
@@ -212,14 +206,14 @@ static void Event(SDL_Event ev){
 						//Pathfinding_FindPath(&pf,cubeObj->bb.pos,
 						//Math_Vec3AddVec3(renderpos,
 						//Math_Vec3MultFloat(ray, distance)));
+						onPath = 0;
 					} else if(ev.button.button == SDL_BUTTON_RIGHT){ 
 						
-						Pathfinding_SetOpenGrid(&pf,
-						Math_Vec3AddVec3(renderpos,
-						Math_Vec3MultFloat(ray, distance)));
+						//Pathfinding_SetOpenGrid(&pf,
+						//Math_Vec3AddVec3(renderpos,
+						//Math_Vec3MultFloat(ray, distance)));
 					}
 						
-						onPath = 0;
 					} else {
 						
 						rotatingObj = collisionObj;
@@ -348,17 +342,18 @@ static void DrawModel(Object *obj){
 static char Draw(){
 	float persp[16];
 	glBindFramebuffer(GL_FRAMEBUFFER,0);
-	rotation.y += mouseSensitivity * Window_GetDeltaTime();
-	
-	renderpos = Math_Rotate(position, (Vec3){0,rotation.y,0});
-	Vec3 forward = Math_Vec3Normalize(lookatPos);
-
-	float view[16];
-	Math_LookAt(view, renderpos, lookatPos, (Vec3){0,1,0});
+	//rotation.y += mouseSensitivity * Window_GetDeltaTime();
+	renderpos = Math_Vec3AddVec3(cubeObj->bb.pos,position);
+	Vec3 forward = Math_Vec3Normalize(Math_Vec3SubVec3(renderpos, cubeObj->bb.pos));
+		
+	Math_LookAt(view, renderpos, cubeObj->bb.pos, (Vec3){0,1,0});
 	Shaders_SetViewMatrix(view);
+	memcpy(invView,view,sizeof(invView));
+	Math_InverseMatrix(invView);
 	 Math_Perspective(persp, 60.0f*(3.1415/180), (float)1920 / (float)1080, 0.1f, 50.0f);
+	memcpy(invPersp,persp,sizeof(invPersp));	
+	Math_InverseMatrix(invPersp);
 	Shaders_SetProjectionMatrix(persp);
-
 	Shaders_UseProgram(SKELETAL_ANIMATION_SHADER);
 	Shaders_UpdateViewMatrix();
 	Shaders_UpdateProjectionMatrix();
@@ -383,7 +378,7 @@ static char Draw(){
 
 	int k;
 	for(k = 0; k < cubeObj->skelBb.numChildren; k++){
-		//World_DrawSkeleton(&cubeObj->skelBb.children[k]);
+		World_DrawSkeleton(&cubeObj->skelBb.children[k]);
 	}
 
 
@@ -450,7 +445,6 @@ int main(int argc, char **argv){
 
 	Window_Open("Editor", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,WINDOW_WIDTH, WINDOW_HEIGHT, 0);
 	
-	printf("%s\n", SDL_GetError());
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_DEPTH_TEST);
@@ -558,21 +552,23 @@ int main(int argc, char **argv){
 	//throwObj->ObjUpdate(throwObj);
 	//World_UpdateObjectInOctree(throwObj);
 
-	//Model_Load(&canModel, "Resources/can.yuk");
+	Model_Load(&canModel, "Resources/can.yuk");
 
-	//int j;
-	//for(j = 0; j < NUM_GARBAGE; j++){
-			//cans[j] = Object_Create();
-			//Object_SetModel(cans[j], &canModel);
-			//cans[j]->Draw = DrawModel;
-			//cans[j]->bb.renderDebug = 1;
-			//cans[j]->bb.pos = Math_Vec3AddVec3(cans[j]->bb.pos,
-			//(Vec3){ (-50 + rand()%100)/20.0f,0.1, (-50 + rand()%100)/20.0f});
-			//cans[j]->bb.scale = (Vec3){0.2,0.2,0.2};
-			//cans[j]->type = TYPE_CAN;
-			//cans[j]->ObjUpdate(cans[j]);
-			//World_UpdateObjectInOctree(cans[j]);
-	//}
+	int j;
+	for(j = 0; j < NUM_GARBAGE; j++){
+			cans[j] = Object_Create();
+			Object_SetModel(cans[j], &canModel);
+			cans[j]->Draw = DrawModel;
+			cans[j]->bb.renderDebug = 0;
+			cans[j]->bb.pos = Math_Vec3AddVec3(cans[j]->bb.pos,
+			(Vec3){ (-50 + rand()%100)/20.0f, 1, (-50 + rand()%100)/20.0f});
+			cans[j]->bb.scale = (Vec3){1,1,1};
+			cans[j]->bb.rot.y = 1;
+			cans[j]->bb.pos.z += 10;
+			cans[j]->type = TYPE_CAN;
+			cans[j]->ObjUpdate(cans[j]);
+			World_UpdateObjectInOctree(cans[j]);
+	}
 
 	cubeAnims[0] = (PlayingAnimation){
 		 .active = 1,

@@ -1,6 +1,10 @@
 #ifndef MODEL_DEF
 #define MODEL_DEF
 
+/*
+	need model_copy for materials
+*/
+
 #include "game.h"
 #include "math.h"
 #include "memory.h"

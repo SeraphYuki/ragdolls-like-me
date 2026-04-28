@@ -3,7 +3,7 @@
 #define PATHFINDING_DEF
 
 #define MAX_PATHFINDING_NODES 4096
-#define PATHFINDING_NODE_GRID_SIZE 0.7
+#define PATHFINDING_NODE_GRID_SIZE 0.6
 
 #include "math.h"
 #include "bounding_box.h"

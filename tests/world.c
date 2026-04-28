@@ -385,7 +385,7 @@ static void DrawBoundingBoxes(BoundingBox *bb){
 
 	Shaders_SetUniformColor((Vec4){1,1,1,1});
 	
-	//if(!bb->renderDebug) return;
+	if(!bb->renderDebug) return;
 
 	 if(BoundingBox_IsSAT(bb)){
 		World_DrawSAT(bb);

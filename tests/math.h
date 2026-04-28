@@ -5,6 +5,10 @@
 #include <float.h>
 
 #define SWAP(x, y, T) do { T SWAP = x; x = y; y = SWAP; } while(0)
+#define MIN(x, y) x < y ? x : y
+#define MAX(x, y) x > y ? x : y
+
+
 
 #define EPSILON 0.000005
 #define PI 3.14159265359

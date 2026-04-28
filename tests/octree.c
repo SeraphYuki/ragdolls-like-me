@@ -169,8 +169,8 @@ void OctreeLeaf_Free(OctreeLeaf *o){
 void OctreeLeaf_ResolveCollisionsRay(OctreeLeaf *o, Ray ray, float *dist,  BoundingBox **closest,
 	 Object **collisionObj){
 
-	if(Math_CubeCheckCollisionRay(o->cube, ray) == HUGE_VAL)
-		return;
+	//if(Math_CubeCheckCollisionRay(o->cube, ray) == HUGE_VAL)
+		//return;
 
 	int k;
 	for(k = 0; k < o->numObjects; k++){
@@ -178,22 +178,16 @@ void OctreeLeaf_ResolveCollisionsRay(OctreeLeaf *o, Ray ray, float *dist,  Bound
 		float tmpDist = HUGE_VAL;
 		BoundingBox *tmpClosest = NULL;
 
-		tmpDist = Math_CubeCheckCollisionRay(o->objects[k]->bb.wsCube, ray);
-		
-		if(tmpDist != HUGE_VAL){
-			
-			tmpDist = HUGE_VAL;
-			
-			if(o->objects[k]->skeleton)
-				BoundingBox_CheckCollisionRay(&o->objects[k]->skelBb, ray, &tmpClosest, &tmpDist);
-			else
-				BoundingBox_CheckCollisionRay(&o->objects[k]->bb, ray, &tmpClosest, &tmpDist);
-
-			if(tmpDist < *dist&& tmpClosest ){
-				*collisionObj = o->objects[k];
-				*dist = tmpDist;
-				*closest = tmpClosest;
-			}
+		if(o->objects[k]->skeleton){
+			BoundingBox_CheckCollisionRay(&o->objects[k]->skelBb, ray, &tmpClosest, &tmpDist);
+		}else{
+			BoundingBox_CheckCollisionRay(&o->objects[k]->bb, ray, &tmpClosest, &tmpDist);
+		}
+		if(tmpDist < *dist && tmpClosest ){
+			*collisionObj = o->objects[k];
+			*dist = tmpDist;
+			tmpClosest->renderDebug = 1;
+			*closest = tmpClosest;
 		}
 	}
 

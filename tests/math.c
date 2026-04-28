@@ -200,44 +200,45 @@ int Math_GetDistanceInt(int min1, int max1, int min2, int max2){
 }
 
 
-float Math_CubeCheckCollisionRay(Cube r, Ray ray){
-	  
-	  float ret = HUGE_VAL;
+float Math_CubeCheckCollisionRay(Cube cube, Ray ray){
 
-    Vec3 points[8];
+	Vec3 dirfrac = (Vec3){1.0f/ray.line.x,1.0f/ray.line.y,1.0f/ray.line.z};
+	Vec3 lb = (Vec3){cube.x, cube.y, cube.z };
+	Vec3 rt = (Vec3){cube.x+cube.w,cube.y+cube.h,cube.z+cube.d};
 
-    points[0] = (Vec3){r.x, r.y, r.z};
-	  points[1] = (Vec3){r.x+r.w, r.y, r.z};
-	  points[2] = (Vec3){r.x+r.w, r.y+r.h, r.z};
-	  points[3] = (Vec3){r.x, r.y+r.h, r.z};
-	  points[4] = (Vec3){r.x, r.y, r.z+r.d};
-	  points[5] = (Vec3){r.x+r.w, r.y, r.z+r.d};
-	  points[6] = (Vec3){r.x+r.w, r.y+r.h, r.z+r.d};
-	  points[7] = (Vec3){r.x, r.y+r.h, r.z+r.d};
+	float tmax = HUGE_VAL;
+	float tmin = 0;
+	float t1 = (lb.x - ray.pos.x) * dirfrac.x;
+	float t2 = (rt.x - ray.pos.x) * dirfrac.x;
+	if(t1 > t2) SWAP(t1, t2,float);
+	if(t1 > tmin) tmin = t1;
+	if(t2 > tmax) tmax = t2;
+	if(tmin > tmax) return 0;
 
-    Vec3 rayLine = ray.line;
-	  Vec3 rayPos = ray.pos;
 
-    int k;
-	  for(k = 0; k < 8; k++){
-	      
-	      Vec3 norm;
-	      
-	      if(k != 7)
-	          norm = Math_Vec3Normalize(Math_Vec3SubVec3(points[k], points[k+1]));
-	      else
-	          norm = Math_Vec3Normalize(Math_Vec3SubVec3(points[k], points[0]));
+	float t3 = (lb.y - ray.pos.y) * dirfrac.y;
+	float t4 = (rt.y - ray.pos.y) * dirfrac.y;
+	if(t3 > t4) SWAP(t3, t4,float);
+	if(t3 > tmin) tmin = t3;
+	if(t4 > tmax) tmax = t4;
+	if(tmin > tmax) return 0;
 
-        float d = Math_Vec3Dot(Math_Vec3SubVec3(points[k], rayPos), norm) / Math_Vec3Dot(rayLine, norm);
-	      if(d < 0) continue;
+	float t5 = (lb.z - ray.pos.z) * dirfrac.z;
+	float t6 = (rt.z - ray.pos.z) * dirfrac.z;
+	if(t5 > t6) SWAP(t5, t6,float);
+	if(t5 > tmin) tmin = t5;
+	if(t6 > tmax) tmax = t6;
+	if(tmin > tmax) return 0;
 
-        Vec3 collisionPoint = Math_Vec3AddVec3(rayPos, Math_Vec3MultFloat(rayLine,d));
-
-        if(collisionPoint.x >= r.x && collisionPoint.x <= r.x+r.w && collisionPoint.y >= r.y && collisionPoint.y <= r.y+r.h)
-	          if(d < ret) ret = d;
-	  }
-
-    return ret;
+	//float tmin = MAX(MAX(MIN(t1,t2), MIN(t3,t4)),MIN(t5,t6));
+	//float tmax = MIN(MIN(MAX(t1,t2), MAX(t3,t4)),MAX(t5,t6));
+	//if(tmax < 0){
+		//return HUGE_VAL;
+	//}
+	//if(tmin > tmax){
+		//return HUGE_VAL;
+	//}
+	return tmin;
 }
 
 int Math_CheckFrustumCollision(Cube r, Plane *frustumPlanes){
