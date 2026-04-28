@@ -29,7 +29,7 @@ struct Object {
 	void (*Free)(Object *this);
 	void (*AddUser)(Object *this);
 	void (*RemoveUser)(Object *this);
-	void (*OnCollision)(Object *this, Object *obj2, BoundingBox *bb1, BoundingBox *bb2, Vec3 axis, float overlap);
+	void (*OnCollision)(Object *this,Object *obj1, Object *obj2, BoundingBox *bb1, BoundingBox *bb2, Vec3 axis, float overlap);
 	void (*Update)(Game *game, Object *this);
 	void (*Draw)(Object *this);
 	void (*ObjUpdate)(Object *this);

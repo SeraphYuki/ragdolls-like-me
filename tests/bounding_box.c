@@ -278,9 +278,10 @@ int BoundingBox_ResolveCollision(Object *obj1, BoundingBox *bb, Object *obj2, Bo
 	//bb->renderDebug = 1;
 	//bb2->renderDebug = 1;
 
+
 	Vec3 axis;
 	float overlap = 0;
-	if((BoundingBox_IsSAT(bb) && BoundingBox_IsSAT(bb2))){
+	if((BoundingBox_IsSAT(bb) || BoundingBox_IsSAT(bb2))){
 
 		if(!BoundingBox_SATCollision(bb, bb2, &overlap, &axis)){
 			return ret;	
@@ -297,18 +298,21 @@ int BoundingBox_ResolveCollision(Object *obj1, BoundingBox *bb, Object *obj2, Bo
 			return 0;
 	}
 
-	if(obj1 && (obj1->storeLastCollisions || obj1->OnCollision)){
+
+	if(obj1){
 		
-		if(obj1->OnCollision) obj1->OnCollision(obj1, obj2, bb, bb2, axis, overlap);
+		if(obj1->OnCollision) obj1->OnCollision(obj1, obj1, obj2, bb, bb2, axis, overlap);
 		
 		if(obj1->storeLastCollisions){
 			obj1->lastCollisions = (Collision *)realloc(obj1->lastCollisions, sizeof(Collision) * ++obj1->nLastCollisions);
 			obj1->lastCollisions[obj1->nLastCollisions-1] = (Collision){obj1, obj2, bb, bb2,axis,overlap};
 		}
 	}
+	
+	axis = Math_Vec3MultFloat(axis, -1);
 
-	if(obj2 && (obj2->storeLastCollisions || obj2->OnCollision)){
-		if(obj2->OnCollision) obj2->OnCollision(obj2, obj1, bb2, bb, axis, overlap);
+	if(obj2){
+		if(obj2->OnCollision) obj2->OnCollision(obj2, obj1, obj2, bb, bb2, axis, overlap);
 		if(obj2->storeLastCollisions){
 			obj2->lastCollisions = (Collision *)realloc(obj2->lastCollisions, sizeof(Collision) * ++obj2->nLastCollisions);
 			obj2->lastCollisions[obj2->nLastCollisions-1] = (Collision){obj2, obj1, bb2, bb,axis,overlap};
@@ -404,7 +408,7 @@ void BoundingBox_UpdatePoints(BoundingBox *bb){
 
 int BoundingBox_IsSAT(BoundingBox *bb){
 	if(bb->noCollisions != 0 ||
-	(fabs(bb->axes[0].x) == 1 && fabs(bb->axes[1].y) == 1 && fabs(bb->axes[2].z) == 1)){
+	(fabs(bb->axes[0].x) == 1 || fabs(bb->axes[1].y) == 1 || fabs(bb->axes[2].z) == 1)){
 		return 0;
 	}
 	return 1;

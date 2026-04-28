@@ -14,6 +14,7 @@ typedef struct {
 	int onPath;
 	PathfinderPath path;
 	Vec3 moveToPos;
+	Vec3 force;
 } Minion;
 
 Object *Minion_Create(Model *model);

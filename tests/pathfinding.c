@@ -320,7 +320,7 @@ void Pathfinding_LoadNavGrid(Pathfinder *pf, const char *path){
 				break;
 			}
 			if(!inTriangle)
-				Pathfinding_SetClosed(pf, x, y);
+				Pathfinding_SetClosedStatic(pf, x, y);
 		}
 	}
 }
@@ -700,14 +700,14 @@ void Pathfinding_SetClosedBoundingBox(Pathfinder *pf, BoundingBox *bb){
 				float hasNeg = w0 < 0 || w1 < 0 || w2 < 0;
 				float hasPos = w0 > 0 || w1 > 0 || w2 > 0;
 				if((hasNeg && hasPos)) continue;
-				Pathfinding_SetClosed(pf, x, y);
+				Pathfinding_SetClosedStatic(pf, x, y);
 				break;
 			}
 		}
 	}
 }
 
-void Pathfinding_SetClosed(Pathfinder *pf, int x, int y){
+static void SetClosed(Pathfinder *pf, int x, int y){
 	int index = (x%pf->w) + (y * pf->w);
 	AStarNode node;
 	Vec3 pos = (Vec3){(int)(x * PATHFINDING_NODE_GRID_SIZE) % pf->w, 1, 
@@ -720,6 +720,15 @@ void Pathfinding_SetClosed(Pathfinder *pf, int x, int y){
 	pf->closed[pf->nClosed] = node;
 	pf->nClosed++;
 	pf->nClosedObstacles++;
+
+}
+void Pathfinding_SetClosedStatic(Pathfinder *pf, int x, int y){
+	SetClosed(pf, x,y);
+	pf->nClosedStatic++;	
+}
+
+void Pathfinding_SetClosedDynamic(Pathfinder *pf, int x, int y){
+	SetClosed(pf, x,y);
 }
 
 void Pathfinding_SetClosedGrid(Pathfinder *pf, Vec3 pos){
@@ -795,6 +804,7 @@ static int GetClosestNotClosed(Pathfinder *pf, int index){
 }
 
 int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*path){
+
 	int x =  ( pos.x - pf->cube.x) / PATHFINDING_NODE_GRID_SIZE;
 	int y =  ( pos.z - pf->cube.z) / PATHFINDING_NODE_GRID_SIZE;	
 	int gx = (  goal.x - pf->cube.x) / PATHFINDING_NODE_GRID_SIZE;
@@ -807,7 +817,7 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 	curr->g = 0;
 	path->nPath = 0;
 	curr->parent = NULL;
-	pf->nClosed = pf->nClosedObstacles;	
+	pf->nClosed = pf->nClosedStatic;	
 	pf->nOpen = 1;
 	
 	int goalIndex = GetClosestNotClosed(pf, gx + (gy * pf->w));
@@ -857,7 +867,7 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 			for(k = 0; k < path->nPath; k++){
 				path->path[k] = pathReversed[path->nPath-1-k];
 			}
-			pf->nClosed = pf->nClosedObstacles;
+			pf->nClosed = pf->nClosedStatic;
 			return 0;
 		}
 
@@ -912,6 +922,6 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 			pf->nOpen++;
 		}
 	}
-	pf->nClosed = pf->nClosedObstacles;
+	pf->nClosed = pf->nClosedStatic;
 	return 0;
 }

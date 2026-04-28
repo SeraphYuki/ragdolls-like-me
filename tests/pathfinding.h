@@ -49,6 +49,7 @@ typedef struct {
 	int nChannel;						
 	int nOpen;
 	int nClosed;
+	int nClosedStatic;
 	int nClosedObstacles;
 	int ebo;
 	int vao;
@@ -65,10 +66,11 @@ void Pathfinding_LoadNavMesh(Pathfinder *pf, const char *path);
 void Pathfinding_LoadNavGrid(Pathfinder *pf, const char *path);
 int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath *path);
 void Pathfinding_SetClosedGrid(Pathfinder *pf, Vec3 pos);
-void Pathfinding_SetClosed(Pathfinder *pf, int x, int y);
 int Pathfinding_FindPath(Pathfinder *pf, Vec3 pos, Vec3 goal, PathfinderPath *path);
 void Pathfinding_Init(Pathfinder *pf, int w, int h);
 void Pathfinding_SetOpenGrid(Pathfinder *pf, Vec3 pos);
 void Pathfinding_SetClosedBoundingBox(Pathfinder *pf, BoundingBox *bb);
+void Pathfinding_SetClosedStatic(Pathfinder *pf, int x, int y);
+void Pathfinding_SetClosedDynamic(Pathfinder *pf, int x, int y);
 
 #endif

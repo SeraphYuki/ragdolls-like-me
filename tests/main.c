@@ -83,7 +83,7 @@ static void onThrow(Object *obj, Object *obj2, BoundingBox *bb, BoundingBox *bb2
 	obj->ObjUpdate(obj);
 }
 
-static void onCube(Object *obj, Object *obj2, BoundingBox *bb, BoundingBox *bb2, Vec3 axis, float overlap){
+static void onCube(Object *obj, Object *obj1, Object *obj2, BoundingBox *bb, BoundingBox *bb2, Vec3 axis, float overlap){
 	//obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,Math_Vec3MultFloat(axis, -overlap));
 	//obj->ObjUpdate(obj);
 }

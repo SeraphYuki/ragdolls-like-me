@@ -121,7 +121,7 @@ void Object_UpdateSkeleton(Object *obj, Skeleton *skel){
 	 obj->bb.points[7] = (Vec3){cube.x+cube.w, cube.y, cube.z};
 	memcpy(&obj->skelBb.points[0].x, &obj->bb.points[0].x, sizeof(Vec3)*8);
 	BoundingBox_UpdateWorldSpaceCube(&obj->skelBb);
-	//BoundingBox_UpdateWorldSpaceCube(&obj->bb);
+	BoundingBox_UpdateWorldSpaceCube(&obj->bb);
 	//obj->skelBb.cube = obj->skelBb.wsCube;
 	//obj->bb.cube = obj->bb.wsCube;
 }

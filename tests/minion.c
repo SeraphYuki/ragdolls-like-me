@@ -3,21 +3,25 @@
 #include "shaders.h"
 #include <GL/glew.h>
 
-void Minion_OnCollision(Object *obj, Object *obj2, BoundingBox *bb1,
+void Minion_OnCollision(Object *obj,Object *obj1, Object *obj2, BoundingBox *bb1,
 	BoundingBox *bb2, Vec3 axis, float overlap){
-
+	
+	Minion *minion = (Minion *)obj->data;
+	
+	if(obj2->type == TYPE_MINION){
+		Vec3 resolve = Math_Vec3MultFloat(axis, -overlap);
+		obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,resolve);
+		obj->ObjUpdate(obj);
+		World_UpdateObjectInOctree(obj);
+	}
 }
 
 void Minion_Update(Game *game, Object *obj){
 	Minion *minion = (Minion *)obj->data;
 	if(Window_GetTicks() - minion->lastTime > 1000){
-		//obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,
-		//(Vec3){ (-50 + rand()%100)/20.0f, 1, (-50 + rand()%100)/20.0f});
-	
 		Pathfinding_FindPathGrid(&game->pf,obj->bb.pos, game->player->bb.pos, &minion->path);
 	}
-	// if goal changed
-	
+
 	Vec3 pos = obj->bb.pos;
 	Vec3 toPos = minion->path.path[minion->onPath];
 	pos.y = toPos.y;
@@ -34,12 +38,12 @@ void Minion_Update(Game *game, Object *obj){
 	}
 
 	toPos = minion->path.path[minion->onPath];
-	Vec3 moveVec = Math_Vec3SubVec3(toPos,pos);
+	minion->force = Math_Vec3SubVec3(toPos,pos);
 	minion->moveToPos.y = obj->bb.pos.y;
 
-     moveVec = Math_Vec3Normalize(moveVec);
+     minion->force = Math_Vec3Normalize(minion->force);
 	
-	Vec3 xz = moveVec;
+	Vec3 xz = minion->force;
 	xz.y = 0;
 	if(Math_Vec3Magnitude(xz) > 0){
 		xz = Math_Vec3Normalize(xz);
@@ -47,16 +51,13 @@ void Minion_Update(Game *game, Object *obj){
 		float dot = Math_Vec3Dot(forward,xz);
 		obj->bb.rot.y -= dot * minion->moveSpeed;
 	}   
-	  moveVec = Math_Vec3MultFloat(moveVec, Window_GetDeltaTime() * minion->moveSpeed);
+	  minion->force = Math_Vec3MultFloat(minion->force, Window_GetDeltaTime() * minion->moveSpeed);
 
-	obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos, moveVec);
+	obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos, minion->force);
 
 	obj->ObjUpdate(obj);
-	//obj->OnCollision = onCube;
 	World_UpdateObjectInOctree(obj);
-	//World_ResolveCollisions(obj, &obj->bb);
-	obj->ObjUpdate(obj);
-
+	World_ResolveCollisions(obj, &obj->bb);
 }
 
 void Minion_Draw(Object *obj){
@@ -103,7 +104,7 @@ Object *Minion_Create(Model *model){
 	Minion *minion = (Minion *)obj->data;
 	memset(minion, 0, sizeof(Minion));
 	minion->animDir = 1;
-	minion->moveSpeed = 0.002;
+	minion->moveSpeed = 0.001;
 	Object_SetModel(obj, model);
 	Skeleton_Copy(&minion->skeleton, &model->skeleton);
 	Object_SetSkeleton(obj,&minion->skeleton);
@@ -117,11 +118,12 @@ Object *Minion_Create(Model *model){
 
 	obj->Draw = Minion_Draw;
 	obj->Update = Minion_Update;
+	obj->OnCollision = Minion_OnCollision;
 	obj->bb.renderDebug = 0;
 	obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,
 	(Vec3){ (-50 + rand()%100)/20.0f, 1, (-50 + rand()%100)/20.0f});
 	obj->bb.scale = (Vec3){0.3,0.3,0.3};
-	obj->bb.rot.y = 1;
+	obj->bb.rot = (Vec3){0,0,0};
 	obj->bb.pos.z += 10;
 	obj->type = TYPE_MINION;
 	obj->ObjUpdate(obj);
