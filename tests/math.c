@@ -212,33 +212,28 @@ float Math_CubeCheckCollisionRay(Cube cube, Ray ray){
 	float t2 = (rt.x - ray.pos.x) * dirfrac.x;
 	if(t1 > t2) SWAP(t1, t2,float);
 	if(t1 > tmin) tmin = t1;
-	if(t2 > tmax) tmax = t2;
-	if(tmin > tmax) return 0;
-
+	if(t2 < tmax) tmax = t2;
 
 	float t3 = (lb.y - ray.pos.y) * dirfrac.y;
 	float t4 = (rt.y - ray.pos.y) * dirfrac.y;
 	if(t3 > t4) SWAP(t3, t4,float);
 	if(t3 > tmin) tmin = t3;
-	if(t4 > tmax) tmax = t4;
-	if(tmin > tmax) return 0;
-
+	if(t4 < tmax) tmax = t4;
+	
 	float t5 = (lb.z - ray.pos.z) * dirfrac.z;
 	float t6 = (rt.z - ray.pos.z) * dirfrac.z;
 	if(t5 > t6) SWAP(t5, t6,float);
 	if(t5 > tmin) tmin = t5;
-	if(t6 > tmax) tmax = t6;
-	if(tmin > tmax) return 0;
+	if(t6 < tmax) tmax = t6;
+	
+	if(tmax < 0){
+		return HUGE_VAL;
+	}
+	if(tmin > tmax){
+		return HUGE_VAL;
+	}
 
-	//float tmin = MAX(MAX(MIN(t1,t2), MIN(t3,t4)),MIN(t5,t6));
-	//float tmax = MIN(MIN(MAX(t1,t2), MAX(t3,t4)),MAX(t5,t6));
-	//if(tmax < 0){
-		//return HUGE_VAL;
-	//}
-	//if(tmin > tmax){
-		//return HUGE_VAL;
-	//}
-	return tmin;
+	return tmin > 0 ? tmin : tmax;
 }
 
 int Math_CheckFrustumCollision(Cube r, Plane *frustumPlanes){
