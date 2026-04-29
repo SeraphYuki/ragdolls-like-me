@@ -2,7 +2,6 @@
 #include <GL/glew.h>
 #include "skybox.h"
 #include "shaders.h"
-#include "mesh.h"
 #include "math.h"
 #include "shaders.h"
 #include "image_loader.h"

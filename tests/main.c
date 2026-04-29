@@ -1,10 +1,10 @@
 #include <GL/glew.h>
 #include "window.h"
-#include "minion.h"
+#include "characters.h"
+#include "spells.h"
 #include "pathfinding.h"
 #include "game.h"
 #include "particles.h"
-#include "physics.h"
 #include "freetype.h"
 //#include "thoth/thoth.h"
 #include "sound.h"
@@ -20,21 +20,8 @@
 
 #define NUM_MINIONS 3
 
-enum {
-	MODEL_WORLD=1,
-	MODEL_MINION,
-	MODEL_PLAYER,
-	NUM_MODELS,
-};
-
-enum {
-	ANIMATION_PLAYER = 1,
-	NUM_ANIMATIONS,
-};
 
 static Game game;
-
-static Model models[NUM_MODELS];
 
 static float invView[16]; 
 static float invPersp[16];
@@ -44,13 +31,10 @@ static PathfinderPath pfpath;
 
 //static Thoth_t *thoth;
 
-static PhysicsFigure_t figure;
 
-static ParticleSystem ps;
 static Particle particles[100];
 static Image particleImg, billboardImg;
 
-static Animation animations[ANIMATION_PLAYER];
 static Skeleton playerSkel;
 static PlayingAnimation playingAnims[1];
 
@@ -83,7 +67,8 @@ static void onThrow(Object *obj, Object *obj2, BoundingBox *bb, BoundingBox *bb2
 	obj->ObjUpdate(obj);
 }
 
-static void onCube(Object *obj, Object *obj1, Object *obj2, BoundingBox *bb, BoundingBox *bb2, Vec3 axis, float overlap){
+static void onCube(Game *game, Object *obj, Object *obj1, 
+Object *obj2, BoundingBox *bb, BoundingBox *bb2, Vec3 axis, float overlap){
 	//obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,Math_Vec3MultFloat(axis, -overlap));
 	//obj->ObjUpdate(obj);
 }
@@ -102,10 +87,10 @@ static void Update(){
 			
 	static float shapeKeyDir = 1;
 	
-	Model_SetShapeKey(&models[MODEL_PLAYER-1], 1,ui.sliderValue);
+	Model_SetShapeKey(&game.models[MODEL_PLAYER-1], 1,ui.sliderValue);
 	game.player->model->materials[0].diffuse = (Vec4){ui.sliderValue2,1,1,1};;
 		
-	if(playingAnims[0].into > animations[ANIMATION_PLAYER-1].length || playingAnims[0].into < 0){
+	if(playingAnims[0].into > game.animations[ANIMATION_PLAYER-1].length || playingAnims[0].into < 0){
 		animDir = - animDir;
 	}
 
@@ -113,7 +98,7 @@ static void Update(){
 	//Skeleton_Update(&hairSkel, hairAnims, 0);
 	game.player->ObjUpdate(game.player);
 	Object_UpdateSkeleton(game.player, &playerSkel);
-	//Object_UpdateModel(game.world, &models[MODEL_WORLD-1]);
+	//Object_UpdateModel(game.world, &game.models[MODEL_WORLD-1]);
 	
 	Vec3 moveVec = {0,0,0};
 	
@@ -147,7 +132,7 @@ static void Update(){
 	game.player->ObjUpdate(game.player);
 	game.player->OnCollision = onCube;
 	World_UpdateObjectInOctree(game.player);
-	World_ResolveCollisions(game.player, &game.player->bb);
+	World_ResolveCollisions(&game,game.player, &game.player->bb);
 	game.player->ObjUpdate(game.player);
 
 	
@@ -198,23 +183,9 @@ static void Event(SDL_Event ev){
 			if(collisionObj != game.world)
 				collisionObj->model->materials[0].diffuse = (Vec4){1,1,1,1};
 				
-				if(collisionObj->type == TYPE_MINION){
-				
-					ui.stress += 0.1;
-					World_RemoveOffScreenUpdatedObject(collisionObj);
-					World_RemoveObjectFromOctree(collisionObj);
+				if(collisionObj->type == TYPE_CHARACTER && collisionObj != game.player){
+					Spell_AutoAttack_Cast(&game, game.player, collisionObj);
 
-					int j;
-					for(j = 0; j < 100; j++){
-						particles[j].createTime = SDL_GetTicks();
-						particles[j].lifeTime = 10000;
-						particles[j].pos = Math_Vec3AddVec3(collisionObj->bb.pos,
-						 (Vec3){ (-50 + rand()%100)/90.0f,(-50 + rand()%100)/90.0f,(-50 + rand()%100)/90.0f});
-						particles[j].size = (Vec2){1,1};
-						particles[j].color = (Vec4){0.1,0.1,0.1,0.1};
-						particles[j].vel = (Vec3){(-5 + (rand()%10))/10000.0f,(-5 + (rand()%10))/10000.0f,
-						(-5 + (rand()%10))/10000.0f};
-					}
 				} else {
 					if(collisionObj == game.world){
 						
@@ -284,14 +255,14 @@ static void Focus(){
 
 } 
 
-static void DrawRigged(Object *obj){
+static void DrawRigged(Game *game, Object *obj){
 
 	Shaders_UseProgram(SKELETAL_ANIMATION_SHADER);
 
 	Shaders_SetModelMatrix(obj->bb.matrix);
 	Shaders_UpdateModelMatrix();
 
-	if(obj == game.player){
+	if(obj == game->player){
 
 		//glUniform4fv(Shaders_GetBonesLocation(), hairSkel.nBones * 3, &hairSkel.matrices[0].x);
 		//glActiveTexture(GL_TEXTURE0);
@@ -334,7 +305,7 @@ static void DrawRigged(Object *obj){
 
 }
 
-static void DrawModel(Object *obj){
+static void DrawModel(Game *game, Object *obj){
 
 	Shaders_UseProgram(TEXTURED_SHADER);
 
@@ -422,8 +393,7 @@ static char Draw(){
 
 	Skeleton_Apply(&playerSkel);
 
-	World_Render(1);
-	Particles_DrawParticles(particleImg, &ps, particles, 100, 50, forward, renderpos, 0);
+	World_Render(&game,1);
 	
 	UI_Clear(&ui);
 
@@ -444,7 +414,7 @@ static char Draw(){
 
 	//UI_RenderRectTex(&ui, img, 0,0, img.w/2,img.h, 
 	//0,0, img.w/2,img.h, 255,255,255,255);
-	Pathfinding_RenderDebug(&game.pf,&pfpath);
+	//Pathfinding_RenderDebug(&game.pf,&pfpath);
 
 	UI_Render(&ui);
 
@@ -479,7 +449,7 @@ int main(int argc, char **argv){
 	Text_Init();
 	UI_Init(&ui, WINDOW_WIDTH, WINDOW_HEIGHT);
 
-	Particles_Init(&ps);
+	Particles_Init(&game.particleSystem);
 	
 
 	particleImg = ImageLoader_CreateImage("Resources/smoke.png",1);
@@ -513,11 +483,12 @@ int main(int argc, char **argv){
 	game.player = Object_Create();
 	game.player->skeleton = &playerSkel;
 	memcpy(game.player->matrix, Math_Identity, sizeof(Math_Identity));
-	RiggedModel_Load(&models[MODEL_PLAYER-1], "Resources/figure.yuk");
-	Skeleton_Copy(&playerSkel, &models[MODEL_PLAYER-1].skeleton);
-	Animation_Load(&animations[ANIMATION_PLAYER-1], "Resources/figure_ArmatureAction.anm");
-
-	Object_SetModel(game.player, &models[MODEL_PLAYER-1]);
+	RiggedModel_Load(&game.models[MODEL_PLAYER-1], "Resources/figure.yuk");
+	Skeleton_Copy(&playerSkel, &game.models[MODEL_PLAYER-1].skeleton);
+	Animation_Load(&game.animations[ANIMATION_PLAYER-1], "Resources/figure_ArmatureAction.anm");
+	Animation_Load(&game.animations[ANIMATION_MINION-1], "Resources/minion_ArmatureAction.anm");
+	
+	Object_SetModel(game.player, &game.models[MODEL_PLAYER-1]);
 	game.player->bb.collisionFlag |= COLLISIONFLAG_SAT;
 	
 	game.player->Draw = DrawRigged;
@@ -533,13 +504,13 @@ int main(int argc, char **argv){
 		 .active = 1,
 		 .weight = 1,
 		 .into = 0,
-		 .anim = &animations[ANIMATION_PLAYER-1],
+		 .anim = &game.animations[ANIMATION_PLAYER-1],
 	};
 
 	game.world = Object_Create();
-	Model_Load(&models[MODEL_WORLD-1], "Resources/room.yuk");
-	Model_LoadCollisions(&models[MODEL_WORLD-1], "Resources/room.col");
-	Object_SetModel(game.world, &models[MODEL_WORLD-1]);
+	Model_Load(&game.models[MODEL_WORLD-1], "Resources/room.yuk");
+	Model_LoadCollisions(&game.models[MODEL_WORLD-1], "Resources/room.col");
+	Object_SetModel(game.world, &game.models[MODEL_WORLD-1]);
 	game.world->Draw = DrawModel;
 	game.world->AddUser(game.world);
 	
@@ -561,11 +532,11 @@ int main(int argc, char **argv){
 	game.world->bb.children[0].collisionFlag |= COLLISIONFLAG_AABB;
 	game.world->bb.collisionFlag |= COLLISIONFLAG_AABB;
 	
-	RiggedModel_Load(&models[MODEL_MINION-1], "Resources/minion.yuk");
+	RiggedModel_Load(&game.models[MODEL_MINION-1], "Resources/minion.yuk");
 
 	int j;
 	for(j = 0; j < NUM_MINIONS; j++){
-		game.minions[j] = Minion_Create(&models[MODEL_MINION-1]);
+		game.characters[j] = Minion_Create(&game,&game.models[MODEL_MINION-1]);
 	}
 
 	Window_MainLoop(Update, Event, Draw, Focus, OnResize, 1, 1);

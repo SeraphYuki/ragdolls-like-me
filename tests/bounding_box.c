@@ -258,7 +258,7 @@ int BoundingBox_CheckCollision(BoundingBox *bb, BoundingBox *bb2){
 	return ret+1;
 }
 
-int BoundingBox_ResolveCollision(Object *obj1, BoundingBox *bb, Object *obj2, BoundingBox *bb2){
+int BoundingBox_ResolveCollision(Game *game, Object *obj1, BoundingBox *bb, Object *obj2, BoundingBox *bb2){
 
 	// children not iterative. need checking for each pair
 
@@ -268,10 +268,10 @@ int BoundingBox_ResolveCollision(Object *obj1, BoundingBox *bb, Object *obj2, Bo
 
 	int k;
 	 for(k = 0; k < bb->numChildren; k++){
-	 	ret += BoundingBox_ResolveCollision(obj1, &bb->children[k], obj2, bb2);
+	 	ret += BoundingBox_ResolveCollision(game, obj1, &bb->children[k], obj2, bb2);
 	}
 	 for(k = 0; k < bb2->numChildren; k++){
-	 	ret += BoundingBox_ResolveCollision(obj1, bb, obj2, &bb2->children[k]);
+	 	ret += BoundingBox_ResolveCollision(game, obj1, bb, obj2, &bb2->children[k]);
 	}
 
 	if((bb->collisionFlag & COLLISIONFLAG_NONE)|| (bb2->collisionFlag & COLLISIONFLAG_NONE)) return ret;
@@ -301,7 +301,7 @@ int BoundingBox_ResolveCollision(Object *obj1, BoundingBox *bb, Object *obj2, Bo
 
 	if(obj1){
 		
-		if(obj1->OnCollision) obj1->OnCollision(obj1, obj1, obj2, bb, bb2, axis, overlap);
+		if(obj1->OnCollision) obj1->OnCollision(game, obj1, obj1, obj2, bb, bb2, axis, overlap);
 		
 		if(obj1->storeLastCollisions){
 			obj1->lastCollisions = (Collision *)realloc(obj1->lastCollisions, sizeof(Collision) * ++obj1->nLastCollisions);
@@ -312,7 +312,7 @@ int BoundingBox_ResolveCollision(Object *obj1, BoundingBox *bb, Object *obj2, Bo
 	axis = Math_Vec3MultFloat(axis, -1);
 
 	if(obj2){
-		if(obj2->OnCollision) obj2->OnCollision(obj2, obj1, obj2, bb, bb2, axis, overlap);
+		if(obj2->OnCollision) obj2->OnCollision(game,obj2, obj1, obj2, bb, bb2, axis, overlap);
 		if(obj2->storeLastCollisions){
 			obj2->lastCollisions = (Collision *)realloc(obj2->lastCollisions, sizeof(Collision) * ++obj2->nLastCollisions);
 			obj2->lastCollisions[obj2->nLastCollisions-1] = (Collision){obj2, obj1, bb2, bb,axis,overlap};

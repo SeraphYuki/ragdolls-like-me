@@ -5,7 +5,7 @@
 	need model_copy for materials
 */
 
-#include "game.h"
+#include "types.h"
 #include "math.h"
 #include "memory.h"
 

@@ -3,6 +3,8 @@
 
 #include "math.h"
 
+typedef struct Game Game;
+
 #define COLLISIONFLAG_NONE 0x01
 #define COLLISIONFLAG_AABB 0x02
 #define COLLISIONFLAG_SAT 0x04
@@ -55,7 +57,7 @@ void BoundingBox_FreeData(BoundingBox *bb);
 void BoundingBox_Copy(BoundingBox *into, BoundingBox *bb);
 
 int BoundingBox_SATCollision(BoundingBox *bb1, BoundingBox *bb2, float *overlap, Vec3 *axis);
-int BoundingBox_ResolveCollision(Object *obj1, BoundingBox *bb, Object *obj2, BoundingBox *bb2);
+int BoundingBox_ResolveCollision(Game *game, Object *obj1, BoundingBox *bb, Object *obj2, BoundingBox *bb2);
 
 Vec3 BoundingBox_GetPosition(BoundingBox *bb);
 

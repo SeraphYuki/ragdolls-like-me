@@ -150,9 +150,9 @@ void World_GetAllCollisionsRay(Ray ray, float *ret, BoundingBox **closest, Objec
 // 	return 0;
 // }
 
-void World_ResolveCollisions(Object *obj, BoundingBox *box){
+void World_ResolveCollisions(Game *game, Object *obj, BoundingBox *box){
 	
-	OctreeLeaf_ResolveCollisions(octree, obj, box, box->wsCube);
+	OctreeLeaf_ResolveCollisions(game, octree, obj, box, box->wsCube);
 }
 
 void World_DrawLines(Vec3 *lines, int num){
@@ -417,7 +417,7 @@ void World_Clear(){
 	OctreeLeaf_Clear(octree);
 }
 
-void World_Render(char drawBoundingBoxes){
+void World_Render(Game *game, char drawBoundingBoxes){
 
 	Object **visibleObjects = NULL;
 	int numVisibleObjects = 0;
@@ -427,7 +427,7 @@ void World_Render(char drawBoundingBoxes){
     int k;
 	for(k = 0; k < numVisibleObjects; k++){
 		if(visibleObjects[k]->Draw != NULL){
-			visibleObjects[k]->Draw(visibleObjects[k]);
+			visibleObjects[k]->Draw(game,visibleObjects[k]);
 		}
 	  }
 

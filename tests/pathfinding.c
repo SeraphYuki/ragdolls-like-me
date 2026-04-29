@@ -260,7 +260,7 @@ static int GetClosestNotClosed(Pathfinder *pf, int index){
 						}
 						tmp = tmp->next;
 					}
-					if(!tmp) continue;
+					if(tmp) continue;
 
 					return neighbors[f];
 				}
@@ -295,7 +295,7 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 	int attempts = 0;
 	
 	AStarNode current;
-	while(pf->openFirst && attempts < 100){
+	while(pf->openFirst && attempts < 300){
 		attempts++;
 		curr = pf->openFirst;
 

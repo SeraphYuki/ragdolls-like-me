@@ -11,8 +11,10 @@
 
 // cast *data into types in future
 enum {
-	TYPE_MINION = 1,
+	TYPE_CHARACTER = 1,
+	TYPE_SPELL,
 };
+
 typedef struct _OctreeLeaf OctreeLeaf;
 
 typedef struct {
@@ -29,9 +31,9 @@ struct Object {
 	void (*Free)(Object *this);
 	void (*AddUser)(Object *this);
 	void (*RemoveUser)(Object *this);
-	void (*OnCollision)(Object *this,Object *obj1, Object *obj2, BoundingBox *bb1, BoundingBox *bb2, Vec3 axis, float overlap);
+	void (*OnCollision)(Game *game, Object *this,Object *obj1, Object *obj2, BoundingBox *bb1, BoundingBox *bb2, Vec3 axis, float overlap);
 	void (*Update)(Game *game, Object *this);
-	void (*Draw)(Object *this);
+	void (*Draw)(Game *game, Object *this);
 	void (*ObjUpdate)(Object *this);
 	Object *(*Copy)(Object *this);
 

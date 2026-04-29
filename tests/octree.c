@@ -103,7 +103,7 @@ void OctreeLeaf_MoveInto(OctreeLeaf *into, OctreeLeaf *oct){
 	}
 }
 
-void OctreeLeaf_ResolveCollisions(OctreeLeaf *o, Object *obj, BoundingBox *box, Cube minCube){
+void OctreeLeaf_ResolveCollisions(Game *game, OctreeLeaf *o, Object *obj, BoundingBox *box, Cube minCube){
 
 	if(!Math_CheckCollisionCube(o->cube, minCube))
 		return;
@@ -116,12 +116,12 @@ void OctreeLeaf_ResolveCollisions(OctreeLeaf *o, Object *obj, BoundingBox *box, 
 		if(bb == box || 
 		obj == o->objects[k] || !Math_CheckCollisionCube(bb->wsCube, minCube)) continue;
 		
-		BoundingBox_ResolveCollision(obj, box, o->objects[k], bb);
+		BoundingBox_ResolveCollision(game, obj, box, o->objects[k], bb);
 	}
 
 	if(o->children[0])
 		for(k = 0; k < 8; k++)
-			OctreeLeaf_ResolveCollisions(o->children[k], obj, box, minCube);
+			OctreeLeaf_ResolveCollisions(game,o->children[k], obj, box, minCube);
 }
 
 void OctreeLeaf_Clear(OctreeLeaf *o){

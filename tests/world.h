@@ -3,6 +3,7 @@
 
 #include "math.h"
 #include "object.h"
+#include "game.h"
 #include "bounding_box.h"
 
 void World_Update(Game *game);
@@ -20,8 +21,8 @@ void World_UpdateObjectInOctree(Object *obj);
 void World_RemoveObjectFromOctree(Object *box);
 void World_DrawLines(Vec3 *lines, int num);
 void World_DrawLinesColor(Vec3 *lines, int num, Vec4 color);
-void World_Render(char drawBoundingBoxes);
-void World_ResolveCollisions(Object *obj, BoundingBox *box);
+void World_Render(Game *game, char drawBoundingBoxes);
+void World_ResolveCollisions(Game *game, Object *obj, BoundingBox *box);
 Vec3 World_GetTopLeft();
 void World_Free();
 void World_Clear();
