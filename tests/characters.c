@@ -8,8 +8,7 @@ void Minion_OnCollision(Game *game, Object *obj,Object *obj1, Object *obj2, Boun
 	Character *character = (Character*)obj->data;
 	Minion *minion = (Minion *)character->data;
 
-	if(obj2->type == TYPE_CHARACTER){
-
+	if(obj == obj1 && obj2->type == TYPE_CHARACTER){
 		Character *character2 = (Character*)obj2->data;
 
 		if(character2->type == CHARACTER_TYPE_MINION){

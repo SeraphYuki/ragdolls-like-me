@@ -14,6 +14,8 @@ typedef struct {
 	Image particleImage;
 	Vec3 pos;
 	float speed;
+	float dieTime;
+	int finished;
 	Vec3 vel;
 } SpellAutoAttack;
 

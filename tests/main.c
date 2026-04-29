@@ -1,3 +1,4 @@
+
 #include <GL/glew.h>
 #include "window.h"
 #include "characters.h"
@@ -482,6 +483,9 @@ int main(int argc, char **argv){
 
 	game.player = Object_Create();
 	game.player->skeleton = &playerSkel;
+	game.player->type = TYPE_CHARACTER;
+	game.player->data = malloc(sizeof(Character));
+	((Character*)game.player->data)->type = CHARACTER_NONE;
 	memcpy(game.player->matrix, Math_Identity, sizeof(Math_Identity));
 	RiggedModel_Load(&game.models[MODEL_PLAYER-1], "Resources/figure.yuk");
 	Skeleton_Copy(&playerSkel, &game.models[MODEL_PLAYER-1].skeleton);

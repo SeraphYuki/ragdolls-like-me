@@ -7,6 +7,7 @@
 #include "pathfinding.h"
 
 enum {
+	CHARACTER_NONE,
 	CHARACTER_TYPE_MINION=1,
 };
 
