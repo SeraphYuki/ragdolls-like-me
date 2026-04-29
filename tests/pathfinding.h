@@ -2,9 +2,8 @@
 #ifndef PATHFINDING_DEF
 #define PATHFINDING_DEF
 
-#define MAX_PATHFINDING_NODES 4096
+#define MAX_PATHFINDING_PATH 40
 #define PATHFINDING_NODE_GRID_SIZE 0.6
-
 #include "math.h"
 #include "bounding_box.h"
 
@@ -14,39 +13,23 @@ struct AStarNode {
 		float f;
 		int index;
 		AStarNode *parent;
-} ;
-
-typedef struct {
-	
-} PathfindingPortal;
-
-typedef struct PathfindingTri PathfindingTri;
-
-struct PathfindingTri{
-	Vec3 points[3];
-	Vec3 centroid;
-	float radius;
-	PathfindingTri *neighbors[MAX_PATHFINDING_NODES];
-	int nNeighbors;
-	Line portals[MAX_PATHFINDING_NODES];
-	int nPortals;
-	int index;
+		AStarNode *next;
+		AStarNode *prev;
 };
+
 typedef struct {
-	Vec3 path[MAX_PATHFINDING_NODES];
+	Vec3 path[MAX_PATHFINDING_PATH];
+	int pathIndicies[MAX_PATHFINDING_PATH];
 	int nPath;	
-	int pathIndicies[MAX_PATHFINDING_NODES];
 } PathfinderPath;
 
 typedef struct {
 	int w;
 	int h;
-	AStarNode open[MAX_PATHFINDING_NODES];
-	AStarNode closed[MAX_PATHFINDING_NODES];
-	AStarNode nodes[MAX_PATHFINDING_NODES];
-	Vec3 closedVerts[MAX_PATHFINDING_NODES];
-	Line channel[MAX_PATHFINDING_NODES];
-	int nChannel;						
+	AStarNode *openFirst;
+	AStarNode *closedFirst;
+	AStarNode *closedFirstObstacles;
+	Vec3 *closedVerts;
 	int nOpen;
 	int nClosed;
 	int nClosedStatic;
@@ -54,10 +37,7 @@ typedef struct {
 	int ebo;
 	int vao;
 	int vbo;
-	Vec3 verts[MAX_PATHFINDING_NODES];
 	int nVerts;
-	PathfindingTri tris[MAX_PATHFINDING_NODES];
-	int nFaces;
 	Cube cube;
 	Vec3 pos;
 } Pathfinder;
@@ -72,5 +52,6 @@ void Pathfinding_SetOpenGrid(Pathfinder *pf, Vec3 pos);
 void Pathfinding_SetClosedBoundingBox(Pathfinder *pf, BoundingBox *bb);
 void Pathfinding_SetClosedStatic(Pathfinder *pf, int x, int y);
 void Pathfinding_SetClosedDynamic(Pathfinder *pf, int x, int y);
+void Pathfinding_RenderDebug(Pathfinder *pf, PathfinderPath *path);
 
 #endif

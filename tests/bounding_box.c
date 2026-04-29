@@ -274,7 +274,7 @@ int BoundingBox_ResolveCollision(Object *obj1, BoundingBox *bb, Object *obj2, Bo
 	 	ret += BoundingBox_ResolveCollision(obj1, bb, obj2, &bb2->children[k]);
 	}
 
-	if(!(bb->collisionFlag & COLLISIONFLAG_NONE)|| !(bb2->collisionFlag & COLLISIONFLAG_NONE)) return ret;
+	if((bb->collisionFlag & COLLISIONFLAG_NONE)|| (bb2->collisionFlag & COLLISIONFLAG_NONE)) return ret;
 	//bb->renderDebug = 1;
 	//bb2->renderDebug = 1;
 

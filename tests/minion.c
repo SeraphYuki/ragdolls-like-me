@@ -18,9 +18,9 @@ void Minion_OnCollision(Object *obj,Object *obj1, Object *obj2, BoundingBox *bb1
 
 void Minion_Update(Game *game, Object *obj){
 	Minion *minion = (Minion *)obj->data;
-	if(Window_GetTicks() - minion->lastTime > 1000){
-		Pathfinding_FindPathGrid(&game->pf,obj->bb.pos, game->player->bb.pos, &minion->path);
-		minion->lastTime - Window_GetTicks();
+	if(Window_GetTicks() - minion->lastTime > 100){
+		//Pathfinding_FindPathGrid(&game->pf,obj->bb.pos, game->player->bb.pos, &minion->path);
+		//minion->lastTime - Window_GetTicks();
 	}
 
 	Vec3 pos = obj->bb.pos;
@@ -121,7 +121,8 @@ Object *Minion_Create(Model *model){
 	obj->Update = Minion_Update;
 	obj->OnCollision = Minion_OnCollision;
 	obj->bb.collisionFlag |= COLLISIONFLAG_AABB;
-	obj->bb.renderDebug = 0;
+	obj->bb.collisionFlag |= COLLISIONFLAG_SAT;
+		obj->bb.renderDebug = 0;
 	obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,
 	(Vec3){ (-50 + rand()%100)/20.0f, 1, (-50 + rand()%100)/20.0f});
 	obj->bb.scale = (Vec3){0.3,0.3,0.3};

@@ -1,5 +1,5 @@
-#ifndef HASH_TABLE
-#define HASH_TABLE
+#ifndef UTILS_TABLE
+#define UTILS_TABLE
 
 typedef struct {
 	int *indicies;

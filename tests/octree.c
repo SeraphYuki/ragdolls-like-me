@@ -186,7 +186,6 @@ void OctreeLeaf_ResolveCollisionsRay(OctreeLeaf *o, Ray ray, float *dist,  Bound
 		if(tmpDist < *dist && tmpClosest ){
 			*collisionObj = o->objects[k];
 			*dist = tmpDist;
-			tmpClosest->renderDebug = 1;
 			*closest = tmpClosest;
 		}
 	}

@@ -444,6 +444,7 @@ static char Draw(){
 
 	//UI_RenderRectTex(&ui, img, 0,0, img.w/2,img.h, 
 	//0,0, img.w/2,img.h, 255,255,255,255);
+	Pathfinding_RenderDebug(&game.pf,&pfpath);
 
 	UI_Render(&ui);
 
@@ -512,12 +513,13 @@ int main(int argc, char **argv){
 	game.player = Object_Create();
 	game.player->skeleton = &playerSkel;
 	memcpy(game.player->matrix, Math_Identity, sizeof(Math_Identity));
-	
 	RiggedModel_Load(&models[MODEL_PLAYER-1], "Resources/figure.yuk");
 	Skeleton_Copy(&playerSkel, &models[MODEL_PLAYER-1].skeleton);
 	Animation_Load(&animations[ANIMATION_PLAYER-1], "Resources/figure_ArmatureAction.anm");
 
 	Object_SetModel(game.player, &models[MODEL_PLAYER-1]);
+	game.player->bb.collisionFlag |= COLLISIONFLAG_SAT;
+	
 	game.player->Draw = DrawRigged;
 	game.player->AddUser(game.player);
 	game.player->bb.pos = moveToPos = pfpath.path[onPath];
