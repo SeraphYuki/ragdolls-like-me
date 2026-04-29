@@ -274,7 +274,7 @@ int BoundingBox_ResolveCollision(Object *obj1, BoundingBox *bb, Object *obj2, Bo
 	 	ret += BoundingBox_ResolveCollision(obj1, bb, obj2, &bb2->children[k]);
 	}
 
-	if(bb->noCollisions || bb2->noCollisions) return ret;
+	if(!(bb->collisionFlag & COLLISIONFLAG_NONE)|| !(bb2->collisionFlag & COLLISIONFLAG_NONE)) return ret;
 	//bb->renderDebug = 1;
 	//bb2->renderDebug = 1;
 
@@ -358,32 +358,35 @@ void BoundingBox_UpdatePoints(BoundingBox *bb){
 	bb->points[4] = (Vec3){bb->cube.x+bb->cube.w, bb->cube.y+bb->cube.h, bb->cube.z+bb->cube.d};
 	bb->points[6] = (Vec3){bb->cube.x+bb->cube.w, bb->cube.y+bb->cube.h, bb->cube.z};
 
-	float rmatrix[16];
 	Vec3 rot = bb->rot;
 
 	if(bb->parent){
 		rot = Math_Vec3AddVec3(bb->parent->rot,bb->rot);
 	}
 
-	Math_RotateMatrix(rmatrix,rot);
+	Math_RotateMatrix(bb->rmatrix,rot);
 	bb->axes[0] = (Vec3){1,0,0};
 	bb->axes[1] = (Vec3){0,1,0};
 	bb->axes[2] = (Vec3){0,0,1};
-	bb->axes[0] = Math_Vec3Normalize(Math_MatrixMult(bb->axes[0], rmatrix));
-	bb->axes[1] = Math_Vec3Normalize(Math_MatrixMult(bb->axes[1], rmatrix));
-	bb->axes[2] = Math_Vec3Normalize(Math_MatrixMult(bb->axes[2], rmatrix));
+	bb->axes[0] = Math_Vec3Normalize(Math_MatrixMult(bb->axes[0], bb->rmatrix));
+	bb->axes[1] = Math_Vec3Normalize(Math_MatrixMult(bb->axes[1], bb->rmatrix));
+	bb->axes[2] = Math_Vec3Normalize(Math_MatrixMult(bb->axes[2], bb->rmatrix));
 
 
-	Math_RotateMatrix(rmatrix,bb->rot);
+	Math_RotateMatrix(bb->rmatrix,bb->rot);
 
 	Math_ScalingMatrixXYZ(bb->matrix, bb->scale);
-	Math_MatrixMatrixMult(bb->matrix, rmatrix, bb->matrix);	
+	Math_MatrixMatrixMult(bb->matrix, bb->rmatrix, bb->matrix);	
+	//if(bb->parent){
+		//Math_MatrixMatrixMult(bb->rmatrix, bb->parent->rmatrix, bb->rmatrix); 
+	//}
 
 	float matrix[16];
 	Math_TranslateMatrix(matrix, bb->pos);
 	Math_MatrixMatrixMult(bb->matrix, matrix, bb->matrix);
 
 	if(bb->parent){
+		Math_MatrixMatrixMult(bb->rmatrix, bb->parent->rmatrix, bb->rmatrix); 
 		Math_MatrixMatrixMult(bb->matrix, bb->parent->matrix, bb->matrix); 
 	}
 
@@ -407,7 +410,7 @@ void BoundingBox_UpdatePoints(BoundingBox *bb){
 }
 
 int BoundingBox_IsSAT(BoundingBox *bb){
-	if(bb->noCollisions != 0 ||
+	if(!(bb->collisionFlag & COLLISIONFLAG_SAT) ||
 	(fabs(bb->axes[0].x) == 1 || fabs(bb->axes[1].y) == 1 || fabs(bb->axes[2].z) == 1)){
 		return 0;
 	}
@@ -423,19 +426,18 @@ static int SameSide(Vec3 p, Vec3 a, Vec3 b, Vec3 c){
 }
 
  int BoundingBox_CheckCollisionRay(BoundingBox *bb, Ray r, BoundingBox **b, float *dist){
-	// oob make ray in localspace for cube. shouldnt be hard
+	
 	float d = Math_CubeCheckCollisionRay(bb->wsCube, r);
 	
-
 	if(d < *dist ){
-		if(bb->noCollisions == 0){
+		if((bb->collisionFlag & COLLISIONFLAG_AABB) && !(bb->collisionFlag & COLLISIONFLAG_NONE)){
 			*b = bb;
 			*dist = d;
 		}
-		
+
 		int k;
 		for(k = 0; k < bb->numChildren; k++){
-			BoundingBox_CheckCollisionRay(&bb->children[k],r, b, dist);
+			BoundingBox_CheckCollisionRay(&bb->children[k], r, b, dist);
 		}
 	}
 	return 1;

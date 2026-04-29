@@ -20,6 +20,7 @@ typedef struct {
 	Object *minions[MAX_MINIONS];
 	int 	nMinions;
 	Pathfinder pf;	
+	Ray ray;
 } Game;
 
 #define CAMERA_FOV (60.0f * (PI / 180.0f))

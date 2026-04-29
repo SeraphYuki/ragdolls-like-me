@@ -178,11 +178,11 @@ void OctreeLeaf_ResolveCollisionsRay(OctreeLeaf *o, Ray ray, float *dist,  Bound
 		float tmpDist = HUGE_VAL;
 		BoundingBox *tmpClosest = NULL;
 
-		if(o->objects[k]->skeleton){
-			BoundingBox_CheckCollisionRay(&o->objects[k]->skelBb, ray, &tmpClosest, &tmpDist);
-		}else{
+		//if(o->objects[k]->skeleton){
+			//BoundingBox_CheckCollisionRay(&o->objects[k]->skelBb, ray, &tmpClosest, &tmpDist);
+		//}else{
 			BoundingBox_CheckCollisionRay(&o->objects[k]->bb, ray, &tmpClosest, &tmpDist);
-		}
+		//}
 		if(tmpDist < *dist && tmpClosest ){
 			*collisionObj = o->objects[k];
 			*dist = tmpDist;

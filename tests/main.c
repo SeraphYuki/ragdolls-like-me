@@ -113,7 +113,7 @@ static void Update(){
 	//Skeleton_Update(&hairSkel, hairAnims, 0);
 	game.player->ObjUpdate(game.player);
 	Object_UpdateSkeleton(game.player, &playerSkel);
-	Object_UpdateModel(game.world, &models[MODEL_WORLD-1]);
+	//Object_UpdateModel(game.world, &models[MODEL_WORLD-1]);
 	
 	Vec3 moveVec = {0,0,0};
 	
@@ -190,8 +190,10 @@ static void Event(SDL_Event ev){
 		float distance = HUGE_VAL;
 		Object *collisionObj = NULL;
 		BoundingBox *collision = NULL;
-		World_GetAllCollisionsRay((Ray){renderpos, ray}, &distance, &collision, &collisionObj);
-
+		game.ray = (Ray){renderpos,ray};
+		game.ray.pos = (Vec3){invView[3],invView[7],invView[11]};;
+		World_GetAllCollisionsRay(game.ray, &distance, &collision, &collisionObj);
+		
 		if(collision && collisionObj){
 			if(collisionObj != game.world)
 				collisionObj->model->materials[0].diffuse = (Vec4){1,1,1,1};
@@ -360,7 +362,7 @@ static void DrawModel(Object *obj){
 static char Draw(){
 	float persp[16];
 	glBindFramebuffer(GL_FRAMEBUFFER,0);
-	rotation.y += mouseSensitivity * Window_GetDeltaTime();
+	//rotation.y += mouseSensitivity * Window_GetDeltaTime();
 	
 	renderpos = Math_Vec3AddVec3(game.player->bb.pos,Math_Rotate(position,rotation));
 	Vec3 forward = Math_Rotate(Math_Vec3Normalize(Math_Vec3SubVec3(renderpos, game.player->bb.pos)),rotation);
@@ -408,7 +410,6 @@ static char Draw(){
 	Shaders_SetModelMatrix(game.player->bb.matrix);
 	//Physics_ApplyForces(&figure);
 
-		
 	if(pfpath.nPath > 0 && onPath < pfpath.nPath-1 && Math_Vec3Magnitude(Math_Vec3SubVec3(moveToPos,game.player->bb.pos)) < 0.1){
 		moveToPos = pfpath.path[onPath];
 		onPath++; 
@@ -550,8 +551,13 @@ int main(int argc, char **argv){
 	Pathfinding_Init(&game.pf, 200,200);
 	game.pf.cube.x = game.world->bb.wsCube.x;
 	game.pf.cube.z = game.world->bb.wsCube.z;
-	game.world->bb.children[0].noPathfinding = 1;
-	Object_SetPathfindingClosed(&game.pf, game.world);
+	int k; // skip the ground
+	for(k = 1; k < game.world->bb.numChildren; k++ ){
+		game.world->bb.children[k].collisionFlag |= COLLISIONFLAG_NONE;
+		Pathfinding_SetClosedBoundingBox(&game.pf, &game.world->bb.children[k]);
+	}
+	game.world->bb.children[0].collisionFlag |= COLLISIONFLAG_AABB;
+	game.world->bb.collisionFlag |= COLLISIONFLAG_AABB;
 	
 	RiggedModel_Load(&models[MODEL_MINION-1], "Resources/minion.yuk");
 

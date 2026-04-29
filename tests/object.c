@@ -7,19 +7,6 @@ static void AddUser(Object *obj){
 }
 
 
-static void RecursivePathfindingSet(Pathfinder *pf, BoundingBox *bb){
-	int k;
-	for(k = 0; k < bb->numChildren; k++ ){
-		if(bb->children[k].noPathfinding == 0 && bb->children[k].noCollisions == 0)
-			Pathfinding_SetClosedBoundingBox(pf, &bb->children[k]);
-	}
-	if(bb->noCollisions == 0)
-		Pathfinding_SetClosedBoundingBox(pf, &bb->children[k]);		
-}
-
-void Object_SetPathfindingClosed(Pathfinder *pf,Object *obj){
-	RecursivePathfindingSet(pf, &obj->bb);
-}
 
 static void RemoveUser(Object *obj){
 	 obj->numUsers--;
@@ -106,8 +93,8 @@ void Object_UpdateSkeleton(Object *obj, Skeleton *skel){
 		BoundingBox_AddChild(&obj->skelBb,  &child);
 	 
 	 }
-	obj->bb.noCollisions = 0;
-	obj->skelBb.noCollisions = 1;
+	obj->bb.collisionFlag |= COLLISIONFLAG_AABB;
+	obj->skelBb.collisionFlag |= COLLISIONFLAG_NONE;
 	cube.w -= cube.x;
 	 cube.h -= cube.y;
 	 cube.d -= cube.z;
@@ -127,13 +114,15 @@ void Object_UpdateSkeleton(Object *obj, Skeleton *skel){
 }
 void Object_UpdateModel(Object *obj, Model *model){
 	
+	//BoundingBox_FreeData(&obj->bb);
+	
 	Vec3 scale = obj->bb.scale;
 	Vec3 pos = obj->bb.pos;
 	Vec3 rot = obj->bb.rot;
 		
 	memset(&obj->bb, 0, sizeof(BoundingBox));
 	
-	obj->bb.noCollisions = 1;
+	obj->bb.collisionFlag |= COLLISIONFLAG_NONE;
 		
 	obj->bb.scale = scale;
 	obj->bb.pos = pos;
@@ -217,7 +206,7 @@ void Object_SetModel(Object *obj, Model *model){
 		return;
 	}
 
-	obj->bb.noCollisions = 1;
+	obj->bb.collisionFlag |= COLLISIONFLAG_NONE;
 	obj->bb.pos = (Vec3){0,0,0};
 	obj->bb.rot = (Vec3){0,0,0};
 	obj->bb.scale = (Vec3){1,1,1};

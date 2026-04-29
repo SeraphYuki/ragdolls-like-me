@@ -3,6 +3,10 @@
 
 #include "math.h"
 
+#define COLLISIONFLAG_NONE 0x01
+#define COLLISIONFLAG_AABB 0x02
+#define COLLISIONFLAG_SAT 0x04
+#
 typedef struct Object Object;
 
 typedef struct _BoundingBox {
@@ -12,6 +16,7 @@ typedef struct _BoundingBox {
 	Cube cube;
 	Cube wsCube;
 	float matrix[16];
+	float rmatrix[16];
 	Vec3 points[8];
 	Vec3 axes[3];
 	Vec3 initialAxes[3];
@@ -21,8 +26,7 @@ typedef struct _BoundingBox {
 	Vec3 absPos;
 	Vec3 absRot;
 	Vec3 absScale;
-	int noCollisions;
-	int noPathfinding;
+	int collisionFlag;
 	char **types;
 	int nTypes;
 	int renderDebug;
