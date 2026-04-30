@@ -54,7 +54,8 @@ void UI_Init(UI *ui, int w, int h){
 	ui->viewport.w = w;
 	ui->viewport.h = h;
 	ui->uiImg = ImageLoader_CreateImage("Resources/ui.png", 1);
-
+	ui->hudImg = ImageLoader_CreateImage("Resources/hud.png", 1);
+	
 	FontRenderer_Init(&ui->fr, w, h);	
 	FontRenderer_SetSize(&ui->fr,16);
 
@@ -126,6 +127,13 @@ void UI_Render(UI *ui){
 	for(k = 0; k < ui->nElements; k++){
 		if(ui->elements[k].Render) ui->elements[k].Render(ui, &ui->elements[k]); 
 	}
+
+
+	UI_RenderRectTex(ui, ui->hudImg,ui->viewport.x + (ui->viewport.w/2) - 64, ui->viewport.h-64
+	, 64,64, 
+	0,0,
+	ui->hudImg.w,
+	ui->hudImg.h,255,255,255,255);
 
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -278,7 +286,7 @@ u16 ix, u16 iy, u16 iw, u16 ih, u8 r, u8 g, u8 b, u8 a){
 		pos[0] = x + ((s16)RectTriangleVerts[k] * w);
 		pos[1] = y + ((s16)RectTriangleVerts[k+1] * h);
 		coord[0] = (ix + ((s16)RectTriangleVerts[k] * iw)) * 1.0f/img.w;
-		coord[1] = ((iy + ((s16)RectTriangleVerts[k+1] *ih)) * 1.0f/img.h);
+		coord[1] = (1-(iy + ((s16)RectTriangleVerts[k+1] *ih)) * 1.0f/img.h);
 		glBindBuffer(GL_ARRAY_BUFFER, ui->posVbo);
 		glBufferSubData(GL_ARRAY_BUFFER, offset*sizeof(pos), sizeof(pos), pos);
 		glBindBuffer(GL_ARRAY_BUFFER, ui->uvVbo);

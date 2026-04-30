@@ -48,6 +48,7 @@ struct UI {
 	unsigned int quadVbo;
 	unsigned int fb;
 	Image uiImg;
+	Image hudImg;
 	FontRenderer fr;
 	float stress;
 	UI_Element elements[MAX_UI_ELEMENTS];

@@ -8,16 +8,12 @@ void Minion_OnCollision(Game *game, Object *obj,Object *obj1, Object *obj2, Boun
 	Character *character = (Character*)obj->data;
 	Minion *minion = (Minion *)character->data;
 
-	//if(obj == obj1 && obj2->type == TYPE_CHARACTER){
-		//Character *character2 = (Character*)obj2->data;
-
-		//if(character2->type == CHARACTER_TYPE_MINION){
-			Vec3 resolve = Math_Vec3MultFloat(axis, -overlap);
-			obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,resolve);
-			obj->ObjUpdate(obj);
-			World_UpdateObjectInOctree(obj);
-		//}
-	//}
+	if(bb2->collisionFlag & COLLISIONFLAG_INVISIBLE == 0){
+		Vec3 resolve = Math_Vec3MultFloat(axis, -overlap);
+		obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,resolve);
+		obj->ObjUpdate(obj);
+		World_UpdateObjectInOctree(obj);
+	}
 }
 
 void Minion_Update(Game *game, Object *obj){
@@ -84,6 +80,15 @@ void Minion_Draw(Game *game, Object *obj){
 	Character *character = (Character*)obj->data;
 	Minion *minion = (Minion *)character->data;
 	
+
+	if(character->showGold){
+		Particles_DrawBillboard(character->goldImage, 
+			&game->particleSystem, Math_Vec3AddVec3(obj->bb.pos,(Vec3){0,1,0}),
+			 (Vec2){1.5,1.5}, (Vec4){1,1,1,1},
+			(Rect2D){0,0,1,1});
+	}
+
+
 	Particles_DrawBillboard( game->healthImage, &game->particleSystem, 
 	Math_Vec3AddVec3(obj->bb.pos,(Vec3){-0.2,1.4,0}), (Vec2){1*MIN(character->health,1),0.1},(Vec4){1,1,1,1},
 	(Rect2D){0,0,game->healthImage.w,game->healthImage.h});
@@ -123,6 +128,26 @@ void Minion_Draw(Game *game, Object *obj){
 	glBindVertexArray(0);
 }
 
+void Minion_Damage(Game *game, Object *this, Object *cause){
+
+	//Spell *spell = (Spell*)cause->data;
+	// handle custom logic
+
+	Character *character = (Character*)this->data;
+	Minion *minion = (Minion *)character->data;
+
+	//if aggro
+	if(character->health < 0.4){
+		character->showGold = 1;
+	}
+
+	
+	if(character->health < 0){
+		World_RemoveOffScreenUpdatedObject(this);
+		World_RemoveObjectFromOctree(this);
+	}		
+}
+
 Object *Minion_Create(Game *game, Model *model){
 	Object *obj = Object_Create();
 	
@@ -130,13 +155,17 @@ Object *Minion_Create(Game *game, Model *model){
 	obj->type = TYPE_CHARACTER;
 	Character *character = (Character*)obj->data;
 	memset(character, 0, sizeof(Character));
+	
+	character->Damage = Minion_Damage;
 	character->data = malloc(sizeof(Minion));
-	Minion *minion = (Minion *)character->data;
 	character->type = CHARACTER_TYPE_MINION;
-	memset(minion, 0, sizeof(Minion));
-	minion->animDir = 1;
 	character->health = 1;
 	character->moveSpeed = 0.001;
+	character->goldImage = ImageLoader_CreateImage("Resources/gold.png",1);
+	
+	Minion *minion = (Minion *)character->data;
+	memset(minion, 0, sizeof(Minion));
+	minion->animDir = 1;
 	Object_SetModel(obj, model);
 	Skeleton_Copy(&minion->skeleton, &model->skeleton);
 	Object_SetSkeleton(obj,&minion->skeleton);
@@ -151,8 +180,7 @@ Object *Minion_Create(Game *game, Model *model){
 	obj->Draw = Minion_Draw;
 	obj->Update = Minion_Update;
 	obj->OnCollision = Minion_OnCollision;
-	obj->bb.collisionFlag |= COLLISIONFLAG_AABB;
-	//obj->bb.collisionFlag |= COLLISIONFLAG_SAT;
+	obj->bb.collisionFlag |= COLLISIONFLAG_AABB | COLLISIONFLAG_RAY_OBJ;
 		obj->bb.renderDebug = 0;
 	obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,
 	(Vec3){ (-50 + rand()%100)/20.0f, 1, (-50 + rand()%100)/20.0f});

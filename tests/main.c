@@ -55,6 +55,14 @@ static Vec3 lookatPos = {0,2,0};
 
 static UI ui;
 
+static int castingAOE = 0;
+static Vec3 castingPos;
+
+static void BeginCast(){
+	castingAOE = 1;
+}
+
+
 float GetDeltaTime(void){
 	  return Window_GetDeltaTime();
 }
@@ -157,7 +165,13 @@ static void Event(SDL_Event ev){
 	UI_Event(&ui, ev); 
 	
 	  //Thoth_Event(thoth, ev);
+
 	if(ev.type == SDL_MOUSEBUTTONDOWN){
+
+		if(castingAOE){
+			Spell_AOE_Cast(&game, game.player, castingPos);
+			castingAOE = 0;
+		}
 
 		moveToPos = game.player->bb.pos;
 		game.player->model->materials[0].diffuse = (Vec4){0.8,0.6,0.6,1};
@@ -177,64 +191,83 @@ static void Event(SDL_Event ev){
 		
 		ray = Math_Vec3Normalize(ray);
 		float distance = HUGE_VAL;
-		Object *collisionObj = NULL;
+		Object *collisionObj= NULL;
 		BoundingBox *collision = NULL;
 		game.ray = (Ray){renderpos,ray};
 		game.ray.pos = (Vec3){invView[3],invView[7],invView[11]};;
-		World_GetAllCollisionsRay(game.ray, &distance, &collision, &collisionObj);
-		
+		World_GetAllCollisionsRay(game.ray, &distance, &collision, &collisionObj, 
+		COLLISIONFLAG_RAY_WORLD);
+	
 		if(collision && collisionObj){
-			if(collisionObj != game.world)
-				collisionObj->model->materials[0].diffuse = (Vec4){1,1,1,1};
+			if(collisionObj == game.world){
 				
-				if(collisionObj->type == TYPE_CHARACTER && collisionObj != game.player){
-					Spell_AutoAttack_Cast(&game, game.player, collisionObj);
+				if(ev.button.button == SDL_BUTTON_LEFT){
+				
+					//Pathfinding_SetClosedGrid(&game.pf,
+					//Math_Vec3AddVec3(renderpos,
+					//Math_Vec3MultFloat(ray, distance)));
 
-				} else {
-					if(collisionObj == game.world){
-						
-						if(ev.button.button == SDL_BUTTON_LEFT){
-						
-						//Pathfinding_SetClosedGrid(&game.pf,
-						//Math_Vec3AddVec3(renderpos,
-						//Math_Vec3MultFloat(ray, distance)));
-					} else if(ev.button.button == SDL_BUTTON_MIDDLE){
-							Pathfinding_FindPathGrid(&game.pf,game.player->bb.pos,
-						Math_Vec3AddVec3(renderpos,
-						Math_Vec3MultFloat(ray, distance)), &pfpath);
-						//Pathfinding_FindPath(&game.pf,game.player->bb.pos,
-						//Math_Vec3AddVec3(renderpos,
-						//Math_Vec3MultFloat(ray, distance)));
-						onPath = 0;
-					} else if(ev.button.button == SDL_BUTTON_RIGHT){ 
-						
-						//Pathfinding_SetOpenGrid(&game.pf,
-						//Math_Vec3AddVec3(renderpos,
-						//Math_Vec3MultFloat(ray, distance)));
-					}
+				} else if(ev.button.button == SDL_BUTTON_MIDDLE){
+						Pathfinding_FindPathGrid(&game.pf,game.player->bb.pos,
+					Math_Vec3AddVec3(renderpos,
+					Math_Vec3MultFloat(ray, distance)), &pfpath);
+					//Pathfinding_FindPath(&game.pf,game.player->bb.pos,
+					//Math_Vec3AddVec3(renderpos,
+					//Math_Vec3MultFloat(ray, distance)));
+					onPath = 0;
+				} else if(ev.button.button == SDL_BUTTON_RIGHT){ 
+					
+					//Pathfinding_SetOpenGrid(&game.pf,
+					//Math_Vec3AddVec3(renderpos,
+					//Math_Vec3MultFloat(ray, distance)));
 				}
 			}
 		}
+		World_GetAllCollisionsRay(game.ray, &distance, &collision, &collisionObj, 
+		COLLISIONFLAG_RAY_OBJ);
+		if(collision && collisionObj){
+			if(collisionObj->type == TYPE_CHARACTER && collisionObj != game.player){
+				Spell_AutoAttack_Cast(&game, game.player, collisionObj);
 
+			}
+		}
 	} else if(ev.type == SDL_MOUSEMOTION){
 
 		mousepos.x = ev.motion.x;
 		mousepos.y = ev.motion.y;
+		
+		if(castingAOE){
+			
+			Vec4 rayWorld = (Vec4){
+				(2.0 * (mousepos.x / WINDOW_WIDTH)) - 1.0, 
+				1.0 - (2.0 * (mousepos.y / WINDOW_HEIGHT)), -1.0,1};
 
-	} else if(ev.type == SDL_KEYDOWN){
+			rayWorld = Math_MatrixMult4(rayWorld, invPersp);
+			rayWorld.z = -1;
+			rayWorld.w = 0;
+			rayWorld = Math_MatrixMult4(rayWorld, invView);
+			Vec3 ray = (Vec3){rayWorld.x, rayWorld.y, rayWorld.z};
+			
+			ray = Math_Vec3Normalize(ray);
+			float distance = HUGE_VAL;
+			Object *collisionObj;
+			BoundingBox *collision;
+			game.ray = (Ray){renderpos,ray};
+			game.ray.pos = (Vec3){invView[3],invView[7],invView[11]};;
+			World_GetAllCollisionsRay(game.ray, &distance, &collision, &collisionObj,
+			COLLISIONFLAG_RAY_WORLD);
+			if(collision && collisionObj){
+				
+				castingPos = Math_Vec3AddVec3(
+				Math_Vec3MultFloat(game.ray.line,distance), game.ray.pos);
+			}
+		}
+		
+	}
+	if(ev.type == SDL_KEYDOWN){
 
-        if(ev.key.keysym.sym == SDLK_w)
-	          movingDirs[0] = 1;
-	      if(ev.key.keysym.sym == SDLK_q)
-	          movingDirs[4] = 1;
-		else if(ev.key.keysym.sym == SDLK_s)
-			movingDirs[1] = 1;
-		else if(ev.key.keysym.sym == SDLK_a)
-			movingDirs[2] = 1;
-	      else if(ev.key.keysym.sym == SDLK_d)
-	          movingDirs[3] = 1;
-	      //else if(ev.key.keysym.sym == SDLK_jESCAPE)
-	          //exit(0);
+	   if(ev.key.keysym.sym == SDLK_q)
+			castingAOE = 1;;
 
 	} else if(ev.type == SDL_KEYUP){
 
@@ -398,6 +431,15 @@ static char Draw(){
 	Skeleton_Apply(&playerSkel);
 
 	World_Render(&game,1);
+
+	if(castingAOE){
+		Math_Identity(idenity);
+		Shaders_UseProgram(TEXTURELESS_SHADER);
+		Shaders_SetModelMatrix(idenity);
+		Shaders_UpdateModelMatrix();
+		Cube cube = (Cube){castingPos.x - 1.5,castingPos.y,castingPos.z - 1.5,3,0.1,3};
+		World_DrawX(cube);
+	}
 	
 	UI_Clear(&ui);
 
@@ -418,7 +460,8 @@ static char Draw(){
 
 	//UI_RenderRectTex(&ui, img, 0,0, img.w/2,img.h, 
 	//0,0, img.w/2,img.h, 255,255,255,255);
-	Pathfinding_RenderDebug(&game.pf,&pfpath);
+
+	//Pathfinding_RenderDebug(&game.pf,&pfpath);
 
 	UI_Render(&ui);
 
@@ -532,18 +575,20 @@ int main(int argc, char **argv){
 	game.pf.cube.z = game.world->bb.wsCube.z;
 	int k; // skip the ground
 	for(k = 1; k < game.world->bb.numChildren; k++ ){
-		game.world->bb.children[k].collisionFlag |= COLLISIONFLAG_SAT;
+		game.world->bb.children[k].collisionFlag |= COLLISIONFLAG_RAY_WORLD;
 		Pathfinding_SetClosedBoundingBoxStatic(&game.pf, &game.world->bb.children[k]);
 	}
 	game.world->bb.children[0].collisionFlag |= COLLISIONFLAG_AABB;
 	game.world->bb.collisionFlag |= COLLISIONFLAG_AABB;
+	game.world->bb.children[0].collisionFlag |= COLLISIONFLAG_RAY_WORLD;
+	game.world->bb.collisionFlag |= COLLISIONFLAG_RAY_WORLD;
 	
 	RiggedModel_Load(&game.models[MODEL_MINION-1], "Resources/minion.yuk");
 
 	int j;
 	for(j = 0; j < NUM_MINIONS; j++){
 		game.characters[j] = Minion_Create(&game,&game.models[MODEL_MINION-1]);
-		((Character *)game.characters[j]->data)->health += j * 0.5;
+		//((Character *)game.characters[j]->data)->health += j * 0.5;
 	}
 
 	Window_MainLoop(Update, Event, Draw, Focus, OnResize, 1, 1);

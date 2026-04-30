@@ -135,9 +135,10 @@ void World_UpdateObjectInOctree(Object *obj){
 	OctreeLeaf_Insert(octree, obj);
 }
 
-void World_GetAllCollisionsRay(Ray ray, float *ret, BoundingBox **closest, Object **collisionObj){
+void World_GetAllCollisionsRay(Ray ray, float *ret, BoundingBox **closest, Object **collisionObj,
+int flags){
 
- 	OctreeLeaf_ResolveCollisionsRay(octree, ray, ret, closest, collisionObj);
+ 	OctreeLeaf_ResolveCollisionsRay(octree, ray, ret, closest, collisionObj, flags);
 }
 
 // int World_GetAllCollisionsRect(cube cube, std::vector<BoundingBox::BoundingBoxObject> *ret){
@@ -392,7 +393,7 @@ static void DrawBoundingBoxes(BoundingBox *bb){
 
 	Shaders_SetUniformColor((Vec4){1,1,1,1});
 	
-	//if(!bb->renderDebug) return;
+	if(!bb->renderDebug) return;
 
 	 if(BoundingBox_IsSAT(bb)){
 		World_DrawSAT(bb);

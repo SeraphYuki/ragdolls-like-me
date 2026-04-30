@@ -8,7 +8,10 @@ typedef struct Game Game;
 #define COLLISIONFLAG_NONE 0x01
 #define COLLISIONFLAG_AABB 0x02
 #define COLLISIONFLAG_SAT 0x04
-#
+#define COLLISIONFLAG_INVISIBLE 0x08
+#define COLLISIONFLAG_RAY_WORLD 0x010
+#define COLLISIONFLAG_RAY_OBJ 0x020
+
 typedef struct Object Object;
 
 typedef struct _BoundingBox {

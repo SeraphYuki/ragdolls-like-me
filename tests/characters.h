@@ -24,6 +24,8 @@ typedef struct Character Character;
 struct Character {
 	float health;	
 	float moveSpeed;
+	int showGold;
+	Image goldImage;
 	int onPath;
 	PathfinderPath path;
 	Vec3 moveToPos;
@@ -31,7 +33,8 @@ struct Character {
 	int lastTime;	
 
 	int type;	
-
+	
+	void (*Damage)(Game *game, Object *obj, Object *cause);
 	void *data;
 
 };

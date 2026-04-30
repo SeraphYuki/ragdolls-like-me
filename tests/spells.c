@@ -3,21 +3,20 @@
 #include "world.h"
 #include "math.h"
 #include "characters.h"
+
 void SpellAutoAttack_Update(Game *game, Object *obj){
 	Spell  *spell = (Spell *)obj->data;
 	SpellAutoAttack  *autoAttack = (SpellAutoAttack  *)spell->data;
 
-
 	Vec3 path = Math_Vec3SubVec3( spell->directedAt->bb.pos, autoAttack->pos);
 	if(Math_Vec3Magnitude(path) < 1 && autoAttack->finished == 0){
+
 		Character *directedCharacter = (Character *)spell->directedAt->data;
-		if(directedCharacter->health <= 0.3 && directedCharacter->health > 0){
-			spell->showGold = 1;
-		}
+
 		directedCharacter->health -= 0.3;
+
+		if(directedCharacter->Damage) directedCharacter->Damage(game, spell->directedAt, obj);
 		if(directedCharacter->health <= 0){
-			World_RemoveOffScreenUpdatedObject(spell->directedAt);
-			World_RemoveObjectFromOctree(spell->directedAt);
 			spell->directedAt->RemoveUser(spell->directedAt);
 			spell->cameFrom->RemoveUser(spell->cameFrom);
 		}
@@ -63,34 +62,31 @@ void SpellAutoAttack_Draw(Game *game, Object *obj){
 	Particles_DrawParticles(autoAttack->particleImage, 
 		&game->particleSystem, autoAttack->particles, 100, 50, forward, camPos, 0);
 
-	if(spell->showGold){
-		Particles_DrawBillboard(spell->goldImage, 
-			&game->particleSystem, Math_Vec3AddVec3(autoAttack->pos,(Vec3){0,1,0}),
-			 (Vec2){1.5,1.5}, (Vec4){1,1,1,1},
-			(Rect2D){0,0,1,1});
-	}
 }
 
 
 Object *Spell_AutoAttack_Cast(Game *game, Object *cameFrom, Object *at){
+	
 	at->AddUser(at);
 	cameFrom->AddUser(cameFrom);
+
 	Object *obj = Object_Create();
+	
 	obj->data = malloc(sizeof(Spell));
 	Spell *spell = (Spell*)obj->data;	
 	memset(spell, 0, sizeof(Spell));
+	
 	spell->data = malloc(sizeof(SpellAutoAttack));
 	SpellAutoAttack *autoAttack = (SpellAutoAttack*)spell->data;
 	memset(autoAttack, 0, sizeof(SpellAutoAttack));
+	
 	autoAttack->speed = 0.005;
 	// todo add all resources to game struct
 	autoAttack->particleImage = ImageLoader_CreateImage("Resources/smoke.png",1);
 	autoAttack->particleImage.nFramesX = 5;
 	autoAttack->particleImage.nFramesY = 5;
 	Math_Identity(obj->matrix);
-	spell->goldImage = ImageLoader_CreateImage("Resources/gold.png",1);
 	spell->directedAt = at;
-	spell->showGold = 0;
 	spell->cameFrom = cameFrom;
 	spell->type = SPELL_TYPE_AUTOATTACK;
 
@@ -121,8 +117,82 @@ Object *Spell_AutoAttack_Cast(Game *game, Object *cameFrom, Object *at){
 		(-5 + (rand()%10))/20000.0f};
 	}
 
-	//World_RemoveOffScreenUpdatedObject(at);
-	//World_RemoveObjectFromOctree(at);
+	return obj;
+}
 
+void Spell_AOE_OnCollision(Game *game, Object *obj,Object *obj1, Object *obj2, BoundingBox *bb1,
+	BoundingBox *bb2, Vec3 axis, float overlap){
+	
+	Spell  *spell = (Spell *)obj->data;
+	SpellAOE  *aoe = (SpellAOE  *)spell->data;
+
+	// we caused it.
+	if(obj == obj1 && obj2->type == TYPE_CHARACTER){
+		Character *character = (Character*)obj2->data;
+		character->health -= 0.4;
+		character->Damage(game, obj2, spell->cameFrom);
+	}
+}
+
+void Spell_AOE_Update(Game *game, Object *obj){
+	Spell *spell = (Spell*)obj->data;	
+	SpellAOE *aoe = (SpellAOE*)spell->data;
+	if(Window_GetTicks() - aoe->dieTime > 10000){
+		World_RemoveOffScreenUpdatedObject(obj);
+		World_RemoveObjectFromOctree(obj);
+	}
+
+	if(Window_GetTicks() - aoe->lastDamage > 800){
+		World_ResolveCollisions(game, obj, &obj->bb);
+		aoe->lastDamage = Window_GetTicks();
+	}
+}
+
+void Spell_AOE_Draw(Game *game, Object *obj){
+	Spell *spell = (Spell*)obj->data;	
+	SpellAOE *aoe = (SpellAOE*)spell->data;
+
+	float identity[16];
+	Math_Identity(identity);
+	Shaders_UseProgram(TEXTURELESS_SHADER);
+	Shaders_SetModelMatrix(identity);
+	Shaders_UpdateModelMatrix();
+	Cube cube = obj->bb.wsCube;
+	cube.y += 1.5;
+	cube.h = 0.1;
+	World_DrawX(cube);
+}
+
+Object *Spell_AOE_Cast(Game *game, Object *cameFrom, Vec3 pos){
+
+	Object *obj = Object_Create();
+	
+	obj->data = malloc(sizeof(Spell));
+	Spell *spell = (Spell*)obj->data;	
+	memset(spell, 0, sizeof(Spell));
+	
+	spell->data = malloc(sizeof(SpellAOE));
+	SpellAOE *aoe = (SpellAOE*)spell->data;
+	memset(aoe, 0, sizeof(SpellAOE));
+
+	cameFrom->AddUser(cameFrom);
+	spell->cameFrom = cameFrom;
+	
+	aoe->dieTime = Window_GetTicks();
+	aoe->lastDamage = Window_GetTicks();
+	obj->OnCollision = Spell_AOE_OnCollision;
+	obj->Update = Spell_AOE_Update;
+	obj->Draw = Spell_AOE_Draw;
+	obj->bb.collisionFlag |= COLLISIONFLAG_SAT;
+	obj->bb.collisionFlag |= COLLISIONFLAG_INVISIBLE;
+	obj->bb.pos = pos;
+	obj->bb.scale = (Vec3){1,1,1};
+	obj->bb.rot = (Vec3){0,0,0};
+	obj->type = TYPE_SPELL;
+	obj->bb.cube = (Cube){-1.5,-1.5,-1.5,3,3,3};
+	obj->ObjUpdate(obj);
+	
+	World_AddOffScreenUpdatedObject(obj);
+	World_UpdateObjectInOctree(obj);	
 	return obj;
 }

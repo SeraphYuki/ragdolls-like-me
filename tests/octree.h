@@ -26,7 +26,7 @@ void OctreeLeaf_ResolveCollisions(Game *game, OctreeLeaf *o, Object *obj, Boundi
 void OctreeLeaf_Clear(OctreeLeaf *o);
 void OctreeLeaf_Free(OctreeLeaf *o);
 void OctreeLeaf_ResolveCollisionsRay(OctreeLeaf *o, Ray ray, float *dist,  BoundingBox **closest, 
-Object **collisionObj);
+Object **collisionObj, int flags);
 void OctreeLeaf_GetVisibleObjects(OctreeLeaf *octant, Object ***ret, int *nObjects);
 
 #endif

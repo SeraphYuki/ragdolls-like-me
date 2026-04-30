@@ -167,7 +167,7 @@ void OctreeLeaf_Free(OctreeLeaf *o){
 }
 
 void OctreeLeaf_ResolveCollisionsRay(OctreeLeaf *o, Ray ray, float *dist,  BoundingBox **closest,
-	 Object **collisionObj){
+	 Object **collisionObj, int flags){
 
 	if(Math_CubeCheckCollisionRay(o->cube, ray) == HUGE_VAL)
 		return;
@@ -183,7 +183,7 @@ void OctreeLeaf_ResolveCollisionsRay(OctreeLeaf *o, Ray ray, float *dist,  Bound
 		//}else{
 			BoundingBox_CheckCollisionRay(&o->objects[k]->bb, ray, &tmpClosest, &tmpDist);
 		//}
-		if(tmpDist < *dist && tmpClosest ){
+		if(tmpDist < *dist && tmpClosest && tmpClosest->collisionFlag & flags){
 			*collisionObj = o->objects[k];
 			*dist = tmpDist;
 			*closest = tmpClosest;
@@ -192,7 +192,7 @@ void OctreeLeaf_ResolveCollisionsRay(OctreeLeaf *o, Ray ray, float *dist,  Bound
 
 	if(o->children[0])
 		for(k = 0; k < 8; k++)
-			OctreeLeaf_ResolveCollisionsRay(o->children[k], ray, dist, closest, collisionObj);
+			OctreeLeaf_ResolveCollisionsRay(o->children[k], ray, dist, closest, collisionObj,flags);
 }
 
 static void FindViewCollisions(OctreeLeaf *o, Object ***ret, int *nObjects, Plane *frustumPlanes){
