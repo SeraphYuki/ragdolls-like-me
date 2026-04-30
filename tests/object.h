@@ -13,6 +13,7 @@
 enum {
 	TYPE_CHARACTER = 1,
 	TYPE_SPELL,
+	TYPE_PLAYER,
 };
 
 typedef struct _OctreeLeaf OctreeLeaf;

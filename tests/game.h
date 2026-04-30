@@ -31,14 +31,15 @@ struct Game {
 	Object *world;		
 
 	Object *characters[MAX_CHARACTERS];
-	int 	nCharacters;		
-	Object *spells[MAX_SPELLS];
-	int 	nSpells;
-	Pathfinder pf;	
+	int 			nCharacters;		
+	Object 		*spells[MAX_SPELLS];
+	int 			nSpells;
+	Pathfinder 		pf;	
 	Ray ray;
-	Animation animations[NUM_ANIMATIONS];
-	Model 	models[NUM_MODELS];
+	Animation 		animations[NUM_ANIMATIONS];
+	Model 			models[NUM_MODELS];
 	ParticleSystem 	particleSystem;
+	Image 			healthImage;
 };
 
 #define CAMERA_FOV (60.0f * (PI / 180.0f))

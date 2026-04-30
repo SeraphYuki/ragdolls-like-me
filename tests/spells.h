@@ -26,7 +26,8 @@ struct Spell {
 
 	int type;	
 	void *data;
-
+	int showGold;
+	Image goldImage;
 	Object *directedAt;
 	Object *cameFrom;
 };

@@ -140,8 +140,9 @@ void Pathfinding_Init(Pathfinder *pf, int w, int h){
 
 }
 
-void Pathfinding_SetClosedBoundingBox(Pathfinder *pf, BoundingBox *bb){
-
+static void SetClosedBoundingBox(Pathfinder *pf, BoundingBox *bb,
+	void (*close)(Pathfinder *pf, int x, int y)){
+	
 	Vec3 tris[4][3];
 
 	tris[0][0] = bb->points[0];
@@ -160,6 +161,15 @@ void Pathfinding_SetClosedBoundingBox(Pathfinder *pf, BoundingBox *bb){
 	tris[3][1] = bb->points[2];
 	tris[3][2] = bb->points[1];
 	
+	//int x = (bb->wsCube.x-pf->cube.x) / PATHFINDING_NODE_GRID_SIZE;
+	//int y = (bb->wsCube.z-pf->cube.z) / PATHFINDING_NODE_GRID_SIZE;;	
+	//int tx = x+((bb->wsCube.x+bb->wsCube.w-pf->cube.x) / PATHFINDING_NODE_GRID_SIZE);
+	//int ty = y+((bb->wsCube.z+bb->wsCube.d-pf->cube.z) / PATHFINDING_NODE_GRID_SIZE);;
+	//int k;
+	//printf("%i %i\n", x, y);
+	//printf("%i %i\n", tx, ty);
+	//for(; x < tx; x++){
+		//for(; y < ty; y++){
 	
 	int k;
 	int x = 0, y = 0;
@@ -186,11 +196,36 @@ void Pathfinding_SetClosedBoundingBox(Pathfinder *pf, BoundingBox *bb){
 				float hasNeg = w0 < 0 || w1 < 0 || w2 < 0;
 				float hasPos = w0 > 0 || w1 > 0 || w2 > 0;
 				if((hasNeg && hasPos)) continue;
-				Pathfinding_SetClosedStatic(pf, x, y);
+				close(pf, x, y);
 				break;
 			}
 		}
 	}
+
+}
+
+void Pathfinding_SetClosedBoundingBoxDynamic(Pathfinder *pf, BoundingBox *bb){
+	SetClosedBoundingBox(pf,bb,Pathfinding_SetClosedDynamic);
+}
+void Pathfinding_SetClosedBoundingBoxStatic(Pathfinder *pf, BoundingBox *bb){
+	SetClosedBoundingBox(pf,bb,Pathfinding_SetClosedStatic);
+}
+
+void Pathfinding_ClearDynamic(Pathfinder *pf){
+	if(pf->closedStaticLast){
+
+		AStarNode *curr = pf->closedStaticLast;
+		curr = curr->next;
+		
+		while(curr){
+			AStarNode *tmp = curr;
+			curr = curr->next;
+			free(tmp);
+		}
+		pf->closedStaticLast->next = NULL;
+		pf->closedObstaclesLast = pf->closedStaticLast;
+	}
+
 }
 
 static void SetClosed(Pathfinder *pf, int x, int y){
@@ -200,25 +235,28 @@ static void SetClosed(Pathfinder *pf, int x, int y){
 		pos.x += pf->cube.x;
 		pos.z += pf->cube.z;
 
-	if(!pf->closedFirst) {
-		pf->closedFirst = malloc(sizeof(AStarNode)); 
-		pf->closedFirst->next = NULL; 
-		pf->closedFirst->prev = NULL; 
+	if(!pf->closedFirst){
+		pf->closedFirst = malloc(sizeof(AStarNode));
+		pf->closedFirst->index = index;
+		pf->closedFirst->next = NULL;
+		pf->closedFirst->prev = NULL;
+		pf->closedObstaclesLast = pf->closedFirst;
+		return;
 	}
 
 	AStarNode *last = pf->closedFirst;
-	while (last->next) { last = last->next; }
+	while(last->next) { last = last->next; }
 	
 	last->next = malloc(sizeof(AStarNode));
 	last->next->index = index;
 	last->next->next = NULL;
 	last->next->prev = last;
 	
-	pf->closedFirstObstacles = last->next;
+	pf->closedObstaclesLast = last->next;
 }
 void Pathfinding_SetClosedStatic(Pathfinder *pf, int x, int y){
 	SetClosed(pf, x,y);
-	pf->nClosedStatic++;	
+	pf->closedStaticLast = pf->closedObstaclesLast;	
 }
 
 void Pathfinding_SetClosedDynamic(Pathfinder *pf, int x, int y){
@@ -340,14 +378,14 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 			}
 			pf->openFirst = NULL;
 
-			if(pf->closedFirstObstacles->next){
-				curr = pf->closedFirstObstacles->next;
+			if(pf->closedObstaclesLast->next){
+				curr = pf->closedObstaclesLast->next;
 				while(curr){
 					AStarNode *tmp = curr;
 					curr = curr->next;
 					free(tmp);
 				}
-				pf->closedFirstObstacles->next = NULL;
+				pf->closedObstaclesLast->next = NULL;
 			}
 			return 0;
 		}
@@ -451,14 +489,14 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 	}
 	pf->openFirst = NULL;
 		
-	if(pf->closedFirstObstacles->next){
-		curr = pf->closedFirstObstacles->next;
+	if(pf->closedObstaclesLast->next){
+		curr = pf->closedObstaclesLast->next;
 		while(curr){
 			AStarNode *tmp = curr;
 			curr = curr->next;
 			free(tmp);
 		}
-		pf->closedFirstObstacles->next = NULL;
+		pf->closedObstaclesLast->next = NULL;
 	}
 
 	return 0;

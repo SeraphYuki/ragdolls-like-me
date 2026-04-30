@@ -28,12 +28,9 @@ typedef struct {
 	int h;
 	AStarNode *openFirst;
 	AStarNode *closedFirst;
-	AStarNode *closedFirstObstacles;
+	AStarNode *closedObstaclesLast;
+	AStarNode *closedStaticLast;
 	Vec3 *closedVerts;
-	int nOpen;
-	int nClosed;
-	int nClosedStatic;
-	int nClosedObstacles;
 	int ebo;
 	int vao;
 	int vbo;
@@ -49,9 +46,10 @@ void Pathfinding_SetClosedGrid(Pathfinder *pf, Vec3 pos);
 int Pathfinding_FindPath(Pathfinder *pf, Vec3 pos, Vec3 goal, PathfinderPath *path);
 void Pathfinding_Init(Pathfinder *pf, int w, int h);
 void Pathfinding_SetOpenGrid(Pathfinder *pf, Vec3 pos);
-void Pathfinding_SetClosedBoundingBox(Pathfinder *pf, BoundingBox *bb);
+void Pathfinding_SetClosedBoundingBoxStatic(Pathfinder *pf, BoundingBox *bb);
+void Pathfinding_SetClosedBoundingBoxDynamic(Pathfinder *pf, BoundingBox *bb);
 void Pathfinding_SetClosedStatic(Pathfinder *pf, int x, int y);
 void Pathfinding_SetClosedDynamic(Pathfinder *pf, int x, int y);
 void Pathfinding_RenderDebug(Pathfinder *pf, PathfinderPath *path);
-
+void Pathfinding_ClearDynamic(Pathfinder *pf);
 #endif

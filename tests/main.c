@@ -19,7 +19,7 @@
 #define WINDOW_WIDTH 960 
 #define WINDOW_HEIGHT 544
 
-#define NUM_MINIONS 3
+#define NUM_MINIONS 10
 
 
 static Game game;
@@ -137,7 +137,7 @@ static void Update(){
 	game.player->ObjUpdate(game.player);
 
 	
-
+	
 	//float thrown = GetDeltaTime() / 500.0f;
 	//Vec3 forward = Math_Rotate((Vec3){0,0,-1}, (Vec3){-rotation.y, -rotation.x, 0});
 	//throwObj->bb.pos.x += thrown * forward.x;
@@ -148,6 +148,9 @@ static void Update(){
 	//throwObj->OnCollision = onThrow;
 	//throwObj->ObjUpdate(throwObj);
 	//World_ResolveCollisions(throwObj, &throwObj->bb);
+	
+	Pathfinding_ClearDynamic(&game.pf);
+	
 }
 
 static void Event(SDL_Event ev){
@@ -415,7 +418,7 @@ static char Draw(){
 
 	//UI_RenderRectTex(&ui, img, 0,0, img.w/2,img.h, 
 	//0,0, img.w/2,img.h, 255,255,255,255);
-	//Pathfinding_RenderDebug(&game.pf,&pfpath);
+	Pathfinding_RenderDebug(&game.pf,&pfpath);
 
 	UI_Render(&ui);
 
@@ -457,8 +460,7 @@ int main(int argc, char **argv){
 	particleImg.nFramesX = 5;
 	particleImg.nFramesY = 5;
 	billboardImg = ImageLoader_CreateImage("Resources/tex.png",1);	
-
-
+	game.healthImage = ImageLoader_CreateImage("Resources/health.png",1);	
 
 	World_InitOctree((Vec3){-100, -100, -100}, 200, 25);
 
@@ -483,7 +485,7 @@ int main(int argc, char **argv){
 
 	game.player = Object_Create();
 	game.player->skeleton = &playerSkel;
-	game.player->type = TYPE_CHARACTER;
+	game.player->type = TYPE_PLAYER;
 	game.player->data = malloc(sizeof(Character));
 	((Character*)game.player->data)->type = CHARACTER_NONE;
 	memcpy(game.player->matrix, Math_Identity, sizeof(Math_Identity));
@@ -493,7 +495,7 @@ int main(int argc, char **argv){
 	Animation_Load(&game.animations[ANIMATION_MINION-1], "Resources/minion_ArmatureAction.anm");
 	
 	Object_SetModel(game.player, &game.models[MODEL_PLAYER-1]);
-	game.player->bb.collisionFlag |= COLLISIONFLAG_SAT;
+	//game.player->bb.collisionFlag |= COLLISIONFLAG_SAT;
 	
 	game.player->Draw = DrawRigged;
 	game.player->AddUser(game.player);
@@ -530,8 +532,8 @@ int main(int argc, char **argv){
 	game.pf.cube.z = game.world->bb.wsCube.z;
 	int k; // skip the ground
 	for(k = 1; k < game.world->bb.numChildren; k++ ){
-		game.world->bb.children[k].collisionFlag |= COLLISIONFLAG_NONE;
-		Pathfinding_SetClosedBoundingBox(&game.pf, &game.world->bb.children[k]);
+		game.world->bb.children[k].collisionFlag |= COLLISIONFLAG_SAT;
+		Pathfinding_SetClosedBoundingBoxStatic(&game.pf, &game.world->bb.children[k]);
 	}
 	game.world->bb.children[0].collisionFlag |= COLLISIONFLAG_AABB;
 	game.world->bb.collisionFlag |= COLLISIONFLAG_AABB;
@@ -541,6 +543,7 @@ int main(int argc, char **argv){
 	int j;
 	for(j = 0; j < NUM_MINIONS; j++){
 		game.characters[j] = Minion_Create(&game,&game.models[MODEL_MINION-1]);
+		((Character *)game.characters[j]->data)->health += j * 0.5;
 	}
 
 	Window_MainLoop(Update, Event, Draw, Focus, OnResize, 1, 1);
