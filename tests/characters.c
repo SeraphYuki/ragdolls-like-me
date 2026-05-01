@@ -1,6 +1,7 @@
 #include "characters.h"
 #include "world.h"
 #include "shaders.h"
+#define GLEW_STATIC
 #include <GL/glew.h>
 
 void Minion_OnCollision(Game *game, Object *obj,Object *obj1, Object *obj2, BoundingBox *bb1,
@@ -9,10 +10,10 @@ void Minion_OnCollision(Game *game, Object *obj,Object *obj1, Object *obj2, Boun
 	Minion *minion = (Minion *)character->data;
 
 	if(!(bb2->collisionFlag & COLLISIONFLAG_INVISIBLE) && obj2->type == TYPE_CHARACTER){
-		Vec3 resolve = Math_Vec3MultFloat(axis, -overlap);
-		obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,resolve);
-		obj->ObjUpdate(obj);
-		World_UpdateObjectInOctree(obj);
+		//Vec3 resolve = Math_Vec3MultFloat(axis, -overlap);
+		//obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,resolve);
+		//obj->ObjUpdate(obj);
+		//World_UpdateObjectInOctree(obj);
 	}
 }
 
@@ -31,15 +32,21 @@ void Minion_Update(Game *game, Object *obj){
 		toPos = Math_Vec3SubVec3(toPos, 
 		Math_Vec3MultFloat(
 		Math_Vec3Normalize(Math_Vec3SubVec3(toPos,obj->bb.pos)), 4));
-		
+		srand(character->index);
+		int randval = rand();
+		toPos = Math_Vec3AddVec3(toPos,
+			(Vec3){ (-50 + randval%100)/40.0f, 0, (-50 + randval%100)/40.0f});
+
 		Pathfinding_FindPathGrid(&game->pf,obj->bb.pos, toPos, &character->path);
 		
 		character->lastTime = Window_GetTicks();
-		Pathfinding_SetClosedBoundingBoxDynamic(&game->pf, &obj->bb);
+		// this doesnt work very well and is slow idk about it
+		//Pathfinding_SetClosedBoundingBoxDynamic(&game->pf, &obj->bb);
 	}
 	character->health -= 0.0001 * Window_GetDeltaTime();
 	character->Damage(game,obj,NULL);
 
+	if(character->health <=  0) return;
 	Vec3 pos = obj->bb.pos;
 	Vec3 toPos = character->path.path[character->onPath];
 	pos.y = toPos.y;
@@ -77,7 +84,7 @@ void Minion_Update(Game *game, Object *obj){
 	obj->ObjUpdate(obj);
 
 	World_UpdateObjectInOctree(obj);
-	World_ResolveCollisions(game, obj, &obj->bb);
+	//World_ResolveCollisions(game, obj, &obj->bb);
 }
 
 void Minion_Draw(Game *game, Object *obj){
@@ -143,6 +150,7 @@ void Minion_Damage(Game *game, Object *this, Object *cause){
 
 	//if aggro
 	if(character->health < 0.4 && cause){
+		game->cs += 100;
 		character->showGold = 1;
 	}
 
@@ -190,10 +198,10 @@ Object *Minion_Create(Game *game, Model *model){
 	obj->bb.collisionFlag |= COLLISIONFLAG_AABB | COLLISIONFLAG_RAY_OBJ;
 	obj->bb.renderDebug = 0;
 	obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,
-	(Vec3){ (-50 + rand()%100)/10.0f, 1, (-50 + rand()%100)/10.0f});
+	(Vec3){ (-50 + rand()%100)/20.0f, 1, (-50 + rand()%100)/10.0f});
 	obj->bb.scale = (Vec3){0.3,0.3,0.3};
 	obj->bb.rot = (Vec3){0,0,0};
-	obj->bb.pos.z += 10;	
+	obj->bb.pos.z += 14;	
 	obj->bb.pos.x -= 5;	
 	obj->ObjUpdate(obj);
 	World_UpdateObjectInOctree(obj);

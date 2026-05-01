@@ -137,7 +137,7 @@ void FontRenderer_RenderString(FontRenderer *fr, float x, float y, char *str,
 		for(k = 0; k < 12; k+=2){
 
 				coord[0] = ((RectTriangleVerts[k] * (fc.bw / aw)) + tX);
-				coord[1] = (((1-RectTriangleVerts[k+1]) * ((float)fc.bh / ah)) + tY);
+				coord[1] = (((RectTriangleVerts[k+1]) * ((float)fc.bh / ah)) + tY);
 
 				pos[0] = (RectTriangleVerts[k] * w) + x2;
 				pos[1] = ((1-RectTriangleVerts[k+1]) * h) + y2;

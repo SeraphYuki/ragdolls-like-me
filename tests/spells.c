@@ -8,30 +8,42 @@ void SpellAutoAttack_Update(Game *game, Object *obj){
 	Spell  *spell = (Spell *)obj->data;
 	SpellAutoAttack  *autoAttack = (SpellAutoAttack  *)spell->data;
 
-	Vec3 path = Math_Vec3SubVec3( spell->directedAt->bb.pos, autoAttack->pos);
-	if(Math_Vec3Magnitude(path) < 1 && autoAttack->finished == 0){
+	if(autoAttack->finished == 1){
+		if(Window_GetTicks() - autoAttack->dieTime > 1000){
+			World_RemoveOffScreenUpdatedObject(obj);
+			World_RemoveObjectFromOctree(obj);
+			return;
+		}
+	}
+	Character *directedCharacter = (Character *)spell->directedAt->data;
 
-		Character *directedCharacter = (Character *)spell->directedAt->data;
-
-		directedCharacter->health -= 0.3;
-	
-
-		if(directedCharacter->Damage) directedCharacter->Damage(game, spell->directedAt, obj);
-		if(directedCharacter->health <= 0){
+	if(directedCharacter->death == 1){
+		if(autoAttack->finished == 0){
 			spell->directedAt->RemoveUser(spell->directedAt);
 			spell->cameFrom->RemoveUser(spell->cameFrom);
 		}
-		autoAttack->finished = 1;
 		autoAttack->dieTime = Window_GetTicks();
-		return;
-	}
-	
-	if(autoAttack->finished == 1 && Window_GetTicks() - autoAttack->dieTime > 1000){
+		autoAttack->finished = 1;
 		World_RemoveOffScreenUpdatedObject(obj);
 		World_RemoveObjectFromOctree(obj);
+
 		return;
 	}
+
 	if(autoAttack->finished == 0){
+		Vec3 path = Math_Vec3SubVec3( spell->directedAt->bb.pos, autoAttack->pos);
+		if(Math_Vec3Magnitude(path) < 1){
+
+
+			directedCharacter->health -= 0.3;
+		
+
+			if(directedCharacter->Damage) directedCharacter->Damage(game, spell->directedAt, obj);
+			spell->directedAt->RemoveUser(spell->directedAt);
+			spell->cameFrom->RemoveUser(spell->cameFrom);
+			autoAttack->finished = 1;
+			autoAttack->dieTime = Window_GetTicks();
+		}
 
 		path = Math_Vec3SubVec3( spell->directedAt->bb.pos,autoAttack->pos);
 		path.y = 0;
@@ -108,7 +120,7 @@ Object *Spell_AutoAttack_Cast(Game *game, Object *cameFrom, Object *at){
 
 	int j;
 	for(j = 0; j < 100; j++){
-		autoAttack->particles[j].createTime = SDL_GetTicks();
+		autoAttack->particles[j].createTime = Window_GetTicks();
 		autoAttack->particles[j].lifeTime = 10000;
 		autoAttack->particles[j].pos = Math_Vec3AddVec3(cameFrom->bb.pos,
 		 (Vec3){ (-50 + rand()%100)/90.0f,(-50 + rand()%100)/90.0f,(-50 + rand()%100)/90.0f});
@@ -141,6 +153,8 @@ void Spell_AOE_Update(Game *game, Object *obj){
 	if(Window_GetTicks() - aoe->dieTime > 10000){
 		World_RemoveOffScreenUpdatedObject(obj);
 		World_RemoveObjectFromOctree(obj);
+		spell->cameFrom->RemoveUser(spell->cameFrom);
+		return;
 	}
 
 	if(Window_GetTicks() - aoe->lastDamage > 800){

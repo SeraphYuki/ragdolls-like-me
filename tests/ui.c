@@ -120,7 +120,7 @@ void UI_Resize(UI *ui, int w, int h){
 	ui->viewport.h = h;
 }
 
-void UI_Render(UI *ui){
+void UI_Render(UI *ui, Game *game){
 
 
 	int k;
@@ -135,7 +135,14 @@ void UI_Render(UI *ui){
 	ui->hudImg.w,
 	ui->hudImg.h,255,255,255,255);
 
+	
+	char str[128];
+	sprintf(str, "gold: %i\n", game->cs);
+	FontRenderer_RenderString(&ui->fr, ui->viewport.x + (ui->viewport.w/2) - 64, ui->viewport.h-64
+	,str,
+	255, 255, 255, 255);
 
+	FontRenderer_Render(&ui->fr, ui->viewport.w, ui->viewport.h);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glBindVertexArray(ui->quadVao);

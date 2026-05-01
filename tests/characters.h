@@ -23,6 +23,7 @@ typedef struct Character Character;
 
 struct Character {
 	float health;	
+	int index;
 	int death;
 	int deathTime;
 	float moveSpeed;

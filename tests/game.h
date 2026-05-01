@@ -40,6 +40,7 @@ struct Game {
 	Model 			models[NUM_MODELS];
 	ParticleSystem 	particleSystem;
 	Image 			healthImage;
+	int 			cs;
 };
 
 #define CAMERA_FOV (60.0f * (PI / 180.0f))

@@ -1,6 +1,9 @@
-
+#define GLEW_STATIC
 #include <GL/glew.h>
-#include "window.h"
+#include <SDL2/SDL_events.h>
+#include <SDL2/SDL_opengl.h>
+#include <SDL2/SDL.h>
+
 #include "characters.h"
 #include "spells.h"
 #include "pathfinding.h"
@@ -84,8 +87,18 @@ Object *obj2, BoundingBox *bb, BoundingBox *bb2, Vec3 axis, float overlap){
 
 static void Update(){
 
-
 	World_Update(&game);
+	int j;
+	for(j = 0; j < NUM_MINIONS; j++){
+		if(game.characters[j]->numUsers <= 1){
+			game.characters[j]->RemoveUser(game.characters[j]);
+			game.characters[j] = Minion_Create(&game,&game.models[MODEL_MINION-1]);
+			game.characters[j]->AddUser(game.characters[j]);
+			((Character *)game.characters[j]->data)->health += j * 0.5;
+			((Character *)game.characters[j]->data)->index = j;
+			((Character *)game.characters[j]->data)->lastTime = Window_GetTicks() + (j * 100);
+		}
+	}
 	 game.player->bb.pos.y -= Window_GetDeltaTime() / 1000.0f;
 	if(game.player->bb.pos.y < 0.2){
 	    game.player->bb.pos.y = 0.2;
@@ -464,7 +477,7 @@ static char Draw(){
 
 	//Pathfinding_RenderDebug(&game.pf,&pfpath);
 
-	UI_Render(&ui);
+	UI_Render(&ui, &game);
 
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
@@ -479,7 +492,7 @@ static void OnResize(){
 }
 
 int main(int argc, char **argv){
-
+	
 	Window_Open("Editor", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,WINDOW_WIDTH, WINDOW_HEIGHT, 0);
 	
 	glEnable(GL_BLEND);
@@ -590,7 +603,9 @@ int main(int argc, char **argv){
 	for(j = 0; j < NUM_MINIONS; j++){
 		game.characters[j] = Minion_Create(&game,&game.models[MODEL_MINION-1]);
 		//((Character *)game.characters[j]->data)->health += j * 0.5;
+		game.characters[j]->AddUser(game.characters[j]);
 
+		((Character *)game.characters[j]->data)->index = j;
 		((Character *)game.characters[j]->data)->lastTime = Window_GetTicks() + (j * 100);
 	}
 

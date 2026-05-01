@@ -1,3 +1,4 @@
+#define GLEW_STATIC
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include "SDL2/SDL.h"
@@ -5,9 +6,6 @@
 #include "SDL2/SDL_syswm.h"
 #include "window.h"
 #include <stdio.h>
-// #include <X11/Xatom.h>
-// #include <X11/Xlib.h>
-// #include <GL/glx.h>
 #include <math.h>
 
 static SDL_Window *window;

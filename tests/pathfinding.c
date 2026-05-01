@@ -1,3 +1,6 @@
+#define GLEW_STATIC
+#include <GL/glew.h>
+#include <SDL2/SDL_opengl.h>
 #include "pathfinding.h"
 #include "world.h"
 #include <stdio.h>
@@ -7,7 +10,6 @@
 #include "shaders.h"
 #include "memory.h"
 #include "game.h"
-#include <GL/glew.h>
 
 static int GetClosestNotClosed(Pathfinder *pf, int index);
 

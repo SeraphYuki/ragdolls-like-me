@@ -4,6 +4,7 @@
 #define MAX_UI_ELEMENTS 1024
 
 #include "types.h"
+#include "game.h"
 #include "window.h"
 #include "image_loader.h"
 #include "math.h"
@@ -67,7 +68,7 @@ void UI_RenderRectTex(UI *ui, Image img, float x, float y, u16 w, u16 h, u16 ix,
  u16 iw, u16 ih, u8 r, u8 g, u8 b, u8 a);
 void UI_Init(UI *ui, int w, int h);
 void UI_Resize(UI *ui, int w, int h);
-void UI_Render(UI *ui);
+void UI_Render(UI *ui, Game *game);
 void UI_Free(UI *ui);
 void UI_Event(UI *ui, SDL_Event ev);
 

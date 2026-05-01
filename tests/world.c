@@ -122,17 +122,19 @@ void World_RemoveObjectFromOctree(Object *obj){
 }
 
 void World_UpdateObjectInOctree(Object *obj){
-	
+	obj->AddUser(obj);	
 	if(obj->inOctant){
 		
-		if(Math_CubeIsCompletelyInside(obj->bb.wsCube, obj->inOctant->cube))
+		if(Math_CubeIsCompletelyInside(obj->bb.wsCube, obj->inOctant->cube)){
+			obj->RemoveUser(obj);	
 			return;
-
-		obj->AddUser(obj);
+		}
 		OctreeLeaf_Remove(obj->inOctant, obj);
 	}
 
+
 	OctreeLeaf_Insert(octree, obj);
+	obj->RemoveUser(obj);	
 }
 
 void World_GetAllCollisionsRay(Ray ray, float *ret, BoundingBox **closest, Object **collisionObj,
