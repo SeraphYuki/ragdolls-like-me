@@ -544,7 +544,9 @@ int main(int argc, char **argv){
 	game.player->skeleton = &playerSkel;
 	game.player->type = TYPE_PLAYER;
 	game.player->data = malloc(sizeof(Character));
-	((Character*)game.player->data)->type = CHARACTER_NONE;
+	
+
+	((Character*)game.player->data)->type = CHARACTER_TYPE_PLAYER;
 	memcpy(game.player->matrix, Math_Identity, sizeof(Math_Identity));
 	RiggedModel_Load(&game.models[MODEL_PLAYER-1], "Resources/figure.yuk");
 	Skeleton_Copy(&playerSkel, &game.models[MODEL_PLAYER-1].skeleton);
@@ -552,7 +554,7 @@ int main(int argc, char **argv){
 	Animation_Load(&game.animations[ANIMATION_MINION-1], "Resources/minion_ArmatureAction.anm");
 	
 	Object_SetModel(game.player, &game.models[MODEL_PLAYER-1]);
-	//game.player->bb.collisionFlag |= COLLISIONFLAG_SAT;
+	game.player->bb.collisionFlag |= COLLISIONFLAG_SAT;
 	
 	game.player->Draw = DrawRigged;
 	game.player->AddUser(game.player);

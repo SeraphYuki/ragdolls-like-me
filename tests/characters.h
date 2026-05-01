@@ -9,6 +9,7 @@
 enum {
 	CHARACTER_NONE,
 	CHARACTER_TYPE_MINION=1,
+	CHARACTER_TYPE_PLAYER,
 };
 
 typedef struct {
@@ -22,6 +23,7 @@ typedef struct {
 typedef struct Character Character;
 
 struct Character {
+	Object *aggro;
 	float health;	
 	int index;
 	int death;

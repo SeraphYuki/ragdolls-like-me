@@ -105,8 +105,19 @@ void OctreeLeaf_MoveInto(OctreeLeaf *into, OctreeLeaf *oct){
 
 void OctreeLeaf_ResolveCollisions(Game *game, OctreeLeaf *o, Object *obj, BoundingBox *box, Cube minCube){
 
-	if(!Math_CheckCollisionCube(o->cube, minCube))
-		return;
+	if(box->collisionFlag & COLLISIONFLAG_RADIUS){
+		
+		float mag = Math_Vec3Magnitude(
+				Math_Vec3SubVec3(box->pos, 
+				(Vec3){
+				o->cube.x,o->cube.y, o->cube.z
+			}));
+		if(mag > o->cube.w+box->radius) return; 
+	} else {
+
+		if(!Math_CheckCollisionCube(o->cube, minCube))
+			return;
+	}
 
 	int k;
 	for(k = 0; k < o->numObjects; k++){
@@ -114,8 +125,8 @@ void OctreeLeaf_ResolveCollisions(Game *game, OctreeLeaf *o, Object *obj, Boundi
 
 		BoundingBox *bb = &o->objects[k]->bb;
 		if(bb == box || 
-		obj == o->objects[k] || !Math_CheckCollisionCube(bb->wsCube, minCube)) continue;
-		
+		obj == o->objects[k] || ((box->collisionFlag & COLLISIONFLAG_RADIUS) == 0 && 
+								!Math_CheckCollisionCube(bb->wsCube, minCube))) continue;
 		BoundingBox_ResolveCollision(game, obj, box, o->objects[k], bb);
 	}
 

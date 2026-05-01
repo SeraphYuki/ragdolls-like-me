@@ -6,14 +6,24 @@
 
 void Minion_OnCollision(Game *game, Object *obj,Object *obj1, Object *obj2, BoundingBox *bb1,
 	BoundingBox *bb2, Vec3 axis, float overlap){
-	Character *character = (Character*)obj->data;
-	Minion *minion = (Minion *)character->data;
 
 	if(!(bb2->collisionFlag & COLLISIONFLAG_INVISIBLE) && obj2->type == TYPE_CHARACTER){
 		//Vec3 resolve = Math_Vec3MultFloat(axis, -overlap);
 		//obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,resolve);
 		//obj->ObjUpdate(obj);
 		//World_UpdateObjectInOctree(obj);
+	}
+	
+	if(obj == obj1 && bb1->collisionFlag & COLLISIONFLAG_RADIUS){
+		if(obj2->type == TYPE_CHARACTER ){
+			Character *character = (Character*)obj->data;
+			Character *character2 = (Character*)obj2->data;
+			printf("%i\n",character2->type);			
+			if(character2->type != CHARACTER_TYPE_MINION){
+				character->aggro = obj2;
+				character->aggro->AddUser(character->aggro);
+			}
+		}
 	}
 }
 
@@ -23,12 +33,23 @@ void Minion_Update(Game *game, Object *obj){
 
 	if(character->death && Window_GetTicks() - character->deathTime > 500){
 		World_RemoveOffScreenUpdatedObject(obj);
+		if(character->aggro) character->aggro->RemoveUser(character->aggro);
 		World_RemoveObjectFromOctree(obj);
 		return;
-	}		
+	}
+	
+	if(character->aggro == NULL){
+		BoundingBox bb;
+		memset(&bb,0,sizeof(bb));
+		bb.pos = obj->bb.pos;
+		bb.radius = 4;
+		bb.collisionFlag |= COLLISIONFLAG_RADIUS;
+		World_ResolveCollisions(game, obj, &bb);
+	}
 
-	if(Window_GetTicks() - character->lastTime > 1000){
-		Vec3 toPos = game->player->bb.pos;
+	if(Window_GetTicks() - character->lastTime > 1000 && character->aggro != NULL){
+		
+		Vec3 toPos = character->aggro->bb.pos;
 		toPos = Math_Vec3SubVec3(toPos, 
 		Math_Vec3MultFloat(
 		Math_Vec3Normalize(Math_Vec3SubVec3(toPos,obj->bb.pos)), 4));
@@ -62,28 +83,30 @@ void Minion_Update(Game *game, Object *obj){
 		}
 	}
 
-	toPos = character->path.path[character->onPath];
-	character->force = Math_Vec3SubVec3(toPos,pos);
-	character->moveToPos.y = obj->bb.pos.y;
+	if(character->path.nPath > 0){
+		toPos = character->path.path[character->onPath];
+		character->force = Math_Vec3SubVec3(toPos,pos);
+		character->moveToPos.y = obj->bb.pos.y;
 
-     character->force = Math_Vec3Normalize(character->force);
-	
-	Vec3 xz = character->force;
-	xz.y = 0;
-	if(Math_Vec3Magnitude(xz) > 0){
-		xz = Math_Vec3Normalize(xz);
-		Vec3 forward = Math_Rotate((Vec3){0,0,-1},obj->bb.rot);
-		float dot = Math_Vec3Dot(forward,xz);
-		obj->bb.rot.y -= dot * character->moveSpeed * Window_GetDeltaTime();
-	}   
-	  character->force = Math_Vec3MultFloat(character->force, Window_GetDeltaTime() *
-	 character->moveSpeed);
+	     character->force = Math_Vec3Normalize(character->force);
+		
+		Vec3 xz = character->force;
+		xz.y = 0;
+		if(Math_Vec3Magnitude(xz) > 0){
+			xz = Math_Vec3Normalize(xz);
+			Vec3 forward = Math_Rotate((Vec3){0,0,-1},obj->bb.rot);
+			float dot = Math_Vec3Dot(forward,xz);
+			obj->bb.rot.y -= dot * character->moveSpeed * Window_GetDeltaTime();
+		}   
+		  character->force = Math_Vec3MultFloat(character->force, Window_GetDeltaTime() *
+		 character->moveSpeed);
 
-	obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos, character->force);
+		obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos, character->force);
 
-	obj->ObjUpdate(obj);
+		obj->ObjUpdate(obj);
 
-	World_UpdateObjectInOctree(obj);
+		World_UpdateObjectInOctree(obj);
+	}
 	//World_ResolveCollisions(game, obj, &obj->bb);
 }
 

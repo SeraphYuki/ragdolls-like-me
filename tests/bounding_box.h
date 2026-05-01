@@ -36,6 +36,7 @@ typedef struct _BoundingBox {
 	char **types;
 	int nTypes;
 	int renderDebug;
+	float radius;
 } BoundingBox;
 
 

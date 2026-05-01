@@ -262,10 +262,18 @@ int BoundingBox_ResolveCollision(Game *game, Object *obj1, BoundingBox *bb, Obje
 
 	// children not iterative. need checking for each pair
 
-	int ret = 0;
-	if(!Math_CheckCollisionCube(bb->wsCube, bb2->wsCube))
-		return ret;
+	if((bb->collisionFlag & COLLISIONFLAG_RADIUS) || (bb2->collisionFlag & COLLISIONFLAG_RADIUS)){
+		
+		float mag = Math_Vec3Magnitude(Math_Vec3SubVec3(bb2->pos, bb->pos));
+		if(mag > bb2->radius+bb->radius) return 0; 
 
+	} else {
+
+		if(!Math_CheckCollisionCube(bb->wsCube, bb2->wsCube))
+			return 0;
+	}
+	int ret = 0;
+	
 	int k;
 	 for(k = 0; k < bb->numChildren; k++){
 	 	ret += BoundingBox_ResolveCollision(game, obj1, &bb->children[k], obj2, bb2);
@@ -275,29 +283,29 @@ int BoundingBox_ResolveCollision(Game *game, Object *obj1, BoundingBox *bb, Obje
 	}
 
 	if((bb->collisionFlag & COLLISIONFLAG_NONE)|| (bb2->collisionFlag & COLLISIONFLAG_NONE)) return ret;
-	//bb->renderDebug = 1;
-	//bb2->renderDebug = 1;
-
 
 	Vec3 axis;
 	float overlap = 0;
-	if((BoundingBox_IsSAT(bb) || BoundingBox_IsSAT(bb2))){
+	
+	if(!(bb->collisionFlag & COLLISIONFLAG_RADIUS) && !(bb2->collisionFlag & COLLISIONFLAG_RADIUS)){
+				
+		if((BoundingBox_IsSAT(bb) || BoundingBox_IsSAT(bb2))){
 
-		if(!BoundingBox_SATCollision(bb, bb2, &overlap, &axis)){
-			return ret;	
+			if(!BoundingBox_SATCollision(bb, bb2, &overlap, &axis)){
+				return ret;	
+			}
+		} else {
+
+			Vec3 axes[] = {
+				(Vec3){1,0,0},
+				(Vec3){0,1,0},
+				(Vec3){0,0,1},
+			};
+
+			if(!CheckCollision(axes, 3, bb->points,8,bb2->points, 8, &overlap,&axis))
+				return 0;
 		}
-	} else {
-
-		Vec3 axes[] = {
-			(Vec3){1,0,0},
-			(Vec3){0,1,0},
-			(Vec3){0,0,1},
-		};
-
-		if(!CheckCollision(axes, 3, bb->points,8,bb2->points, 8, &overlap,&axis))
-			return 0;
 	}
-
 
 	if(obj1){
 		
