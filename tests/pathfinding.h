@@ -9,8 +9,8 @@
 
 typedef struct AStarNode AStarNode;
 struct AStarNode {
-		float g;
-		float f;
+		int g;
+		int f;
 		int index;
 		AStarNode *parent;
 		AStarNode *next;

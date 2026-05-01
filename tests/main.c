@@ -19,7 +19,7 @@
 #define WINDOW_WIDTH 960 
 #define WINDOW_HEIGHT 544
 
-#define NUM_MINIONS 10
+#define NUM_MINIONS 20
 
 
 static Game game;
@@ -165,7 +165,8 @@ static void Event(SDL_Event ev){
 	UI_Event(&ui, ev); 
 	
 	  //Thoth_Event(thoth, ev);
-
+	if(ev.type == SDL_QUIT || ev.key.keysym.sym == SDLK_ESCAPE) exit(0);
+		
 	if(ev.type == SDL_MOUSEBUTTONDOWN){
 
 		if(castingAOE){
@@ -589,6 +590,8 @@ int main(int argc, char **argv){
 	for(j = 0; j < NUM_MINIONS; j++){
 		game.characters[j] = Minion_Create(&game,&game.models[MODEL_MINION-1]);
 		//((Character *)game.characters[j]->data)->health += j * 0.5;
+
+		((Character *)game.characters[j]->data)->lastTime = Window_GetTicks() + (j * 100);
 	}
 
 	Window_MainLoop(Update, Event, Draw, Focus, OnResize, 1, 1);

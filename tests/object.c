@@ -12,6 +12,7 @@ static void RemoveUser(Object *obj){
 	 obj->numUsers--;
 	 if(obj->numUsers == 0)
 	 	Object_Free(obj);
+	
 }
 
 static void ObjUpdate(Object *obj){

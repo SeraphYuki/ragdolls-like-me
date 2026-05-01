@@ -1,0 +1,1323 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls   s/call   s/call  name    
+ 78.05      0.96     0.96      400     0.00     0.00  Pathfinding_FindPathGrid
+  6.50      1.04     0.08       14     0.01     0.01  Codes
+  1.63      1.06     0.02  2879799     0.00     0.00  triangleArea
+  1.63      1.08     0.02   144057     0.00     0.00  Math_CheckFrustumCollision
+  1.63      1.10     0.02    50328     0.00     0.00  Math_MatrixMatrixMult
+  1.63      1.12     0.02     2519     0.00     0.00  Object_UpdateSkeleton
+  1.63      1.14     0.02     2290     0.00     0.00  Minion_Draw
+  1.63      1.16     0.02      229     0.00     0.00  Model_SetShapeKey
+  0.81      1.17     0.01  1429605     0.00     0.00  Math_DistanceToPlane
+  0.81      1.18     0.01    81286     0.00     0.00  Math_Vec3Normalize
+  0.81      1.19     0.01    47387     0.00     0.00  Math_Vec3MultFloat
+  0.81      1.20     0.01    17462     0.00     0.00  Math_MatrixFromQuat
+  0.81      1.21     0.01     2519     0.00     0.00  BoneUpdate
+  0.81      1.22     0.01     2519     0.00     0.00  BoundingBox_FreeData
+  0.81      1.23     0.01        6     0.00     0.01  SetClosedBoundingBox
+  0.00      1.23     0.00  1729690     0.00     0.00  BitStream_GetBits
+  0.00      1.23     0.00   305126     0.00     0.00  Decode
+  0.00      1.23     0.00   257343     0.00     0.00  Math_MatrixMult
+  0.00      1.23     0.00   156028     0.00     0.00  Math_CheckCollisionCube
+  0.00      1.23     0.00   109952     0.00     0.00  Math_RotateMatrix
+  0.00      1.23     0.00   105734     0.00     0.00  Math_Vec3AddVec3
+  0.00      1.23     0.00    98470     0.00     0.00  Math_Rotate
+  0.00      1.23     0.00    98257     0.00     0.00  Math_Vec3Dot
+  0.00      1.23     0.00    84353     0.00     0.00  Math_Vec3Magnitude
+  0.00      1.23     0.00    81982     0.00     0.00  Math_Mat4ToMat3
+  0.00      1.23     0.00    69616     0.00     0.00  Math_Vec3MultVec3
+  0.00      1.23     0.00    49493     0.00     0.00  Shaders_GetProgram
+  0.00      1.23     0.00    49468     0.00     0.00  Shaders_UseProgram
+  0.00      1.23     0.00    41738     0.00     0.00  Math_InverseMatrix
+  0.00      1.23     0.00    41738     0.00     0.00  Math_ScaleMatrix
+  0.00      1.23     0.00    40991     0.00     0.00  Math_InverseMatrixMat3
+  0.00      1.23     0.00    40991     0.00     0.00  Math_TransposeMatrix
+  0.00      1.23     0.00    40991     0.00     0.00  Shaders_SetModelMatrix
+  0.00      1.23     0.00    40534     0.00     0.00  Shaders_UpdateModelMatrix
+  0.00      1.23     0.00    38245     0.00     0.00  Shaders_UpdateProjectionMatrix
+  0.00      1.23     0.00    38244     0.00     0.00  Shaders_UpdateViewMatrix
+  0.00      1.23     0.00    37098     0.00     0.00  World_DrawLines
+  0.00      1.23     0.00    32747     0.00     0.00  World_DrawX
+  0.00      1.23     0.00    26106     0.00     0.00  Math_EulerToQuat
+  0.00      1.23     0.00    23661     0.00     0.00  Math_TranslateMatrix
+  0.00      1.23     0.00    19871     0.00     0.00  Math_LerpVec3
+  0.00      1.23     0.00    19483     0.00     0.00  BoundingBox_UpdateWorldSpaceCube
+  0.00      1.23     0.00    17411     0.00     0.00  Math_QuatToEuler
+  0.00      1.23     0.00     9847     0.00     0.00  Window_GetDeltaTime
+  0.00      1.23     0.00     8716     0.00     0.00  BoundingBox_AddChild
+  0.00      1.23     0.00     8716     0.00     0.00  BoundingBox_Copy
+  0.00      1.23     0.00     8702     0.00     0.00  Math_QuatMult
+  0.00      1.23     0.00     8321     0.00     0.00  BoundingBox_IsSAT
+  0.00      1.23     0.00     8244     0.00     0.00  GetAnimsKeyframe
+  0.00      1.23     0.00     6183     0.00     0.00  Math_MatrixToQuat
+  0.00      1.23     0.00     5955     0.00     0.00  GetOverlap
+  0.00      1.23     0.00     5741     0.00     0.00  Math_ScalingMatrixXYZ
+  0.00      1.23     0.00     5720     0.00     0.00  BoundingBox_UpdatePoints
+  0.00      1.23     0.00     5693     0.00     0.00  ObjUpdate
+  0.00      1.23     0.00     5398     0.00     0.00  Math_CubeIsCompletelyInside
+  0.00      1.23     0.00     5236     0.00     0.00  World_UpdateObjectInOctree
+  0.00      1.23     0.00     5038     0.00     0.00  Shaders_SetUniformColor
+  0.00      1.23     0.00     4705     0.00     0.00  Memory_StackAlloc
+  0.00      1.23     0.00     4528     0.00     0.00  Math_Slerp
+  0.00      1.23     0.00     4351     0.00     0.00  World_DrawCube
+  0.00      1.23     0.00     4122     0.00     0.00  GetAnimsBonePos
+  0.00      1.23     0.00     4122     0.00     0.00  GetAnimsBoneRot
+  0.00      1.23     0.00     4096     0.00     0.00  Math_Vec3SubVec3
+  0.00      1.23     0.00     3305     0.00     0.00  BoundingBox_ResolveCollision
+  0.00      1.23     0.00     2977     0.00     0.00  Shaders_GetDiffuseLocation
+  0.00      1.23     0.00     2977     0.00     0.00  Shaders_GetSpecularLocation
+  0.00      1.23     0.00     2748     0.00     0.00  DrawBoundingBoxes
+  0.00      1.23     0.00     2705     0.00     0.00  Minion_OnCollision
+  0.00      1.23     0.00     2700     0.00     0.00  Window_GetTicks
+  0.00      1.23     0.00     2519     0.00     0.00  BoneUpdateVelocities
+  0.00      1.23     0.00     2519     0.00     0.00  OctreeLeaf_ResolveCollisions
+  0.00      1.23     0.00     2519     0.00     0.00  Shaders_GetBonesLocation
+  0.00      1.23     0.00     2519     0.00     0.00  Skeleton_Apply
+  0.00      1.23     0.00     2519     0.00     0.00  Skeleton_Update
+  0.00      1.23     0.00     2519     0.00     0.00  World_ResolveCollisions
+  0.00      1.23     0.00     2290     0.00     0.00  Minion_Damage
+  0.00      1.23     0.00     2290     0.00     0.00  Minion_Update
+  0.00      1.23     0.00     2290     0.00     0.00  Particles_DrawBillboard
+  0.00      1.23     0.00     1985     0.00     0.00  CheckCollision
+  0.00      1.23     0.00     1374     0.00     0.00  Math_PlaneMagnitude
+  0.00      1.23     0.00     1374     0.00     0.00  Math_PlaneNormalize
+  0.00      1.23     0.00     1374     0.00     0.00  Shaders_GetInvViewportLocation
+  0.00      1.23     0.00     1145     0.00     0.00  Shaders_GetUniColorLocation
+  0.00      1.23     0.00      916     0.00     0.00  UI_RenderRect
+  0.00      1.23     0.00      800     0.00     0.00  GetClosestNotClosed
+  0.00      1.23     0.00      459     0.00     0.00  Math_Identity
+  0.00      1.23     0.00      458     0.00     0.00  Math_Vec3Cross
+  0.00      1.23     0.00      458     0.00     0.00  UI_SliderRender
+  0.00      1.23     0.00      230     0.00     0.00  Math_Perspective
+  0.00      1.23     0.00      230     0.00     0.00  Shaders_SetProjectionMatrix
+  0.00      1.23     0.00      230     0.00     0.00  Shaders_SetViewMatrix
+  0.00      1.23     0.00      229     0.00     0.00  Draw
+  0.00      1.23     0.00      229     0.00     0.00  DrawModel
+  0.00      1.23     0.00      229     0.00     0.00  DrawRigged
+  0.00      1.23     0.00      229     0.00     0.00  FindViewCollisions
+  0.00      1.23     0.00      229     0.00     0.00  Math_LookAt
+  0.00      1.23     0.00      229     0.00     0.00  OctreeLeaf_GetVisibleObjects
+  0.00      1.23     0.00      229     0.00     0.00  Pathfinding_ClearDynamic
+  0.00      1.23     0.00      229     0.00     0.00  Pathfinding_RenderDebug
+  0.00      1.23     0.00      229     0.00     0.00  Shaders_GetProjectionMatrix
+  0.00      1.23     0.00      229     0.00     0.00  Shaders_GetViewMatrix
+  0.00      1.23     0.00      229     0.00     0.00  Skybox_Draw
+  0.00      1.23     0.00      229     0.00     0.00  UI_Clear
+  0.00      1.23     0.00      229     0.00     0.00  UI_Render
+  0.00      1.23     0.00      229     0.00     0.00  UI_RenderRectTex
+  0.00      1.23     0.00      229     0.00     0.00  Update
+  0.00      1.23     0.00      229     0.00     0.00  World_Render
+  0.00      1.23     0.00      229     0.00     0.00  World_Update
+  0.00      1.23     0.00      143     0.00     0.00  Pathfinding_SetClosedStatic
+  0.00      1.23     0.00      143     0.00     0.00  SetClosed
+  0.00      1.23     0.00       50     0.00     0.00  UI_SliderEvent
+  0.00      1.23     0.00       42     0.00     0.00  Huffman_Construct
+  0.00      1.23     0.00       30     0.00     0.00  AddUser
+  0.00      1.23     0.00       28     0.00     0.00  onCube
+  0.00      1.23     0.00       25     0.00     0.00  Event
+  0.00      1.23     0.00       25     0.00     0.00  UI_Event
+  0.00      1.23     0.00       16     0.00     0.00  ImageLoader_CreateImage
+  0.00      1.23     0.00       15     0.00     0.00  OctreeLeaf_Insert
+  0.00      1.23     0.00       13     0.00     0.00  InitBone
+  0.00      1.23     0.00       12     0.00     0.00  Object_Create
+  0.00      1.23     0.00       12     0.00     0.00  Object_SetModel
+  0.00      1.23     0.00       11     0.00     0.00  Skeleton_Copy
+  0.00      1.23     0.00       10     0.00     0.00  AddObjectToArr
+  0.00      1.23     0.00       10     0.00     0.00  Minion_Create
+  0.00      1.23     0.00       10     0.00     0.00  Object_SetSkeleton
+  0.00      1.23     0.00       10     0.00     0.00  World_AddOffScreenUpdatedObject
+  0.00      1.23     0.00        9     0.00     0.00  Memory_StackPop
+  0.00      1.23     0.00        8     0.00     0.00  CreateShader
+  0.00      1.23     0.00        7     0.00     0.00  ImageLoader_SetImageParameters
+  0.00      1.23     0.00        6     0.00     0.01  Pathfinding_SetClosedBoundingBoxStatic
+  0.00      1.23     0.00        3     0.00     0.03  Deflate_Read
+  0.00      1.23     0.00        3     0.00     0.03  LoadModel
+  0.00      1.23     0.00        3     0.00     0.00  OctreeLeaf_Remove
+  0.00      1.23     0.00        3     0.00     0.03  Read
+  0.00      1.23     0.00        3     0.00     0.00  RemoveUser
+  0.00      1.23     0.00        2     0.00     0.00  Animation_Load
+  0.00      1.23     0.00        2     0.00     0.00  FontFace_SetSize
+  0.00      1.23     0.00        2     0.00     0.00  LoadAnimation
+  0.00      1.23     0.00        2     0.00     0.00  LoadSkeleton
+  0.00      1.23     0.00        2     0.00     0.00  Object_UpdateModel
+  0.00      1.23     0.00        2     0.00     0.03  RiggedModel_Load
+  0.00      1.23     0.00        2     0.00     0.00  Text_Init
+  0.00      1.23     0.00        2     0.00     0.00  UI_SliderCreate
+  0.00      1.23     0.00        1     0.00     0.00  CreateFrameBuffer
+  0.00      1.23     0.00        1     0.00     0.00  Focus
+  0.00      1.23     0.00        1     0.00     0.00  FontFace_LoadFont
+  0.00      1.23     0.00        1     0.00     0.00  FontRenderer_Init
+  0.00      1.23     0.00        1     0.00     0.00  FontRenderer_SetSize
+  0.00      1.23     0.00        1     0.00     0.00  Memory_Init
+  0.00      1.23     0.00        1     0.00     0.03  Model_Load
+  0.00      1.23     0.00        1     0.00     0.00  Model_LoadCollisions
+  0.00      1.23     0.00        1     0.00     0.00  OctreeLeaf_Init
+  0.00      1.23     0.00        1     0.00     0.00  Particles_Init
+  0.00      1.23     0.00        1     0.00     0.00  Pathfinding_Init
+  0.00      1.23     0.00        1     0.00     0.00  Shaders_Init
+  0.00      1.23     0.00        1     0.00     0.00  Skybox_Create
+  0.00      1.23     0.00        1     0.00     0.00  UI_Init
+  0.00      1.23     0.00        1     0.00     1.12  Window_MainLoop
+  0.00      1.23     0.00        1     0.00     0.00  Window_Open
+  0.00      1.23     0.00        1     0.00     0.00  World_InitOctree
+
+ %         the percentage of the total running time of the
+time       program used by this function.
+
+cumulative a running sum of the number of seconds accounted
+ seconds   for by this function and those listed above it.
+
+ self      the number of seconds accounted for by this
+seconds    function alone.  This is the major sort for this
+           listing.
+
+calls      the number of times this function was invoked, if
+           this function is profiled, else blank.
+
+ self      the average number of milliseconds spent in this
+ms/call    function per call, if this function is profiled,
+	   else blank.
+
+ total     the average number of milliseconds spent in this
+ms/call    function and its descendents per call, if this
+	   function is profiled, else blank.
+
+name       the name of the function.  This is the minor sort
+           for this listing. The index shows the location of
+	   the function in the gprof listing. If the index is
+	   in parenthesis it shows where it would appear in
+	   the gprof listing if it were to be printed.
+
+Copyright (C) 2012-2026 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+		     Call graph (explanation follows)
+
+
+granularity: each sample hit covers 4 byte(s) for 0.81% of 1.23 seconds
+
+index % time    self  children    called     name
+                                                 <spontaneous>
+[1]    100.0    0.00    1.23                 main [1]
+                0.00    1.12       1/1           Window_MainLoop [2]
+                0.00    0.05       2/2           RiggedModel_Load [14]
+                0.00    0.03       6/6           Pathfinding_SetClosedBoundingBoxStatic [19]
+                0.00    0.03       1/1           Model_Load [21]
+                0.00    0.00      10/10          Minion_Create [43]
+                0.00    0.00       1/1           Skybox_Create [50]
+                0.00    0.00       1/11          Skeleton_Copy [45]
+                0.00    0.00       2/12          Object_SetModel [47]
+                0.00    0.00       1/5693        ObjUpdate [36]
+                0.00    0.00       3/16          ImageLoader_CreateImage [132]
+                0.00    0.00       2/38245       Shaders_UpdateProjectionMatrix [70]
+                0.00    0.00       2/12          Object_Create [134]
+                0.00    0.00       2/2           Animation_Load [143]
+                0.00    0.00       2/30          AddUser [128]
+                0.00    0.00       2/5236        World_UpdateObjectInOctree [88]
+                0.00    0.00       1/1           Window_Open [160]
+                0.00    0.00       1/1           Memory_Init [153]
+                0.00    0.00       1/1           Shaders_Init [158]
+                0.00    0.00       1/2           Text_Init [146]
+                0.00    0.00       1/1           UI_Init [159]
+                0.00    0.00       1/1           Particles_Init [156]
+                0.00    0.00       1/1           World_InitOctree [161]
+                0.00    0.00       1/230         Math_Perspective [111]
+                0.00    0.00       1/41738       Math_InverseMatrix [64]
+                0.00    0.00       1/459         Math_Identity [108]
+                0.00    0.00       1/49468       Shaders_UseProgram [63]
+                0.00    0.00       1/40534       Shaders_UpdateModelMatrix [69]
+                0.00    0.00       1/230         Shaders_SetProjectionMatrix [112]
+                0.00    0.00       1/38244       Shaders_UpdateViewMatrix [71]
+                0.00    0.00       1/230         Shaders_SetViewMatrix [113]
+                0.00    0.00       1/1           Model_LoadCollisions [154]
+                0.00    0.00       1/1           Pathfinding_Init [157]
+-----------------------------------------------
+                0.00    1.12       1/1           main [1]
+[2]     91.0    0.00    1.12       1         Window_MainLoop [2]
+                0.00    1.00     229/229         Update [3]
+                0.00    0.12     229/229         Draw [7]
+                0.00    0.00      25/25          Event [130]
+                0.00    0.00       1/1           Focus [149]
+-----------------------------------------------
+                0.00    1.00     229/229         Window_MainLoop [2]
+[3]     81.4    0.00    1.00     229         Update [3]
+                0.00    0.97     229/229         World_Update [5]
+                0.02    0.01     229/229         Model_SetShapeKey [22]
+                0.00    0.00     229/2519        Object_UpdateSkeleton [15]
+                0.00    0.00     229/2519        Skeleton_Update [24]
+                0.00    0.00     687/5693        ObjUpdate [36]
+                0.00    0.00     229/2519        World_ResolveCollisions [39]
+                0.00    0.00     229/47387       Math_Vec3MultFloat [33]
+                0.00    0.00     229/81286       Math_Vec3Normalize [32]
+                0.00    0.00     687/9847        Window_GetDeltaTime [78]
+                0.00    0.00     458/84353       Math_Vec3Magnitude [59]
+                0.00    0.00     229/4096        Math_Vec3SubVec3 [94]
+                0.00    0.00     229/5236        World_UpdateObjectInOctree [88]
+                0.00    0.00     229/229         Pathfinding_ClearDynamic [116]
+-----------------------------------------------
+                0.00    0.97    2290/2290        World_Update [5]
+[4]     78.7    0.00    0.97    2290         Minion_Update [4]
+                0.96    0.00     400/400         Pathfinding_FindPathGrid [6]
+                0.00    0.00    2290/2519        World_ResolveCollisions [39]
+                0.00    0.00    2290/5693        ObjUpdate [36]
+                0.00    0.00    4980/81286       Math_Vec3Normalize [32]
+                0.00    0.00    2690/47387       Math_Vec3MultFloat [33]
+                0.00    0.00    6870/9847        Window_GetDeltaTime [78]
+                0.00    0.00    3409/4096        Math_Vec3SubVec3 [94]
+                0.00    0.00    2690/2700        Window_GetTicks [98]
+                0.00    0.00    2609/84353       Math_Vec3Magnitude [59]
+                0.00    0.00    2290/2290        Minion_Damage [100]
+                0.00    0.00    2290/98470       Math_Rotate [57]
+                0.00    0.00    2290/98257       Math_Vec3Dot [58]
+                0.00    0.00    2290/105734      Math_Vec3AddVec3 [56]
+                0.00    0.00    2290/5236        World_UpdateObjectInOctree [88]
+-----------------------------------------------
+                0.00    0.97     229/229         Update [3]
+[5]     78.7    0.00    0.97     229         World_Update [5]
+                0.00    0.97    2290/2290        Minion_Update [4]
+-----------------------------------------------
+                0.96    0.00     400/400         Minion_Update [4]
+[6]     78.0    0.96    0.00     400         Pathfinding_FindPathGrid [6]
+                0.00    0.00     800/800         GetClosestNotClosed [107]
+-----------------------------------------------
+                0.00    0.12     229/229         Window_MainLoop [2]
+[7]      9.6    0.00    0.12     229         Draw [7]
+                0.00    0.12     229/229         World_Render [8]
+                0.00    0.00     229/2519        Skeleton_Apply [28]
+                0.00    0.00     229/229         Math_LookAt [46]
+                0.00    0.00     229/81286       Math_Vec3Normalize [32]
+                0.00    0.00    1145/49468       Shaders_UseProgram [63]
+                0.00    0.00     687/38245       Shaders_UpdateProjectionMatrix [70]
+                0.00    0.00     687/38244       Shaders_UpdateViewMatrix [71]
+                0.00    0.00     458/98470       Math_Rotate [57]
+                0.00    0.00     458/41738       Math_InverseMatrix [64]
+                0.00    0.00     458/40991       Shaders_SetModelMatrix [68]
+                0.00    0.00     229/105734      Math_Vec3AddVec3 [56]
+                0.00    0.00     229/4096        Math_Vec3SubVec3 [94]
+                0.00    0.00     229/230         Shaders_SetViewMatrix [113]
+                0.00    0.00     229/230         Math_Perspective [111]
+                0.00    0.00     229/230         Shaders_SetProjectionMatrix [112]
+                0.00    0.00     229/459         Math_Identity [108]
+                0.00    0.00     229/229         Skybox_Draw [120]
+                0.00    0.00     229/229         UI_Clear [121]
+                0.00    0.00     229/229         Pathfinding_RenderDebug [117]
+                0.00    0.00     229/229         UI_Render [122]
+-----------------------------------------------
+                0.00    0.12     229/229         Draw [7]
+[8]      9.5    0.00    0.12     229         World_Render [8]
+                0.02    0.07    2290/2290        Minion_Draw [9]
+                0.00    0.03     229/229         OctreeLeaf_GetVisibleObjects [16]
+                0.00    0.00    2748/2748        DrawBoundingBoxes [97]
+                0.00    0.00     229/229         DrawModel [114]
+                0.00    0.00     229/229         DrawRigged [115]
+                0.00    0.00     229/459         Math_Identity [108]
+                0.00    0.00     229/40991       Shaders_SetModelMatrix [68]
+-----------------------------------------------
+                0.02    0.07    2290/2290        World_Render [8]
+[9]      7.1    0.02    0.07    2290         Minion_Draw [9]
+                0.02    0.01    2290/2519        Object_UpdateSkeleton [15]
+                0.00    0.02    2290/2519        Skeleton_Update [24]
+                0.00    0.02    2290/2519        Skeleton_Apply [28]
+                0.00    0.00    2290/105734      Math_Vec3AddVec3 [56]
+                0.00    0.00    2290/2290        Particles_DrawBillboard [101]
+                0.00    0.00    2290/9847        Window_GetDeltaTime [78]
+                0.00    0.00    2290/49468       Shaders_UseProgram [63]
+                0.00    0.00    2290/40534       Shaders_UpdateModelMatrix [69]
+                0.00    0.00    2290/40991       Shaders_SetModelMatrix [68]
+                0.00    0.00    2290/2519        Shaders_GetBonesLocation [99]
+                0.00    0.00    2290/2977        Shaders_GetDiffuseLocation [95]
+                0.00    0.00    2290/2977        Shaders_GetSpecularLocation [96]
+-----------------------------------------------
+                0.08    0.00      14/14          Read [13]
+[10]     6.5    0.08    0.00      14         Codes [10]
+                0.00    0.00  302358/305126      Decode [52]
+                0.00    0.00  209122/1729690     BitStream_GetBits [51]
+-----------------------------------------------
+                0.00    0.08       3/3           LoadModel [12]
+[11]     6.5    0.00    0.08       3         Deflate_Read [11]
+                0.00    0.08       3/3           Read [13]
+-----------------------------------------------
+                0.00    0.03       1/3           Model_Load [21]
+                0.00    0.05       2/3           RiggedModel_Load [14]
+[12]     6.5    0.00    0.08       3         LoadModel [12]
+                0.00    0.08       3/3           Deflate_Read [11]
+                0.00    0.00      16/4705        Memory_StackAlloc [90]
+                0.00    0.00       9/9           Memory_StackPop [138]
+-----------------------------------------------
+                0.00    0.08       3/3           Deflate_Read [11]
+[13]     6.5    0.00    0.08       3         Read [13]
+                0.08    0.00      14/14          Codes [10]
+                0.00    0.00    2768/305126      Decode [52]
+                0.00    0.00     512/1729690     BitStream_GetBits [51]
+                0.00    0.00      42/42          Huffman_Construct [127]
+-----------------------------------------------
+                0.00    0.05       2/2           main [1]
+[14]     4.3    0.00    0.05       2         RiggedModel_Load [14]
+                0.00    0.05       2/3           LoadModel [12]
+                0.00    0.00       2/2           LoadSkeleton [49]
+                0.00    0.00      12/49493       Shaders_GetProgram [62]
+                0.00    0.00       2/49468       Shaders_UseProgram [63]
+-----------------------------------------------
+                0.00    0.00     229/2519        Update [3]
+                0.02    0.01    2290/2519        Minion_Draw [9]
+[15]     2.7    0.02    0.01    2519         Object_UpdateSkeleton [15]
+                0.01    0.00    2519/2519        BoundingBox_FreeData [31]
+                0.00    0.00   26106/81286       Math_Vec3Normalize [32]
+                0.00    0.00   95722/98470       Math_Rotate [57]
+                0.00    0.00   69616/69616       Math_Vec3MultVec3 [61]
+                0.00    0.00   69616/105734      Math_Vec3AddVec3 [56]
+                0.00    0.00   13740/19483       BoundingBox_UpdateWorldSpaceCube [76]
+                0.00    0.00    8702/8716        BoundingBox_AddChild [79]
+-----------------------------------------------
+                0.00    0.03     229/229         World_Render [8]
+[16]     2.4    0.00    0.03     229         OctreeLeaf_GetVisibleObjects [16]
+                0.00    0.03     229/229         FindViewCollisions [18]
+                0.00    0.00     229/50328       Math_MatrixMatrixMult [26]
+                0.00    0.00    1374/1374        Math_PlaneNormalize [103]
+                0.00    0.00     229/229         Shaders_GetProjectionMatrix [118]
+                0.00    0.00     229/229         Shaders_GetViewMatrix [119]
+-----------------------------------------------
+                0.02    0.01  144057/144057      FindViewCollisions [18]
+[17]     2.4    0.02    0.01  144057         Math_CheckFrustumCollision [17]
+                0.01    0.00 1429605/1429605     Math_DistanceToPlane [29]
+-----------------------------------------------
+                              141080             FindViewCollisions [18]
+                0.00    0.03     229/229         OctreeLeaf_GetVisibleObjects [16]
+[18]     2.4    0.00    0.03     229+141080  FindViewCollisions [18]
+                0.02    0.01  144057/144057      Math_CheckFrustumCollision [17]
+                              141080             FindViewCollisions [18]
+-----------------------------------------------
+                0.00    0.03       6/6           main [1]
+[19]     2.4    0.00    0.03       6         Pathfinding_SetClosedBoundingBoxStatic [19]
+                0.01    0.02       6/6           SetClosedBoundingBox [20]
+-----------------------------------------------
+                0.01    0.02       6/6           Pathfinding_SetClosedBoundingBoxStatic [19]
+[20]     2.4    0.01    0.02       6         SetClosedBoundingBox [20]
+                0.02    0.00 2879799/2879799     triangleArea [25]
+                0.00    0.00     143/143         Pathfinding_SetClosedStatic [124]
+-----------------------------------------------
+                0.00    0.03       1/1           main [1]
+[21]     2.2    0.00    0.03       1         Model_Load [21]
+                0.00    0.03       1/3           LoadModel [12]
+                0.00    0.00       4/49493       Shaders_GetProgram [62]
+-----------------------------------------------
+                0.02    0.01     229/229         Update [3]
+[22]     2.2    0.02    0.01     229         Model_SetShapeKey [22]
+                0.00    0.01   15343/19871       Math_LerpVec3 [34]
+-----------------------------------------------
+                                6183             BoneUpdate [23]
+                0.01    0.01    2519/2519        Skeleton_Update [24]
+[23]     1.9    0.01    0.01    2519+6183    BoneUpdate [23]
+                0.01    0.00   14885/50328       Math_MatrixMatrixMult [26]
+                0.00    0.00    8702/17462       Math_MatrixFromQuat [30]
+                0.00    0.00    4122/19871       Math_LerpVec3 [34]
+                0.00    0.00    4122/4122        GetAnimsBonePos [42]
+                0.00    0.00   17404/17411       Math_QuatToEuler [77]
+                0.00    0.00   17404/26106       Math_EulerToQuat [74]
+                0.00    0.00    8702/105734      Math_Vec3AddVec3 [56]
+                0.00    0.00    8702/8702        Math_QuatMult [81]
+                0.00    0.00    8702/23661       Math_TranslateMatrix [75]
+                0.00    0.00    6183/6183        Math_MatrixToQuat [84]
+                0.00    0.00    4122/4122        GetAnimsBoneRot [93]
+                0.00    0.00    4122/4528        Math_Slerp [91]
+                                6183             BoneUpdate [23]
+-----------------------------------------------
+                0.00    0.00     229/2519        Update [3]
+                0.00    0.02    2290/2519        Minion_Draw [9]
+[24]     1.9    0.00    0.02    2519         Skeleton_Update [24]
+                0.01    0.01    2519/2519        BoneUpdate [23]
+-----------------------------------------------
+                0.02    0.00 2879799/2879799     SetClosedBoundingBox [20]
+[25]     1.6    0.02    0.00 2879799         triangleArea [25]
+-----------------------------------------------
+                0.00    0.00     103/50328       InitBone [44]
+                0.00    0.00     229/50328       OctreeLeaf_GetVisibleObjects [16]
+                0.00    0.00   11524/50328       BoundingBox_UpdatePoints [35]
+                0.01    0.00   14885/50328       BoneUpdate [23]
+                0.01    0.00   23587/50328       BoneUpdateVelocities [27]
+[26]     1.6    0.02    0.00   50328         Math_MatrixMatrixMult [26]
+-----------------------------------------------
+                                6183             BoneUpdateVelocities [27]
+                0.00    0.02    2519/2519        Skeleton_Apply [28]
+[27]     1.4    0.00    0.02    2519+6183    BoneUpdateVelocities [27]
+                0.01    0.00   23587/50328       Math_MatrixMatrixMult [26]
+                0.00    0.00    8702/17462       Math_MatrixFromQuat [30]
+                0.00    0.00   26106/81286       Math_Vec3Normalize [32]
+                0.00    0.00   95722/257343      Math_MatrixMult [53]
+                0.00    0.00    8702/26106       Math_EulerToQuat [74]
+                0.00    0.00    8702/23661       Math_TranslateMatrix [75]
+                                6183             BoneUpdateVelocities [27]
+-----------------------------------------------
+                0.00    0.00     229/2519        Draw [7]
+                0.00    0.02    2290/2519        Minion_Draw [9]
+[28]     1.4    0.00    0.02    2519         Skeleton_Apply [28]
+                0.00    0.02    2519/2519        BoneUpdateVelocities [27]
+-----------------------------------------------
+                0.01    0.00 1429605/1429605     Math_CheckFrustumCollision [17]
+[29]     0.8    0.01    0.00 1429605         Math_DistanceToPlane [29]
+-----------------------------------------------
+                0.00    0.00      58/17462       InitBone [44]
+                0.00    0.00    8702/17462       BoneUpdate [23]
+                0.00    0.00    8702/17462       BoneUpdateVelocities [27]
+[30]     0.8    0.01    0.00   17462         Math_MatrixFromQuat [30]
+-----------------------------------------------
+                                8664             BoundingBox_FreeData [31]
+                0.01    0.00    2519/2519        Object_UpdateSkeleton [15]
+[31]     0.8    0.01    0.00    2519+8664    BoundingBox_FreeData [31]
+                                8664             BoundingBox_FreeData [31]
+-----------------------------------------------
+                0.00    0.00     229/81286       Update [3]
+                0.00    0.00     229/81286       Draw [7]
+                0.00    0.00     458/81286       Math_LookAt [46]
+                0.00    0.00    4980/81286       Minion_Update [4]
+                0.00    0.00    5955/81286       CheckCollision [41]
+                0.00    0.00   17223/81286       BoundingBox_UpdatePoints [35]
+                0.00    0.00   26106/81286       BoneUpdateVelocities [27]
+                0.00    0.00   26106/81286       Object_UpdateSkeleton [15]
+[32]     0.8    0.01    0.00   81286         Math_Vec3Normalize [32]
+                0.00    0.00   81286/84353       Math_Vec3Magnitude [59]
+-----------------------------------------------
+                0.00    0.00      36/47387       Skybox_Create [50]
+                0.00    0.00     229/47387       Update [3]
+                0.00    0.00    1985/47387       BoundingBox_ResolveCollision [37]
+                0.00    0.00    2690/47387       Minion_Update [4]
+                0.00    0.00    2705/47387       Minion_OnCollision [40]
+                0.01    0.00   39742/47387       Math_LerpVec3 [34]
+[33]     0.8    0.01    0.00   47387         Math_Vec3MultFloat [33]
+-----------------------------------------------
+                0.00    0.00     406/19871       GetAnimsBonePos [42]
+                0.00    0.00    4122/19871       BoneUpdate [23]
+                0.00    0.01   15343/19871       Model_SetShapeKey [22]
+[34]     0.7    0.00    0.01   19871         Math_LerpVec3 [34]
+                0.01    0.00   39742/47387       Math_Vec3MultFloat [33]
+                0.00    0.00   19871/105734      Math_Vec3AddVec3 [56]
+-----------------------------------------------
+                                  21             BoundingBox_UpdatePoints [35]
+                0.00    0.00      11/5720        Object_SetModel [47]
+                0.00    0.00      16/5720        Object_UpdateModel [48]
+                0.00    0.01    5693/5720        ObjUpdate [36]
+[35]     0.5    0.00    0.01    5720+21      BoundingBox_UpdatePoints [35]
+                0.00    0.00   11524/50328       Math_MatrixMatrixMult [26]
+                0.00    0.00   17223/81286       Math_Vec3Normalize [32]
+                0.00    0.00   63151/257343      Math_MatrixMult [53]
+                0.00    0.00   11482/109952      Math_RotateMatrix [55]
+                0.00    0.00    5741/5741        Math_ScalingMatrixXYZ [86]
+                0.00    0.00    5741/23661       Math_TranslateMatrix [75]
+                0.00    0.00    5741/19483       BoundingBox_UpdateWorldSpaceCube [76]
+                0.00    0.00      21/105734      Math_Vec3AddVec3 [56]
+                                  21             BoundingBox_UpdatePoints [35]
+-----------------------------------------------
+                0.00    0.00       1/5693        main [1]
+                0.00    0.00      10/5693        Minion_Create [43]
+                0.00    0.00     687/5693        Update [3]
+                0.00    0.00    2290/5693        Minion_Update [4]
+                0.00    0.00    2705/5693        Minion_OnCollision [40]
+[36]     0.5    0.00    0.01    5693         ObjUpdate [36]
+                0.00    0.01    5693/5720        BoundingBox_UpdatePoints [35]
+                0.00    0.00       1/2           Object_UpdateModel [48]
+-----------------------------------------------
+                               17633             BoundingBox_ResolveCollision [37]
+                0.00    0.00    3305/3305        OctreeLeaf_ResolveCollisions [38]
+[37]     0.4    0.00    0.00    3305+17633   BoundingBox_ResolveCollision [37]
+                0.00    0.00    2705/2705        Minion_OnCollision [40]
+                0.00    0.00    1985/1985        CheckCollision [41]
+                0.00    0.00    1985/47387       Math_Vec3MultFloat [33]
+                0.00    0.00   20938/156028      Math_CheckCollisionCube [54]
+                0.00    0.00    3970/8321        BoundingBox_IsSAT [82]
+                0.00    0.00      28/28          onCube [129]
+                               17633             BoundingBox_ResolveCollision [37]
+-----------------------------------------------
+                              108088             OctreeLeaf_ResolveCollisions [38]
+                0.00    0.00    2519/2519        World_ResolveCollisions [39]
+[38]     0.4    0.00    0.00    2519+108088  OctreeLeaf_ResolveCollisions [38]
+                0.00    0.00    3305/3305        BoundingBox_ResolveCollision [37]
+                0.00    0.00  135090/156028      Math_CheckCollisionCube [54]
+                              108088             OctreeLeaf_ResolveCollisions [38]
+-----------------------------------------------
+                0.00    0.00     229/2519        Update [3]
+                0.00    0.00    2290/2519        Minion_Update [4]
+[39]     0.4    0.00    0.00    2519         World_ResolveCollisions [39]
+                0.00    0.00    2519/2519        OctreeLeaf_ResolveCollisions [38]
+-----------------------------------------------
+                0.00    0.00    2705/2705        BoundingBox_ResolveCollision [37]
+[40]     0.3    0.00    0.00    2705         Minion_OnCollision [40]
+                0.00    0.00    2705/5693        ObjUpdate [36]
+                0.00    0.00    2705/47387       Math_Vec3MultFloat [33]
+                0.00    0.00    2705/105734      Math_Vec3AddVec3 [56]
+                0.00    0.00    2705/5236        World_UpdateObjectInOctree [88]
+-----------------------------------------------
+                0.00    0.00    1985/1985        BoundingBox_ResolveCollision [37]
+[41]     0.1    0.00    0.00    1985         CheckCollision [41]
+                0.00    0.00    5955/81286       Math_Vec3Normalize [32]
+                0.00    0.00   95280/98257       Math_Vec3Dot [58]
+                0.00    0.00    5955/5955        GetOverlap [85]
+-----------------------------------------------
+                0.00    0.00    4122/4122        BoneUpdate [23]
+[42]     0.0    0.00    0.00    4122         GetAnimsBonePos [42]
+                0.00    0.00     406/19871       Math_LerpVec3 [34]
+                0.00    0.00    4122/8244        GetAnimsKeyframe [83]
+-----------------------------------------------
+                0.00    0.00      10/10          main [1]
+[43]     0.0    0.00    0.00      10         Minion_Create [43]
+                0.00    0.00      10/11          Skeleton_Copy [45]
+                0.00    0.00      10/12          Object_SetModel [47]
+                0.00    0.00      10/5693        ObjUpdate [36]
+                0.00    0.00      10/12          Object_Create [134]
+                0.00    0.00      10/16          ImageLoader_CreateImage [132]
+                0.00    0.00      10/2700        Window_GetTicks [98]
+                0.00    0.00      10/10          Object_SetSkeleton [136]
+                0.00    0.00      10/105734      Math_Vec3AddVec3 [56]
+                0.00    0.00      10/5236        World_UpdateObjectInOctree [88]
+                0.00    0.00      10/10          World_AddOffScreenUpdatedObject [137]
+-----------------------------------------------
+                                  45             InitBone [44]
+                0.00    0.00       2/13          LoadSkeleton [49]
+                0.00    0.00      11/13          Skeleton_Copy [45]
+[44]     0.0    0.00    0.00      13+45      InitBone [44]
+                0.00    0.00     103/50328       Math_MatrixMatrixMult [26]
+                0.00    0.00      58/17462       Math_MatrixFromQuat [30]
+                0.00    0.00      58/23661       Math_TranslateMatrix [75]
+                0.00    0.00      58/41738       Math_InverseMatrix [64]
+                                  45             InitBone [44]
+-----------------------------------------------
+                0.00    0.00       1/11          main [1]
+                0.00    0.00      10/11          Minion_Create [43]
+[45]     0.0    0.00    0.00      11         Skeleton_Copy [45]
+                0.00    0.00      11/13          InitBone [44]
+-----------------------------------------------
+                0.00    0.00     229/229         Draw [7]
+[46]     0.0    0.00    0.00     229         Math_LookAt [46]
+                0.00    0.00     458/81286       Math_Vec3Normalize [32]
+                0.00    0.00     687/98257       Math_Vec3Dot [58]
+                0.00    0.00     458/458         Math_Vec3Cross [109]
+                0.00    0.00     229/4096        Math_Vec3SubVec3 [94]
+-----------------------------------------------
+                0.00    0.00       2/12          main [1]
+                0.00    0.00      10/12          Minion_Create [43]
+[47]     0.0    0.00    0.00      12         Object_SetModel [47]
+                0.00    0.00      11/5720        BoundingBox_UpdatePoints [35]
+                0.00    0.00       1/2           Object_UpdateModel [48]
+-----------------------------------------------
+                0.00    0.00       1/2           ObjUpdate [36]
+                0.00    0.00       1/2           Object_SetModel [47]
+[48]     0.0    0.00    0.00       2         Object_UpdateModel [48]
+                0.00    0.00      16/5720        BoundingBox_UpdatePoints [35]
+                0.00    0.00      14/8716        BoundingBox_AddChild [79]
+                0.00    0.00       2/19483       BoundingBox_UpdateWorldSpaceCube [76]
+-----------------------------------------------
+                0.00    0.00       2/2           RiggedModel_Load [14]
+[49]     0.0    0.00    0.00       2         LoadSkeleton [49]
+                0.00    0.00       2/13          InitBone [44]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[50]     0.0    0.00    0.00       1         Skybox_Create [50]
+                0.00    0.00      36/47387       Math_Vec3MultFloat [33]
+                0.00    0.00       2/49493       Shaders_GetProgram [62]
+                0.00    0.00       1/16          ImageLoader_CreateImage [132]
+                0.00    0.00       1/49468       Shaders_UseProgram [63]
+-----------------------------------------------
+                0.00    0.00     512/1729690     Read [13]
+                0.00    0.00  209122/1729690     Codes [10]
+                0.00    0.00 1520056/1729690     Decode [52]
+[51]     0.0    0.00    0.00 1729690         BitStream_GetBits [51]
+-----------------------------------------------
+                0.00    0.00    2768/305126      Read [13]
+                0.00    0.00  302358/305126      Codes [10]
+[52]     0.0    0.00    0.00  305126         Decode [52]
+                0.00    0.00 1520056/1729690     BitStream_GetBits [51]
+-----------------------------------------------
+                0.00    0.00   63151/257343      BoundingBox_UpdatePoints [35]
+                0.00    0.00   95722/257343      BoneUpdateVelocities [27]
+                0.00    0.00   98470/257343      Math_Rotate [57]
+[53]     0.0    0.00    0.00  257343         Math_MatrixMult [53]
+-----------------------------------------------
+                0.00    0.00   20938/156028      BoundingBox_ResolveCollision [37]
+                0.00    0.00  135090/156028      OctreeLeaf_ResolveCollisions [38]
+[54]     0.0    0.00    0.00  156028         Math_CheckCollisionCube [54]
+-----------------------------------------------
+                0.00    0.00   11482/109952      BoundingBox_UpdatePoints [35]
+                0.00    0.00   98470/109952      Math_Rotate [57]
+[55]     0.0    0.00    0.00  109952         Math_RotateMatrix [55]
+-----------------------------------------------
+                0.00    0.00      10/105734      Minion_Create [43]
+                0.00    0.00      21/105734      BoundingBox_UpdatePoints [35]
+                0.00    0.00     229/105734      Draw [7]
+                0.00    0.00    2290/105734      Minion_Update [4]
+                0.00    0.00    2290/105734      Minion_Draw [9]
+                0.00    0.00    2705/105734      Minion_OnCollision [40]
+                0.00    0.00    8702/105734      BoneUpdate [23]
+                0.00    0.00   19871/105734      Math_LerpVec3 [34]
+                0.00    0.00   69616/105734      Object_UpdateSkeleton [15]
+[56]     0.0    0.00    0.00  105734         Math_Vec3AddVec3 [56]
+-----------------------------------------------
+                0.00    0.00     458/98470       Draw [7]
+                0.00    0.00    2290/98470       Minion_Update [4]
+                0.00    0.00   95722/98470       Object_UpdateSkeleton [15]
+[57]     0.0    0.00    0.00   98470         Math_Rotate [57]
+                0.00    0.00   98470/109952      Math_RotateMatrix [55]
+                0.00    0.00   98470/257343      Math_MatrixMult [53]
+-----------------------------------------------
+                0.00    0.00     687/98257       Math_LookAt [46]
+                0.00    0.00    2290/98257       Minion_Update [4]
+                0.00    0.00   95280/98257       CheckCollision [41]
+[58]     0.0    0.00    0.00   98257         Math_Vec3Dot [58]
+-----------------------------------------------
+                0.00    0.00     458/84353       Update [3]
+                0.00    0.00    2609/84353       Minion_Update [4]
+                0.00    0.00   81286/84353       Math_Vec3Normalize [32]
+[59]     0.0    0.00    0.00   84353         Math_Vec3Magnitude [59]
+-----------------------------------------------
+                0.00    0.00   40991/81982       Math_InverseMatrixMat3 [66]
+                0.00    0.00   40991/81982       Shaders_SetModelMatrix [68]
+[60]     0.0    0.00    0.00   81982         Math_Mat4ToMat3 [60]
+-----------------------------------------------
+                0.00    0.00   69616/69616       Object_UpdateSkeleton [15]
+[61]     0.0    0.00    0.00   69616         Math_Vec3MultVec3 [61]
+-----------------------------------------------
+                0.00    0.00       1/49493       Pathfinding_Init [157]
+                0.00    0.00       2/49493       World_InitOctree [161]
+                0.00    0.00       2/49493       Skybox_Create [50]
+                0.00    0.00       4/49493       Model_Load [21]
+                0.00    0.00       4/49493       Particles_Init [156]
+                0.00    0.00      12/49493       RiggedModel_Load [14]
+                0.00    0.00   49468/49493       Shaders_UseProgram [63]
+[62]     0.0    0.00    0.00   49493         Shaders_GetProgram [62]
+-----------------------------------------------
+                0.00    0.00       1/49468       main [1]
+                0.00    0.00       1/49468       Skybox_Create [50]
+                0.00    0.00       2/49468       RiggedModel_Load [14]
+                0.00    0.00     229/49468       DrawRigged [115]
+                0.00    0.00     229/49468       DrawModel [114]
+                0.00    0.00     229/49468       Skybox_Draw [120]
+                0.00    0.00     229/49468       UI_Render [122]
+                0.00    0.00     229/49468       UI_RenderRectTex [123]
+                0.00    0.00     229/49468       Pathfinding_RenderDebug [117]
+                0.00    0.00     916/49468       UI_RenderRect [106]
+                0.00    0.00    1145/49468       Draw [7]
+                0.00    0.00    2290/49468       Particles_DrawBillboard [101]
+                0.00    0.00    2290/49468       Minion_Draw [9]
+                0.00    0.00    4351/49468       DrawBoundingBoxes [97]
+                0.00    0.00   37098/49468       World_DrawLines [72]
+[63]     0.0    0.00    0.00   49468         Shaders_UseProgram [63]
+                0.00    0.00   49468/49493       Shaders_GetProgram [62]
+-----------------------------------------------
+                0.00    0.00       1/41738       main [1]
+                0.00    0.00      58/41738       InitBone [44]
+                0.00    0.00     230/41738       Shaders_SetViewMatrix [113]
+                0.00    0.00     458/41738       Draw [7]
+                0.00    0.00   40991/41738       Math_InverseMatrixMat3 [66]
+[64]     0.0    0.00    0.00   41738         Math_InverseMatrix [64]
+                0.00    0.00   41738/41738       Math_ScaleMatrix [65]
+-----------------------------------------------
+                0.00    0.00   41738/41738       Math_InverseMatrix [64]
+[65]     0.0    0.00    0.00   41738         Math_ScaleMatrix [65]
+-----------------------------------------------
+                0.00    0.00   40991/40991       Shaders_SetModelMatrix [68]
+[66]     0.0    0.00    0.00   40991         Math_InverseMatrixMat3 [66]
+                0.00    0.00   40991/41738       Math_InverseMatrix [64]
+                0.00    0.00   40991/81982       Math_Mat4ToMat3 [60]
+-----------------------------------------------
+                0.00    0.00   40991/40991       Shaders_SetModelMatrix [68]
+[67]     0.0    0.00    0.00   40991         Math_TransposeMatrix [67]
+-----------------------------------------------
+                0.00    0.00     229/40991       DrawRigged [115]
+                0.00    0.00     229/40991       DrawModel [114]
+                0.00    0.00     229/40991       World_Render [8]
+                0.00    0.00     229/40991       Skybox_Draw [120]
+                0.00    0.00     229/40991       Pathfinding_RenderDebug [117]
+                0.00    0.00     458/40991       Draw [7]
+                0.00    0.00    2290/40991       Minion_Draw [9]
+                0.00    0.00   37098/40991       World_DrawLines [72]
+[68]     0.0    0.00    0.00   40991         Shaders_SetModelMatrix [68]
+                0.00    0.00   40991/81982       Math_Mat4ToMat3 [60]
+                0.00    0.00   40991/40991       Math_InverseMatrixMat3 [66]
+                0.00    0.00   40991/40991       Math_TransposeMatrix [67]
+-----------------------------------------------
+                0.00    0.00       1/40534       main [1]
+                0.00    0.00     229/40534       DrawRigged [115]
+                0.00    0.00     229/40534       DrawModel [114]
+                0.00    0.00     229/40534       Pathfinding_RenderDebug [117]
+                0.00    0.00     458/40534       Skybox_Draw [120]
+                0.00    0.00    2290/40534       Minion_Draw [9]
+                0.00    0.00   37098/40534       World_DrawLines [72]
+[69]     0.0    0.00    0.00   40534         Shaders_UpdateModelMatrix [69]
+-----------------------------------------------
+                0.00    0.00       2/38245       main [1]
+                0.00    0.00     229/38245       Skybox_Draw [120]
+                0.00    0.00     229/38245       Pathfinding_RenderDebug [117]
+                0.00    0.00     687/38245       Draw [7]
+                0.00    0.00   37098/38245       World_DrawLines [72]
+[70]     0.0    0.00    0.00   38245         Shaders_UpdateProjectionMatrix [70]
+-----------------------------------------------
+                0.00    0.00       1/38244       main [1]
+                0.00    0.00     229/38244       Skybox_Draw [120]
+                0.00    0.00     229/38244       Pathfinding_RenderDebug [117]
+                0.00    0.00     687/38244       Draw [7]
+                0.00    0.00   37098/38244       World_DrawLines [72]
+[71]     0.0    0.00    0.00   38244         Shaders_UpdateViewMatrix [71]
+-----------------------------------------------
+                0.00    0.00    4351/37098       World_DrawCube [92]
+                0.00    0.00   32747/37098       World_DrawX [73]
+[72]     0.0    0.00    0.00   37098         World_DrawLines [72]
+                0.00    0.00   37098/49468       Shaders_UseProgram [63]
+                0.00    0.00   37098/40991       Shaders_SetModelMatrix [68]
+                0.00    0.00   37098/38245       Shaders_UpdateProjectionMatrix [70]
+                0.00    0.00   37098/40534       Shaders_UpdateModelMatrix [69]
+                0.00    0.00   37098/38244       Shaders_UpdateViewMatrix [71]
+-----------------------------------------------
+                0.00    0.00   32747/32747       Pathfinding_RenderDebug [117]
+[73]     0.0    0.00    0.00   32747         World_DrawX [73]
+                0.00    0.00   32747/37098       World_DrawLines [72]
+-----------------------------------------------
+                0.00    0.00    8702/26106       BoneUpdateVelocities [27]
+                0.00    0.00   17404/26106       BoneUpdate [23]
+[74]     0.0    0.00    0.00   26106         Math_EulerToQuat [74]
+-----------------------------------------------
+                0.00    0.00      58/23661       InitBone [44]
+                0.00    0.00     229/23661       Skybox_Draw [120]
+                0.00    0.00     229/23661       Pathfinding_RenderDebug [117]
+                0.00    0.00    5741/23661       BoundingBox_UpdatePoints [35]
+                0.00    0.00    8702/23661       BoneUpdate [23]
+                0.00    0.00    8702/23661       BoneUpdateVelocities [27]
+[75]     0.0    0.00    0.00   23661         Math_TranslateMatrix [75]
+-----------------------------------------------
+                0.00    0.00       2/19483       Object_UpdateModel [48]
+                0.00    0.00    5741/19483       BoundingBox_UpdatePoints [35]
+                0.00    0.00   13740/19483       Object_UpdateSkeleton [15]
+[76]     0.0    0.00    0.00   19483         BoundingBox_UpdateWorldSpaceCube [76]
+-----------------------------------------------
+                0.00    0.00       7/17411       Model_LoadCollisions [154]
+                0.00    0.00   17404/17411       BoneUpdate [23]
+[77]     0.0    0.00    0.00   17411         Math_QuatToEuler [77]
+-----------------------------------------------
+                0.00    0.00     687/9847        Update [3]
+                0.00    0.00    2290/9847        Minion_Draw [9]
+                0.00    0.00    6870/9847        Minion_Update [4]
+[78]     0.0    0.00    0.00    9847         Window_GetDeltaTime [78]
+-----------------------------------------------
+                0.00    0.00      14/8716        Object_UpdateModel [48]
+                0.00    0.00    8702/8716        Object_UpdateSkeleton [15]
+[79]     0.0    0.00    0.00    8716         BoundingBox_AddChild [79]
+                0.00    0.00    8716/8716        BoundingBox_Copy [80]
+-----------------------------------------------
+                0.00    0.00    8716/8716        BoundingBox_AddChild [79]
+[80]     0.0    0.00    0.00    8716         BoundingBox_Copy [80]
+-----------------------------------------------
+                0.00    0.00    8702/8702        BoneUpdate [23]
+[81]     0.0    0.00    0.00    8702         Math_QuatMult [81]
+-----------------------------------------------
+                0.00    0.00    3970/8321        BoundingBox_ResolveCollision [37]
+                0.00    0.00    4351/8321        DrawBoundingBoxes [97]
+[82]     0.0    0.00    0.00    8321         BoundingBox_IsSAT [82]
+-----------------------------------------------
+                0.00    0.00    4122/8244        GetAnimsBoneRot [93]
+                0.00    0.00    4122/8244        GetAnimsBonePos [42]
+[83]     0.0    0.00    0.00    8244         GetAnimsKeyframe [83]
+-----------------------------------------------
+                0.00    0.00    6183/6183        BoneUpdate [23]
+[84]     0.0    0.00    0.00    6183         Math_MatrixToQuat [84]
+-----------------------------------------------
+                0.00    0.00    5955/5955        CheckCollision [41]
+[85]     0.0    0.00    0.00    5955         GetOverlap [85]
+-----------------------------------------------
+                0.00    0.00    5741/5741        BoundingBox_UpdatePoints [35]
+[86]     0.0    0.00    0.00    5741         Math_ScalingMatrixXYZ [86]
+-----------------------------------------------
+                0.00    0.00     174/5398        OctreeLeaf_Insert [133]
+                0.00    0.00    5224/5398        World_UpdateObjectInOctree [88]
+[87]     0.0    0.00    0.00    5398         Math_CubeIsCompletelyInside [87]
+-----------------------------------------------
+                0.00    0.00       2/5236        main [1]
+                0.00    0.00      10/5236        Minion_Create [43]
+                0.00    0.00     229/5236        Update [3]
+                0.00    0.00    2290/5236        Minion_Update [4]
+                0.00    0.00    2705/5236        Minion_OnCollision [40]
+[88]     0.0    0.00    0.00    5236         World_UpdateObjectInOctree [88]
+                0.00    0.00    5224/5398        Math_CubeIsCompletelyInside [87]
+                0.00    0.00      15/15          OctreeLeaf_Insert [133]
+                0.00    0.00       3/30          AddUser [128]
+                0.00    0.00       3/3           OctreeLeaf_Remove [141]
+-----------------------------------------------
+                0.00    0.00     687/5038        Pathfinding_RenderDebug [117]
+                0.00    0.00    4351/5038        DrawBoundingBoxes [97]
+[89]     0.0    0.00    0.00    5038         Shaders_SetUniformColor [89]
+-----------------------------------------------
+                0.00    0.00       9/4705        LoadAnimation [145]
+                0.00    0.00      16/4705        LoadModel [12]
+                0.00    0.00    4680/4705        OctreeLeaf_Init [155]
+[90]     0.0    0.00    0.00    4705         Memory_StackAlloc [90]
+-----------------------------------------------
+                0.00    0.00     406/4528        GetAnimsBoneRot [93]
+                0.00    0.00    4122/4528        BoneUpdate [23]
+[91]     0.0    0.00    0.00    4528         Math_Slerp [91]
+-----------------------------------------------
+                0.00    0.00    4351/4351        DrawBoundingBoxes [97]
+[92]     0.0    0.00    0.00    4351         World_DrawCube [92]
+                0.00    0.00    4351/37098       World_DrawLines [72]
+-----------------------------------------------
+                0.00    0.00    4122/4122        BoneUpdate [23]
+[93]     0.0    0.00    0.00    4122         GetAnimsBoneRot [93]
+                0.00    0.00    4122/8244        GetAnimsKeyframe [83]
+                0.00    0.00     406/4528        Math_Slerp [91]
+-----------------------------------------------
+                0.00    0.00     229/4096        Update [3]
+                0.00    0.00     229/4096        Draw [7]
+                0.00    0.00     229/4096        Math_LookAt [46]
+                0.00    0.00    3409/4096        Minion_Update [4]
+[94]     0.0    0.00    0.00    4096         Math_Vec3SubVec3 [94]
+-----------------------------------------------
+                0.00    0.00     229/2977        DrawRigged [115]
+                0.00    0.00     229/2977        DrawModel [114]
+                0.00    0.00     229/2977        Skybox_Draw [120]
+                0.00    0.00    2290/2977        Minion_Draw [9]
+[95]     0.0    0.00    0.00    2977         Shaders_GetDiffuseLocation [95]
+-----------------------------------------------
+                0.00    0.00     229/2977        DrawRigged [115]
+                0.00    0.00     229/2977        DrawModel [114]
+                0.00    0.00     229/2977        Skybox_Draw [120]
+                0.00    0.00    2290/2977        Minion_Draw [9]
+[96]     0.0    0.00    0.00    2977         Shaders_GetSpecularLocation [96]
+-----------------------------------------------
+                                1603             DrawBoundingBoxes [97]
+                0.00    0.00    2748/2748        World_Render [8]
+[97]     0.0    0.00    0.00    2748+1603    DrawBoundingBoxes [97]
+                0.00    0.00    4351/49468       Shaders_UseProgram [63]
+                0.00    0.00    4351/8321        BoundingBox_IsSAT [82]
+                0.00    0.00    4351/5038        Shaders_SetUniformColor [89]
+                0.00    0.00    4351/4351        World_DrawCube [92]
+                                1603             DrawBoundingBoxes [97]
+-----------------------------------------------
+                0.00    0.00      10/2700        Minion_Create [43]
+                0.00    0.00    2690/2700        Minion_Update [4]
+[98]     0.0    0.00    0.00    2700         Window_GetTicks [98]
+-----------------------------------------------
+                0.00    0.00     229/2519        DrawRigged [115]
+                0.00    0.00    2290/2519        Minion_Draw [9]
+[99]     0.0    0.00    0.00    2519         Shaders_GetBonesLocation [99]
+-----------------------------------------------
+                0.00    0.00    2290/2290        Minion_Update [4]
+[100]    0.0    0.00    0.00    2290         Minion_Damage [100]
+-----------------------------------------------
+                0.00    0.00    2290/2290        Minion_Draw [9]
+[101]    0.0    0.00    0.00    2290         Particles_DrawBillboard [101]
+                0.00    0.00    2290/49468       Shaders_UseProgram [63]
+-----------------------------------------------
+                0.00    0.00    1374/1374        Math_PlaneNormalize [103]
+[102]    0.0    0.00    0.00    1374         Math_PlaneMagnitude [102]
+-----------------------------------------------
+                0.00    0.00    1374/1374        OctreeLeaf_GetVisibleObjects [16]
+[103]    0.0    0.00    0.00    1374         Math_PlaneNormalize [103]
+                0.00    0.00    1374/1374        Math_PlaneMagnitude [102]
+-----------------------------------------------
+                0.00    0.00     229/1374        UI_Render [122]
+                0.00    0.00     229/1374        UI_RenderRectTex [123]
+                0.00    0.00     916/1374        UI_RenderRect [106]
+[104]    0.0    0.00    0.00    1374         Shaders_GetInvViewportLocation [104]
+-----------------------------------------------
+                0.00    0.00     229/1145        UI_RenderRectTex [123]
+                0.00    0.00     916/1145        UI_RenderRect [106]
+[105]    0.0    0.00    0.00    1145         Shaders_GetUniColorLocation [105]
+-----------------------------------------------
+                0.00    0.00     916/916         UI_SliderRender [110]
+[106]    0.0    0.00    0.00     916         UI_RenderRect [106]
+                0.00    0.00     916/49468       Shaders_UseProgram [63]
+                0.00    0.00     916/1145        Shaders_GetUniColorLocation [105]
+                0.00    0.00     916/1374        Shaders_GetInvViewportLocation [104]
+-----------------------------------------------
+                0.00    0.00     800/800         Pathfinding_FindPathGrid [6]
+[107]    0.0    0.00    0.00     800         GetClosestNotClosed [107]
+-----------------------------------------------
+                0.00    0.00       1/459         main [1]
+                0.00    0.00     229/459         Draw [7]
+                0.00    0.00     229/459         World_Render [8]
+[108]    0.0    0.00    0.00     459         Math_Identity [108]
+-----------------------------------------------
+                0.00    0.00     458/458         Math_LookAt [46]
+[109]    0.0    0.00    0.00     458         Math_Vec3Cross [109]
+-----------------------------------------------
+                0.00    0.00     458/458         UI_Render [122]
+[110]    0.0    0.00    0.00     458         UI_SliderRender [110]
+                0.00    0.00     916/916         UI_RenderRect [106]
+-----------------------------------------------
+                0.00    0.00       1/230         main [1]
+                0.00    0.00     229/230         Draw [7]
+[111]    0.0    0.00    0.00     230         Math_Perspective [111]
+-----------------------------------------------
+                0.00    0.00       1/230         main [1]
+                0.00    0.00     229/230         Draw [7]
+[112]    0.0    0.00    0.00     230         Shaders_SetProjectionMatrix [112]
+-----------------------------------------------
+                0.00    0.00       1/230         main [1]
+                0.00    0.00     229/230         Draw [7]
+[113]    0.0    0.00    0.00     230         Shaders_SetViewMatrix [113]
+                0.00    0.00     230/41738       Math_InverseMatrix [64]
+-----------------------------------------------
+                0.00    0.00     229/229         World_Render [8]
+[114]    0.0    0.00    0.00     229         DrawModel [114]
+                0.00    0.00     229/49468       Shaders_UseProgram [63]
+                0.00    0.00     229/40991       Shaders_SetModelMatrix [68]
+                0.00    0.00     229/40534       Shaders_UpdateModelMatrix [69]
+                0.00    0.00     229/2977        Shaders_GetDiffuseLocation [95]
+                0.00    0.00     229/2977        Shaders_GetSpecularLocation [96]
+-----------------------------------------------
+                0.00    0.00     229/229         World_Render [8]
+[115]    0.0    0.00    0.00     229         DrawRigged [115]
+                0.00    0.00     229/49468       Shaders_UseProgram [63]
+                0.00    0.00     229/40991       Shaders_SetModelMatrix [68]
+                0.00    0.00     229/40534       Shaders_UpdateModelMatrix [69]
+                0.00    0.00     229/2519        Shaders_GetBonesLocation [99]
+                0.00    0.00     229/2977        Shaders_GetDiffuseLocation [95]
+                0.00    0.00     229/2977        Shaders_GetSpecularLocation [96]
+-----------------------------------------------
+                0.00    0.00     229/229         Update [3]
+[116]    0.0    0.00    0.00     229         Pathfinding_ClearDynamic [116]
+-----------------------------------------------
+                0.00    0.00     229/229         Draw [7]
+[117]    0.0    0.00    0.00     229         Pathfinding_RenderDebug [117]
+                0.00    0.00   32747/32747       World_DrawX [73]
+                0.00    0.00     687/5038        Shaders_SetUniformColor [89]
+                0.00    0.00     229/49468       Shaders_UseProgram [63]
+                0.00    0.00     229/23661       Math_TranslateMatrix [75]
+                0.00    0.00     229/40534       Shaders_UpdateModelMatrix [69]
+                0.00    0.00     229/40991       Shaders_SetModelMatrix [68]
+                0.00    0.00     229/38245       Shaders_UpdateProjectionMatrix [70]
+                0.00    0.00     229/38244       Shaders_UpdateViewMatrix [71]
+-----------------------------------------------
+                0.00    0.00     229/229         OctreeLeaf_GetVisibleObjects [16]
+[118]    0.0    0.00    0.00     229         Shaders_GetProjectionMatrix [118]
+-----------------------------------------------
+                0.00    0.00     229/229         OctreeLeaf_GetVisibleObjects [16]
+[119]    0.0    0.00    0.00     229         Shaders_GetViewMatrix [119]
+-----------------------------------------------
+                0.00    0.00     229/229         Draw [7]
+[120]    0.0    0.00    0.00     229         Skybox_Draw [120]
+                0.00    0.00     458/40534       Shaders_UpdateModelMatrix [69]
+                0.00    0.00     229/38244       Shaders_UpdateViewMatrix [71]
+                0.00    0.00     229/38245       Shaders_UpdateProjectionMatrix [70]
+                0.00    0.00     229/49468       Shaders_UseProgram [63]
+                0.00    0.00     229/2977        Shaders_GetDiffuseLocation [95]
+                0.00    0.00     229/2977        Shaders_GetSpecularLocation [96]
+                0.00    0.00     229/23661       Math_TranslateMatrix [75]
+                0.00    0.00     229/40991       Shaders_SetModelMatrix [68]
+-----------------------------------------------
+                0.00    0.00     229/229         Draw [7]
+[121]    0.0    0.00    0.00     229         UI_Clear [121]
+-----------------------------------------------
+                0.00    0.00     229/229         Draw [7]
+[122]    0.0    0.00    0.00     229         UI_Render [122]
+                0.00    0.00     458/458         UI_SliderRender [110]
+                0.00    0.00     229/229         UI_RenderRectTex [123]
+                0.00    0.00     229/49468       Shaders_UseProgram [63]
+                0.00    0.00     229/1374        Shaders_GetInvViewportLocation [104]
+-----------------------------------------------
+                0.00    0.00     229/229         UI_Render [122]
+[123]    0.0    0.00    0.00     229         UI_RenderRectTex [123]
+                0.00    0.00     229/49468       Shaders_UseProgram [63]
+                0.00    0.00     229/1145        Shaders_GetUniColorLocation [105]
+                0.00    0.00     229/1374        Shaders_GetInvViewportLocation [104]
+-----------------------------------------------
+                0.00    0.00     143/143         SetClosedBoundingBox [20]
+[124]    0.0    0.00    0.00     143         Pathfinding_SetClosedStatic [124]
+                0.00    0.00     143/143         SetClosed [125]
+-----------------------------------------------
+                0.00    0.00     143/143         Pathfinding_SetClosedStatic [124]
+[125]    0.0    0.00    0.00     143         SetClosed [125]
+-----------------------------------------------
+                0.00    0.00      50/50          UI_Event [131]
+[126]    0.0    0.00    0.00      50         UI_SliderEvent [126]
+-----------------------------------------------
+                0.00    0.00      42/42          Read [13]
+[127]    0.0    0.00    0.00      42         Huffman_Construct [127]
+-----------------------------------------------
+                0.00    0.00       2/30          main [1]
+                0.00    0.00       3/30          World_UpdateObjectInOctree [88]
+                0.00    0.00      10/30          AddObjectToArr [135]
+                0.00    0.00      15/30          OctreeLeaf_Insert [133]
+[128]    0.0    0.00    0.00      30         AddUser [128]
+-----------------------------------------------
+                0.00    0.00      28/28          BoundingBox_ResolveCollision [37]
+[129]    0.0    0.00    0.00      28         onCube [129]
+-----------------------------------------------
+                0.00    0.00      25/25          Window_MainLoop [2]
+[130]    0.0    0.00    0.00      25         Event [130]
+                0.00    0.00      25/25          UI_Event [131]
+-----------------------------------------------
+                0.00    0.00      25/25          Event [130]
+[131]    0.0    0.00    0.00      25         UI_Event [131]
+                0.00    0.00      50/50          UI_SliderEvent [126]
+-----------------------------------------------
+                0.00    0.00       1/16          Skybox_Create [50]
+                0.00    0.00       2/16          UI_Init [159]
+                0.00    0.00       3/16          main [1]
+                0.00    0.00      10/16          Minion_Create [43]
+[132]    0.0    0.00    0.00      16         ImageLoader_CreateImage [132]
+                0.00    0.00       7/7           ImageLoader_SetImageParameters [140]
+-----------------------------------------------
+                                 159             OctreeLeaf_Insert [133]
+                0.00    0.00      15/15          World_UpdateObjectInOctree [88]
+[133]    0.0    0.00    0.00      15+159     OctreeLeaf_Insert [133]
+                0.00    0.00     174/5398        Math_CubeIsCompletelyInside [87]
+                0.00    0.00      15/30          AddUser [128]
+                                 159             OctreeLeaf_Insert [133]
+-----------------------------------------------
+                0.00    0.00       2/12          main [1]
+                0.00    0.00      10/12          Minion_Create [43]
+[134]    0.0    0.00    0.00      12         Object_Create [134]
+-----------------------------------------------
+                0.00    0.00      10/10          World_AddOffScreenUpdatedObject [137]
+[135]    0.0    0.00    0.00      10         AddObjectToArr [135]
+                0.00    0.00      10/30          AddUser [128]
+-----------------------------------------------
+                0.00    0.00      10/10          Minion_Create [43]
+[136]    0.0    0.00    0.00      10         Object_SetSkeleton [136]
+-----------------------------------------------
+                0.00    0.00      10/10          Minion_Create [43]
+[137]    0.0    0.00    0.00      10         World_AddOffScreenUpdatedObject [137]
+                0.00    0.00      10/10          AddObjectToArr [135]
+-----------------------------------------------
+                0.00    0.00       9/9           LoadModel [12]
+[138]    0.0    0.00    0.00       9         Memory_StackPop [138]
+-----------------------------------------------
+                0.00    0.00       8/8           Shaders_Init [158]
+[139]    0.0    0.00    0.00       8         CreateShader [139]
+-----------------------------------------------
+                0.00    0.00       7/7           ImageLoader_CreateImage [132]
+[140]    0.0    0.00    0.00       7         ImageLoader_SetImageParameters [140]
+-----------------------------------------------
+                0.00    0.00       3/3           World_UpdateObjectInOctree [88]
+[141]    0.0    0.00    0.00       3         OctreeLeaf_Remove [141]
+                0.00    0.00       3/3           RemoveUser [142]
+-----------------------------------------------
+                0.00    0.00       3/3           OctreeLeaf_Remove [141]
+[142]    0.0    0.00    0.00       3         RemoveUser [142]
+-----------------------------------------------
+                0.00    0.00       2/2           main [1]
+[143]    0.0    0.00    0.00       2         Animation_Load [143]
+                0.00    0.00       2/2           LoadAnimation [145]
+-----------------------------------------------
+                0.00    0.00       1/2           FontRenderer_Init [151]
+                0.00    0.00       1/2           FontRenderer_SetSize [152]
+[144]    0.0    0.00    0.00       2         FontFace_SetSize [144]
+-----------------------------------------------
+                0.00    0.00       2/2           Animation_Load [143]
+[145]    0.0    0.00    0.00       2         LoadAnimation [145]
+                0.00    0.00       9/4705        Memory_StackAlloc [90]
+-----------------------------------------------
+                0.00    0.00       1/2           main [1]
+                0.00    0.00       1/2           FontRenderer_Init [151]
+[146]    0.0    0.00    0.00       2         Text_Init [146]
+-----------------------------------------------
+                0.00    0.00       2/2           UI_Init [159]
+[147]    0.0    0.00    0.00       2         UI_SliderCreate [147]
+-----------------------------------------------
+                0.00    0.00       1/1           UI_Init [159]
+[148]    0.0    0.00    0.00       1         CreateFrameBuffer [148]
+-----------------------------------------------
+                0.00    0.00       1/1           Window_MainLoop [2]
+[149]    0.0    0.00    0.00       1         Focus [149]
+-----------------------------------------------
+                0.00    0.00       1/1           FontRenderer_Init [151]
+[150]    0.0    0.00    0.00       1         FontFace_LoadFont [150]
+-----------------------------------------------
+                0.00    0.00       1/1           UI_Init [159]
+[151]    0.0    0.00    0.00       1         FontRenderer_Init [151]
+                0.00    0.00       1/2           Text_Init [146]
+                0.00    0.00       1/1           FontFace_LoadFont [150]
+                0.00    0.00       1/2           FontFace_SetSize [144]
+-----------------------------------------------
+                0.00    0.00       1/1           UI_Init [159]
+[152]    0.0    0.00    0.00       1         FontRenderer_SetSize [152]
+                0.00    0.00       1/2           FontFace_SetSize [144]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[153]    0.0    0.00    0.00       1         Memory_Init [153]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[154]    0.0    0.00    0.00       1         Model_LoadCollisions [154]
+                0.00    0.00       7/17411       Math_QuatToEuler [77]
+-----------------------------------------------
+                                4680             OctreeLeaf_Init [155]
+                0.00    0.00       1/1           World_InitOctree [161]
+[155]    0.0    0.00    0.00       1+4680    OctreeLeaf_Init [155]
+                0.00    0.00    4680/4705        Memory_StackAlloc [90]
+                                4680             OctreeLeaf_Init [155]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[156]    0.0    0.00    0.00       1         Particles_Init [156]
+                0.00    0.00       4/49493       Shaders_GetProgram [62]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[157]    0.0    0.00    0.00       1         Pathfinding_Init [157]
+                0.00    0.00       1/49493       Shaders_GetProgram [62]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[158]    0.0    0.00    0.00       1         Shaders_Init [158]
+                0.00    0.00       8/8           CreateShader [139]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[159]    0.0    0.00    0.00       1         UI_Init [159]
+                0.00    0.00       2/2           UI_SliderCreate [147]
+                0.00    0.00       2/16          ImageLoader_CreateImage [132]
+                0.00    0.00       1/1           FontRenderer_Init [151]
+                0.00    0.00       1/1           FontRenderer_SetSize [152]
+                0.00    0.00       1/1           CreateFrameBuffer [148]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[160]    0.0    0.00    0.00       1         Window_Open [160]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[161]    0.0    0.00    0.00       1         World_InitOctree [161]
+                0.00    0.00       2/49493       Shaders_GetProgram [62]
+                0.00    0.00       1/1           OctreeLeaf_Init [155]
+-----------------------------------------------
+
+ This table describes the call tree of the program, and was sorted by
+ the total amount of time spent in each function and its children.
+
+ Each entry in this table consists of several lines.  The line with the
+ index number at the left hand margin lists the current function.
+ The lines above it list the functions that called this function,
+ and the lines below it list the functions this one called.
+ This line lists:
+     index	A unique number given to each element of the table.
+		Index numbers are sorted numerically.
+		The index number is printed next to every function name so
+		it is easier to look up where the function is in the table.
+
+     % time	This is the percentage of the `total' time that was spent
+		in this function and its children.  Note that due to
+		different viewpoints, functions excluded by options, etc,
+		these numbers will NOT add up to 100%.
+
+     self	This is the total amount of time spent in this function.
+
+     children	This is the total amount of time propagated into this
+		function by its children.
+
+     called	This is the number of times the function was called.
+		If the function called itself recursively, the number
+		only includes non-recursive calls, and is followed by
+		a `+' and the number of recursive calls.
+
+     name	The name of the current function.  The index number is
+		printed after it.  If the function is a member of a
+		cycle, the cycle number is printed between the
+		function's name and the index number.
+
+
+ For the function's parents, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the function into this parent.
+
+     children	This is the amount of time that was propagated from
+		the function's children into this parent.
+
+     called	This is the number of times this parent called the
+		function `/' the total number of times the function
+		was called.  Recursive calls to the function are not
+		included in the number after the `/'.
+
+     name	This is the name of the parent.  The parent's index
+		number is printed after it.  If the parent is a
+		member of a cycle, the cycle number is printed between
+		the name and the index number.
+
+ If the parents of the function cannot be determined, the word
+ `<spontaneous>' is printed in the `name' field, and all the other
+ fields are blank.
+
+ For the function's children, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the child into the function.
+
+     children	This is the amount of time that was propagated from the
+		child's children to the function.
+
+     called	This is the number of times the function called
+		this child `/' the total number of times the child
+		was called.  Recursive calls by the child are not
+		listed in the number after the `/'.
+
+     name	This is the name of the child.  The child's index
+		number is printed after it.  If the child is a
+		member of a cycle, the cycle number is printed
+		between the name and the index number.
+
+ If there are any cycles (circles) in the call graph, there is an
+ entry for the cycle-as-a-whole.  This entry shows who called the
+ cycle (as parents) and the members of the cycle (as children.)
+ The `+' recursive calls entry shows the number of function calls that
+ were internal to the cycle, and the calls entry for each member shows,
+ for that member, how many times it was called from other members of
+ the cycle.
+
+Copyright (C) 2012-2026 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Index by function name
+
+ [135] AddObjectToArr         [26] Math_MatrixMatrixMult [142] RemoveUser
+ [128] AddUser                [53] Math_MatrixMult        [14] RiggedModel_Load
+ [143] Animation_Load         [84] Math_MatrixToQuat     [125] SetClosed
+  [51] BitStream_GetBits     [111] Math_Perspective       [20] SetClosedBoundingBox
+  [23] BoneUpdate            [102] Math_PlaneMagnitude    [99] Shaders_GetBonesLocation
+  [27] BoneUpdateVelocities  [103] Math_PlaneNormalize    [95] Shaders_GetDiffuseLocation
+  [79] BoundingBox_AddChild   [81] Math_QuatMult         [104] Shaders_GetInvViewportLocation
+  [80] BoundingBox_Copy       [77] Math_QuatToEuler       [62] Shaders_GetProgram
+  [31] BoundingBox_FreeData   [57] Math_Rotate           [118] Shaders_GetProjectionMatrix
+  [82] BoundingBox_IsSAT      [55] Math_RotateMatrix      [96] Shaders_GetSpecularLocation
+  [37] BoundingBox_ResolveCollision [65] Math_ScaleMatrix [105] Shaders_GetUniColorLocation
+  [35] BoundingBox_UpdatePoints [86] Math_ScalingMatrixXYZ [119] Shaders_GetViewMatrix
+  [76] BoundingBox_UpdateWorldSpaceCube [91] Math_Slerp  [158] Shaders_Init
+  [41] CheckCollision         [75] Math_TranslateMatrix   [68] Shaders_SetModelMatrix
+  [10] Codes                  [67] Math_TransposeMatrix  [112] Shaders_SetProjectionMatrix
+ [148] CreateFrameBuffer      [56] Math_Vec3AddVec3       [89] Shaders_SetUniformColor
+ [139] CreateShader          [109] Math_Vec3Cross        [113] Shaders_SetViewMatrix
+  [52] Decode                 [58] Math_Vec3Dot           [69] Shaders_UpdateModelMatrix
+  [11] Deflate_Read           [59] Math_Vec3Magnitude     [70] Shaders_UpdateProjectionMatrix
+   [7] Draw                   [33] Math_Vec3MultFloat     [71] Shaders_UpdateViewMatrix
+  [97] DrawBoundingBoxes      [61] Math_Vec3MultVec3      [63] Shaders_UseProgram
+ [114] DrawModel              [32] Math_Vec3Normalize     [28] Skeleton_Apply
+ [115] DrawRigged             [94] Math_Vec3SubVec3       [45] Skeleton_Copy
+ [130] Event                 [153] Memory_Init            [24] Skeleton_Update
+  [18] FindViewCollisions     [90] Memory_StackAlloc      [50] Skybox_Create
+ [149] Focus                 [138] Memory_StackPop       [120] Skybox_Draw
+ [150] FontFace_LoadFont      [43] Minion_Create         [146] Text_Init
+ [144] FontFace_SetSize      [100] Minion_Damage         [121] UI_Clear
+ [151] FontRenderer_Init       [9] Minion_Draw           [131] UI_Event
+ [152] FontRenderer_SetSize   [40] Minion_OnCollision    [159] UI_Init
+  [42] GetAnimsBonePos         [4] Minion_Update         [122] UI_Render
+  [93] GetAnimsBoneRot        [21] Model_Load            [106] UI_RenderRect
+  [83] GetAnimsKeyframe      [154] Model_LoadCollisions  [123] UI_RenderRectTex
+ [107] GetClosestNotClosed    [22] Model_SetShapeKey     [147] UI_SliderCreate
+  [85] GetOverlap             [36] ObjUpdate             [126] UI_SliderEvent
+ [127] Huffman_Construct     [134] Object_Create         [110] UI_SliderRender
+ [132] ImageLoader_CreateImage [47] Object_SetModel        [3] Update
+ [140] ImageLoader_SetImageParameters [136] Object_SetSkeleton [78] Window_GetDeltaTime
+  [44] InitBone               [48] Object_UpdateModel     [98] Window_GetTicks
+ [145] LoadAnimation          [15] Object_UpdateSkeleton   [2] Window_MainLoop
+  [12] LoadModel              [16] OctreeLeaf_GetVisibleObjects [160] Window_Open
+  [49] LoadSkeleton          [155] OctreeLeaf_Init       [137] World_AddOffScreenUpdatedObject
+  [54] Math_CheckCollisionCube [133] OctreeLeaf_Insert    [92] World_DrawCube
+  [17] Math_CheckFrustumCollision [141] OctreeLeaf_Remove [72] World_DrawLines
+  [87] Math_CubeIsCompletelyInside [38] OctreeLeaf_ResolveCollisions [73] World_DrawX
+  [29] Math_DistanceToPlane  [101] Particles_DrawBillboard [161] World_InitOctree
+  [74] Math_EulerToQuat      [156] Particles_Init          [8] World_Render
+ [108] Math_Identity         [116] Pathfinding_ClearDynamic [39] World_ResolveCollisions
+  [64] Math_InverseMatrix      [6] Pathfinding_FindPathGrid [5] World_Update
+  [66] Math_InverseMatrixMat3 [157] Pathfinding_Init      [88] World_UpdateObjectInOctree
+  [34] Math_LerpVec3         [117] Pathfinding_RenderDebug [129] onCube
+  [46] Math_LookAt            [19] Pathfinding_SetClosedBoundingBoxStatic [25] triangleArea
+  [60] Math_Mat4ToMat3       [124] Pathfinding_SetClosedStatic
+  [30] Math_MatrixFromQuat    [13] Read

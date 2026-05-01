@@ -8,7 +8,7 @@ void Minion_OnCollision(Game *game, Object *obj,Object *obj1, Object *obj2, Boun
 	Character *character = (Character*)obj->data;
 	Minion *minion = (Minion *)character->data;
 
-	if(bb2->collisionFlag & COLLISIONFLAG_INVISIBLE == 0){
+	if(!(bb2->collisionFlag & COLLISIONFLAG_INVISIBLE) && obj2->type == TYPE_CHARACTER){
 		Vec3 resolve = Math_Vec3MultFloat(axis, -overlap);
 		obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,resolve);
 		obj->ObjUpdate(obj);
@@ -19,22 +19,26 @@ void Minion_OnCollision(Game *game, Object *obj,Object *obj1, Object *obj2, Boun
 void Minion_Update(Game *game, Object *obj){
 	Character *character = (Character*)obj->data;
 	Minion *minion = (Minion *)character->data;
-		
+
+	if(character->death && Window_GetTicks() - character->deathTime > 500){
+		World_RemoveOffScreenUpdatedObject(obj);
+		World_RemoveObjectFromOctree(obj);
+		return;
+	}		
+
 	if(Window_GetTicks() - character->lastTime > 1000){
 		Vec3 toPos = game->player->bb.pos;
 		toPos = Math_Vec3SubVec3(toPos, 
 		Math_Vec3MultFloat(
 		Math_Vec3Normalize(Math_Vec3SubVec3(toPos,obj->bb.pos)), 4));
+		
 		Pathfinding_FindPathGrid(&game->pf,obj->bb.pos, toPos, &character->path);
-		character->lastTime - Window_GetTicks();
-		//Pathfinding_SetClosedBoundingBoxDynamic(&game->pf, &obj->bb);
+		
+		character->lastTime = Window_GetTicks();
+		Pathfinding_SetClosedBoundingBoxDynamic(&game->pf, &obj->bb);
 	}
 	character->health -= 0.0001 * Window_GetDeltaTime();
-	if(character->health <= 0){
-		World_RemoveOffScreenUpdatedObject(obj);
-		World_RemoveObjectFromOctree(obj);
-		return;
-	}
+	character->Damage(game,obj,NULL);
 
 	Vec3 pos = obj->bb.pos;
 	Vec3 toPos = character->path.path[character->onPath];
@@ -79,6 +83,7 @@ void Minion_Update(Game *game, Object *obj){
 void Minion_Draw(Game *game, Object *obj){
 	Character *character = (Character*)obj->data;
 	Minion *minion = (Minion *)character->data;
+
 	
 
 	if(character->showGold){
@@ -88,46 +93,46 @@ void Minion_Draw(Game *game, Object *obj){
 			(Rect2D){0,0,1,1});
 	}
 
+	if(!character->death){
+		Particles_DrawBillboard( game->healthImage, &game->particleSystem, 
+		Math_Vec3AddVec3(obj->bb.pos,(Vec3){-0.2,1.4,0}), (Vec2){1*MIN(character->health,1),0.1},(Vec4){1,1,1,1},
+		(Rect2D){0,0,game->healthImage.w,game->healthImage.h});
 
-	Particles_DrawBillboard( game->healthImage, &game->particleSystem, 
-	Math_Vec3AddVec3(obj->bb.pos,(Vec3){-0.2,1.4,0}), (Vec2){1*MIN(character->health,1),0.1},(Vec4){1,1,1,1},
-	(Rect2D){0,0,game->healthImage.w,game->healthImage.h});
-	
-	minion->playingAnims[0].into += minion->animDir * Window_GetDeltaTime() / 40.1f;
-			
-	if(minion->playingAnims[0].into > minion->animation.length || minion->playingAnims[0].into < 0){
-		minion->animDir = - minion->animDir;
+		minion->playingAnims[0].into += minion->animDir * Window_GetDeltaTime() / 40.1f;
+				
+		if(minion->playingAnims[0].into > minion->animation.length || minion->playingAnims[0].into < 0){
+			minion->animDir = - minion->animDir;
+		}
+
+		Skeleton_Update(&minion->skeleton, minion->playingAnims, 1);
+		Object_UpdateSkeleton(obj, &minion->skeleton);
+		Skeleton_Apply(&minion->skeleton);
+
+		Shaders_UseProgram(SKELETAL_ANIMATION_SHADER);
+
+		Shaders_SetModelMatrix(obj->bb.matrix);
+		Shaders_UpdateModelMatrix();
+
+		glUniform4fv(Shaders_GetBonesLocation(), obj->skeleton->nBones * 3, &obj->skeleton->matrices[0].x);
+		glActiveTexture(GL_TEXTURE0);
+		glBindVertexArray(obj->model->vao);
+
+		int curr = 0;
+
+
+		int k;
+		for(k = 0; k < obj->model->nMaterials; k++){
+
+			glBindTexture(GL_TEXTURE_2D, obj->model->materials[k].texture);
+			glUniform4fv(Shaders_GetDiffuseLocation(), 1, (float *)&obj->model->materials[k].diffuse);
+			glUniform4fv(Shaders_GetSpecularLocation(), 1, (float *)&obj->model->materials[k].specular);
+			glDrawElements(GL_TRIANGLES, obj->model->nElements[k], GL_UNSIGNED_INT, (void *)(curr * sizeof(GLuint)));
+			curr += obj->model->nElements[k];
+		}
+
+		glBindVertexArray(0);
 	}
-
-	Skeleton_Update(&minion->skeleton, minion->playingAnims, 1);
-	Object_UpdateSkeleton(obj, &minion->skeleton);
-	Skeleton_Apply(&minion->skeleton);
-
-	Shaders_UseProgram(SKELETAL_ANIMATION_SHADER);
-
-	Shaders_SetModelMatrix(obj->bb.matrix);
-	Shaders_UpdateModelMatrix();
-
-	glUniform4fv(Shaders_GetBonesLocation(), obj->skeleton->nBones * 3, &obj->skeleton->matrices[0].x);
-	glActiveTexture(GL_TEXTURE0);
-	glBindVertexArray(obj->model->vao);
-
-	int curr = 0;
-
-
-	int k;
-	for(k = 0; k < obj->model->nMaterials; k++){
-
-		glBindTexture(GL_TEXTURE_2D, obj->model->materials[k].texture);
-		glUniform4fv(Shaders_GetDiffuseLocation(), 1, (float *)&obj->model->materials[k].diffuse);
-		glUniform4fv(Shaders_GetSpecularLocation(), 1, (float *)&obj->model->materials[k].specular);
-		glDrawElements(GL_TRIANGLES, obj->model->nElements[k], GL_UNSIGNED_INT, (void *)(curr * sizeof(GLuint)));
-		curr += obj->model->nElements[k];
-	}
-
-	glBindVertexArray(0);
 }
-
 void Minion_Damage(Game *game, Object *this, Object *cause){
 
 	//Spell *spell = (Spell*)cause->data;
@@ -137,14 +142,14 @@ void Minion_Damage(Game *game, Object *this, Object *cause){
 	Minion *minion = (Minion *)character->data;
 
 	//if aggro
-	if(character->health < 0.4){
+	if(character->health < 0.4 && cause){
 		character->showGold = 1;
 	}
 
-	
-	if(character->health < 0){
-		World_RemoveOffScreenUpdatedObject(this);
-		World_RemoveObjectFromOctree(this);
+	if(character->health <= 0 && character->death == 0){
+		character->death = 1;
+		character->deathTime = Window_GetTicks();
+		return;
 	}		
 }
 
@@ -155,16 +160,18 @@ Object *Minion_Create(Game *game, Model *model){
 	obj->type = TYPE_CHARACTER;
 	Character *character = (Character*)obj->data;
 	memset(character, 0, sizeof(Character));
-	
+
 	character->Damage = Minion_Damage;
 	character->data = malloc(sizeof(Minion));
 	character->type = CHARACTER_TYPE_MINION;
 	character->health = 1;
 	character->moveSpeed = 0.001;
 	character->goldImage = ImageLoader_CreateImage("Resources/gold.png",1);
-	
+	character->death = 0;
+	character->deathTime = Window_GetTicks();	
 	Minion *minion = (Minion *)character->data;
 	memset(minion, 0, sizeof(Minion));
+	
 	minion->animDir = 1;
 	Object_SetModel(obj, model);
 	Skeleton_Copy(&minion->skeleton, &model->skeleton);
@@ -181,12 +188,13 @@ Object *Minion_Create(Game *game, Model *model){
 	obj->Update = Minion_Update;
 	obj->OnCollision = Minion_OnCollision;
 	obj->bb.collisionFlag |= COLLISIONFLAG_AABB | COLLISIONFLAG_RAY_OBJ;
-		obj->bb.renderDebug = 0;
+	obj->bb.renderDebug = 0;
 	obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,
-	(Vec3){ (-50 + rand()%100)/20.0f, 1, (-50 + rand()%100)/20.0f});
+	(Vec3){ (-50 + rand()%100)/10.0f, 1, (-50 + rand()%100)/10.0f});
 	obj->bb.scale = (Vec3){0.3,0.3,0.3};
 	obj->bb.rot = (Vec3){0,0,0};
-	obj->bb.pos.z += 10;
+	obj->bb.pos.z += 10;	
+	obj->bb.pos.x -= 5;	
 	obj->ObjUpdate(obj);
 	World_UpdateObjectInOctree(obj);
 	World_AddOffScreenUpdatedObject(obj);

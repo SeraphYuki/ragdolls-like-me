@@ -23,6 +23,8 @@ typedef struct Character Character;
 
 struct Character {
 	float health;	
+	int death;
+	int deathTime;
 	float moveSpeed;
 	int showGold;
 	Image goldImage;

@@ -14,6 +14,7 @@ void SpellAutoAttack_Update(Game *game, Object *obj){
 		Character *directedCharacter = (Character *)spell->directedAt->data;
 
 		directedCharacter->health -= 0.3;
+	
 
 		if(directedCharacter->Damage) directedCharacter->Damage(game, spell->directedAt, obj);
 		if(directedCharacter->health <= 0){

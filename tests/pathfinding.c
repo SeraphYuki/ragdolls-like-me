@@ -434,9 +434,9 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 			}
 			if(closed) continue; 
 
-			float tentative_gscore = current.g + 1;
-			float nx = (float)((int)neighbors[f] % pf->w);
-			float ny = (float)((int)neighbors[f] / pf->w);
+			int tentative_gscore = current.g + 1;
+			int nx = neighbors[f] % pf->w;
+			int ny = neighbors[f] / pf->w;
 
 			AStarNode *open = pf->openFirst;
 			while(open) { 
@@ -468,7 +468,6 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 				open->next = malloc(sizeof(AStarNode));
 				tmp = open;
 				open = open->next;
-			
 			}
 			
 			open->prev = tmp;
