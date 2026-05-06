@@ -395,12 +395,40 @@ static void DrawBoundingBoxes(BoundingBox *bb){
 
 	Shaders_SetUniformColor((Vec4){1,1,1,1});
 	
-	if(!bb->renderDebug) return;
+	//if(!bb->renderDebug) return;
 
 	 if(BoundingBox_IsSAT(bb)){
 		World_DrawSAT(bb);
-	 	//return;
+	 	return;
 	 }
+
+	if(bb->soup.verts){
+
+		Shaders_UseProgram(TEXTURELESS_SHADER);
+		
+		float matrix[16];
+		Math_TranslateMatrix(matrix,(Vec3){0,0.4,0});
+		Shaders_SetModelMatrix(matrix);
+		Shaders_UpdateModelMatrix();
+		Shaders_UpdateViewMatrix();
+		Shaders_UpdateProjectionMatrix();
+
+		glBindVertexArray(vao);
+		glCullFace(GL_BACK);
+
+
+		glDisable(GL_DEPTH_TEST);
+		 glBindBuffer(GL_ARRAY_BUFFER, posVbo);
+		glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+		 glBufferData(GL_ARRAY_BUFFER, bb->soup.nTris * 3 * sizeof(Vec3), 
+		(float *)&bb->soup.verts[0].x, GL_STATIC_DRAW);
+		glDrawArrays(GL_TRIANGLES, 0, bb->soup.nTris * 3);
+		glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+
+		Shaders_SetUniformColor((Vec4){1,1,1,1});
+		glBindVertexArray(0);
+		glEnable(GL_DEPTH_TEST);
+	}
 	
 	 World_DrawCube(bb->wsCube);
 }

@@ -14,15 +14,9 @@ typedef struct Game Game;
 #define COLLISIONFLAG_RADIUS 0x040
 #define COLLISIONFLAG_POLYSOUP 0x080
 
-typedef struct {
-	int index;
-	Vec3 points[3];
-	Vec3 centroid;
-	float radius;
-} PolySoupTri;
 
 typedef struct {
-	PolySoupTri *tris;
+	Vec3 *verts;
 	int nTris;
 } PolySoup;
 

@@ -72,6 +72,7 @@ void SpellAutoAttack_Draw(Game *game, Object *obj){
 	Shaders_GetInvViewMatrix(invView);
 	Vec3 forward = (Vec3){invView[2], invView[6], invView[10]};
 	Vec3 camPos = (Vec3){invView[3], invView[7], invView[11]};
+	
 	Particles_DrawParticles(autoAttack->particleImage, 
 		&game->particleSystem, autoAttack->particles, 100, 50, forward, camPos, 0);
 

@@ -145,45 +145,41 @@ Vec3 Math_BarycentricVec2(Vec2 a, Vec2 b, Vec2 c, Vec2 p) {
 	 return (Vec3){1.f-(u.x+u.y)/u.z, u.y/u.z, u.x/u.z}; 
 } 
 
-float Math_IntersectLineTriangle(Vec3 p, Vec3 q, Vec3 a, Vec3 b,Vec3 c, Vec3 *r) { 
+float Math_IntersectLineTriangle(Vec3 p, Vec3 q, Vec3 a, Vec3 b,Vec3 c, Vec3 *r) {
 
-	Vec3 ab = Math_Vec3SubVec3(b,a);
-	Vec3 ac = Math_Vec3SubVec3(c,a);
-	Vec3 qp = Math_Vec3SubVec3(p,q);
-
-	Vec3 n = Math_Vec3Cross(ab, ac);
-	float d = Math_Vec3Dot(qp, n);
-	if(d <= 0.0f) return 0;
+	Vec3 edge1 = Math_Vec3SubVec3(b,a);
+	Vec3 edge2 = Math_Vec3SubVec3(c,a);
+	Vec3 normal = Math_Vec3Cross(edge1,edge2);
 	
-	Vec3 ap = Math_Vec3SubVec3(p,a);
+	if(Math_Vec3Dot(normal, q) > 0) return 0;
 
-	float t = Math_Vec3Dot( ap,n);
-	if(t < 0.0f) return 0;
-	//if(t > d) return 0;
+	Vec3 ray_cross_e2 = Math_Vec3Cross(q,edge2);
 
-	Vec3 e = Math_Vec3Cross(qp, ap);
-	float v = Math_Vec3Dot(ac, e);
-
-	if(v < 0.0f || v > d) return 0;
-	float w = -Math_Vec3Dot(ab,e);
-	if(w < 0.0f || v + w > d) return 0;
-
-	float ood = 1.0f/d;
-			
-	t *= ood;
-	v *= ood;
-	w *= ood;
-	float u = 1.0 - v - w;
+	float det = Math_Vec3Dot(edge1, ray_cross_e2);
+	if(fabs(det) < EPSILON) return 0;
 	
-	*r = Math_Vec3AddVec3(
-		Math_Vec3MultFloat(a,u), 
-		Math_Vec3AddVec3(Math_Vec3MultFloat(b,v),
-		Math_Vec3MultFloat(c,w)));
+	float inv_det = 1.0f/det;
+	Vec3 s = Math_Vec3SubVec3(p, a);
+	float u = inv_det * Math_Vec3Dot(s, ray_cross_e2);
+	if(u < -EPSILON || u - 1 > EPSILON) return 0;
 	
-	return 1;
+	
+	Vec3 s_cross_e1 = Math_Vec3Cross(s, edge1);
+	float v = inv_det * Math_Vec3Dot(q, s_cross_e1);
+	if(v < -EPSILON || u + v - 1 > EPSILON) return 0;
+
+
+	float t = inv_det * Math_Vec3Dot(edge2, s_cross_e1);
+	printf("%f %f %f\n", u, v, t);
+	if(t > EPSILON){
+		
+		*r = Math_Vec3AddVec3(p,
+			Math_Vec3MultFloat(q,t));
+		return 1;
+	}
+
+	return 0;
 }
- 
-
 
 int Math_CheckFrustumCollision(Cube r, Plane *frustumPlanes);
 

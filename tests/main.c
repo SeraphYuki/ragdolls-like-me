@@ -50,7 +50,7 @@ static char movingDirs[5];
 static Vec3 moveToPos;
 
 float persp[16], view[16], model[16];
-static Vec3 rotation = {0,0,0};
+static Vec3 rotation = {0,-1,0};
 static Vec2 mousepos = {0,0};
 static Vec3 position = {4,6,-4};
 static Vec3 renderpos = {-2,5,4};
@@ -83,24 +83,26 @@ static void onCube(Game *game, Object *obj, Object *obj1,
 Object *obj2, BoundingBox *bb, BoundingBox *bb2, Vec3 axis, float overlap){
 	
 	if(bb2->collisionFlag & COLLISIONFLAG_POLYSOUP){
+		//bb->pos.y = 4;
 		int k;
-		for(k = 0; k < bb2->soup.nTris; k++){
-			//Vec3 p0 = bb2->soup.tris[k].points[0];
-			//Vec3 p1 = bb2->soup.tris[k].points[1];
-			//Vec3 p2 = bb2->soup.tris[k].points[2];
-			//Vec3 point;
-			//p0 = Math_Vec3MultVec3(p0, bb2->scale);
-			//p1 = Math_Vec3MultVec3(p1, bb2->scale);
-			//p2 = Math_Vec3MultVec3(p2, bb2->scale);
-			//p0 = Math_Vec3AddVec3(p0, bb2->pos);
-			//p1 = Math_Vec3AddVec3(p1, bb2->pos);
-			//p2 = Math_Vec3AddVec3(p2, bb2->pos);
-			//if(Math_IntersectLineTriangle(Math_Vec3AddVec3(bb->pos,(Vec3){0,-4,0}),
-				//(Vec3){0,1,0}, p0,p1,p2,&point)!=0){
-				//printf("%f\n", point.y);
-				//bb->pos.y = point.y-0.5;
-				//obj->ObjUpdate(obj);
-			//}
+		for(k = 0; k < bb2->soup.nTris*3; k+=3){
+			Vec3 p0 = bb2->soup.verts[k];
+			Vec3 p1 = bb2->soup.verts[k+1];
+			Vec3 p2 = bb2->soup.verts[k+2];
+
+			Vec3 point;
+			p0 = Math_Vec3MultVec3(p0, bb2->scale);
+			p1 = Math_Vec3MultVec3(p1, bb2->scale);
+			p2 = Math_Vec3MultVec3(p2, bb2->scale);
+			p0 = Math_Vec3AddVec3(p0, bb2->pos);
+			p1 = Math_Vec3AddVec3(p1, bb2->pos);
+			p2 = Math_Vec3AddVec3(p2, bb2->pos);
+
+			if(Math_IntersectLineTriangle(Math_Vec3AddVec3(bb->pos,(Vec3){0,4,0}),
+				(Vec3){0,-1,0}, p0, p1, p2, &point)){
+				bb->pos.y = point.y + (bb->wsCube.h/2) - 1;
+				obj->ObjUpdate(obj);
+			}
 		}
 
 	}
@@ -124,7 +126,7 @@ static void Update(){
 	}
 	 game.player->bb.pos.y -= Window_GetDeltaTime() / 1000.0f;
 	if(game.player->bb.pos.y < 0.2){
-	    game.player->bb.pos.y = 0.2;
+	    //game.player->bb.pos.y = 0.2;
 	}
 
 	static float animDir = 1;
@@ -579,7 +581,7 @@ int main(int argc, char **argv){
 	RiggedModel_Load(&game.models[MODEL_PLAYER-1], "Resources/figure.yuk");
 	Skeleton_Copy(&playerSkel, &game.models[MODEL_PLAYER-1].skeleton);
 	Animation_Load(&game.animations[ANIMATION_PLAYER-1], "Resources/figure_ArmatureAction.anm");
-	Animation_Load(&game.animations[ANIMATION_MINION-1], "Resources/minion_ArmatureAction.anm");
+	Animation_Load(&game.animations[ANIMATION_MINION-1], "Resources/minion_ArmatureAction.001.anm");
 	game.images[IMAGE_GOLD-1] = ImageLoader_CreateImage("Resources/gold.png",1);
 	game.images[IMAGE_PARTICLES-1] = ImageLoader_CreateImage("Resources/smoke.png",1);;
 	Object_SetModel(game.player, &game.models[MODEL_PLAYER-1]);
@@ -610,7 +612,6 @@ int main(int argc, char **argv){
 	game.world->Draw = DrawModel;
 	game.world->AddUser(game.world);
 	
-	// if not set it wont collide
 	game.world->bb.rot = (Vec3){0,0,0};
 	moveToPos = game.player->bb.pos;
 	game.world->ObjUpdate(game.world);
@@ -625,12 +626,15 @@ int main(int argc, char **argv){
 		game.world->bb.children[k].collisionFlag |= COLLISIONFLAG_RAY_WORLD;
 		Pathfinding_SetClosedBoundingBoxStatic(&game.pf, &game.world->bb.children[k]);
 	}
+
+	game.world->bb.children[0].rot = (Vec3){0,1,0};;
 	game.world->bb.children[0].collisionFlag = COLLISIONFLAG_AABB;
 	game.world->bb.collisionFlag |= COLLISIONFLAG_AABB;
 	game.world->bb.children[0].collisionFlag |= COLLISIONFLAG_RAY_WORLD;
 	game.world->bb.children[0].collisionFlag |= COLLISIONFLAG_POLYSOUP;
-	game.world->bb.collisionFlag |= COLLISIONFLAG_RAY_WORLD;
-
+	game.world->bb.collisionFlag |= COLLISIONFLAG_RAY_WORLD ;
+	game.world->bb.collisionFlag |= COLLISIONFLAG_POLYSOUP ;
+	
 	BoundingBox_LoadSoup(&game.world->bb.children[0], "Resources/roomsoup.yuk");
 	
 	RiggedModel_Load(&game.models[MODEL_MINION-1], "Resources/minion.yuk");

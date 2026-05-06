@@ -93,23 +93,18 @@ void BoundingBox_LoadSoup(BoundingBox *bb, const char *path){
 
 	fread(&soup->nTris, 1, sizeof(int), fp);
 
-	int size = stride * soup->nTris;
+	int size = stride * soup->nTris * 3;
 
-	Vec3 *verts = (Vec3 *)Memory_StackAlloc(TEMP_STACK, size);
+	soup->verts = (Vec3 *)Memory_StackAlloc(MAIN_STACK, size);
 	
-    soup->tris = (PolySoupTri *)Memory_StackAlloc(MAIN_STACK, sizeof(PolySoupTri) * 
-		soup->nTris);
-
-	fread(verts, 1, size, fp);
+	fread(soup->verts, 1, size, fp);
 
 
 	bb->cube.x = bb->cube.y = bb->cube.z = HUGE_VAL;
 	bb->cube.w = bb->cube.h = bb->cube.d = -HUGE_VAL;
-	for(k = 0; k < soup->nTris; k++){
-		  Vec3 *pos = &soup->tris[k].points[k];
-		*pos = verts[k];
+	for(k = 0; k < soup->nTris*3; k++){
+		Vec3 *pos = &soup->verts[k];
 
-		printf("%f %f %f %f\n", pos->x, pos->y, pos->z);
 	     if(pos->x < bb->cube.x)
 	         bb->cube.x = pos->x;
 	     if(pos->x > bb->cube.w)
@@ -129,17 +124,9 @@ void BoundingBox_LoadSoup(BoundingBox *bb, const char *path){
 
 	 fclose(fp);
 	
-	 for(k = 0; k < soup->nTris; k++){
-		//soup->tris[k].index = k;
-	     //soup->tris[k].centroid = Math_Vec3MultFloat(Math_Vec3AddVec3(
-						//Math_Vec3AddVec3(soup->tris[k].points[0],soup->tris[k].points[1]),
-									//soup->tris[k].points[0]), 1.0f/3);
-
-		//float mag1 = Math_Vec3Magnitude(Math_Vec3SubVec3(soup->tris[k].points[0],soup->tris[k].points[1]));
-		//float mag2 = Math_Vec3Magnitude(Math_Vec3SubVec3(soup->tris[k].points[0],soup->tris[k].points[2]));
-		//soup->tris[k].radius = mag1 > mag2 ? mag1 : mag2;
-	}
-	Memory_StackPop(1,TEMP_STACK);
+	
+	BoundingBox_UpdatePoints(bb);
+	//Memory_StackPop(1,TEMP_STACK);
 }
 
 float SAT_Collision(Vec3 *pointsA, Vec3 *pointsB, Vec3 *axesA, Vec3 *axesB, float *overlap, Vec3 *axis){
@@ -345,29 +332,34 @@ int BoundingBox_ResolveCollision(Game *game, Object *obj1, BoundingBox *bb, Obje
 	}
 
 	if((bb->collisionFlag & COLLISIONFLAG_NONE)|| (bb2->collisionFlag & COLLISIONFLAG_NONE)) return ret;
-
+	
 	Vec3 axis;
 	float overlap = 0;
-	
-	if(!(bb->collisionFlag & COLLISIONFLAG_RADIUS) && !(bb2->collisionFlag & COLLISIONFLAG_RADIUS)){
-				
-		if((BoundingBox_IsSAT(bb) || BoundingBox_IsSAT(bb2))){
 
-			if(!BoundingBox_SATCollision(bb, bb2, &overlap, &axis)){
-				return ret;	
+	if(!(bb->collisionFlag & COLLISIONFLAG_POLYSOUP) &&  
+		!(bb2->collisionFlag & COLLISIONFLAG_POLYSOUP)){
+		
+		if(!(bb->collisionFlag & COLLISIONFLAG_RADIUS) && !(bb2->collisionFlag & COLLISIONFLAG_RADIUS)){
+					
+			if((BoundingBox_IsSAT(bb) || BoundingBox_IsSAT(bb2))){
+
+				if(!BoundingBox_SATCollision(bb, bb2, &overlap, &axis)){
+					return ret;	
+				}
+			} else {
+
+				Vec3 axes[] = {
+					(Vec3){1,0,0},
+					(Vec3){0,1,0},
+					(Vec3){0,0,1},
+				};
+
+				if(!CheckCollision(axes, 3, bb->points,8,bb2->points, 8, &overlap,&axis))
+					return 0;
 			}
-		} else {
-
-			Vec3 axes[] = {
-				(Vec3){1,0,0},
-				(Vec3){0,1,0},
-				(Vec3){0,0,1},
-			};
-
-			if(!CheckCollision(axes, 3, bb->points,8,bb2->points, 8, &overlap,&axis))
-				return 0;
 		}
 	}
+
 
 	if(obj1){
 		

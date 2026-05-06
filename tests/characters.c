@@ -46,7 +46,7 @@ void Minion_Update(Game *game, Object *obj){
 		bb.collisionFlag |= COLLISIONFLAG_RADIUS;
 		World_ResolveCollisions(game, obj, &bb);
 	} else {
-		if(Window_GetTicks() - character->lastAttack > 4000){
+		if(Window_GetTicks() - character->lastAttack > 8000){
 			Spell_AutoAttack_Cast(game, obj, character->aggro);
 			character->lastAttack = Window_GetTicks();
 		}	
@@ -133,22 +133,34 @@ void Minion_Draw(Game *game, Object *obj){
 		Math_Vec3AddVec3(obj->bb.pos,(Vec3){-0.2,1.4,0}), (Vec2){1*MIN(character->health,1),0.1},(Vec4){1,1,1,1},
 		(Rect2D){0,0,game->images[IMAGE_HEALTH-1].w,game->images[IMAGE_HEALTH-1].h});
 
-		minion->playingAnims[0].into += minion->animDir * Window_GetDeltaTime() / 40.1f;
-				
-		if(minion->playingAnims[0].into > minion->animation.length || minion->playingAnims[0].into < 0){
-			minion->animDir = - minion->animDir;
+		minion->playingAnims[0].into += (minion->animDir * Window_GetDeltaTime()) / 40.1f;
+		
+		if(minion->playingAnims[0].into >= minion->animation.length || 
+			minion->playingAnims[0].into < 0){
+			
+			if(minion->playingAnims[0].into < 0){
+				minion->playingAnims[0].into = 0;
+				minion->animDir = 1;
+			}
 		}
+
 
 		Skeleton_Update(&minion->skeleton, minion->playingAnims, 1);
 		Object_UpdateSkeleton(obj, &minion->skeleton);
 		Skeleton_Apply(&minion->skeleton);
+
+	int j;
+	for(j = 0; j < obj->skelBb.numChildren; j++){
+		World_DrawSkeleton(&obj->skelBb.children[j]);
+	}
 
 		Shaders_UseProgram(SKELETAL_ANIMATION_SHADER);
 
 		Shaders_SetModelMatrix(obj->bb.matrix);
 		Shaders_UpdateModelMatrix();
 
-		glUniform4fv(Shaders_GetBonesLocation(), obj->skeleton->nBones * 3, &obj->skeleton->matrices[0].x);
+		glUniform4fv(Shaders_GetBonesLocation(), obj->skeleton->nBones * 3, 
+		&minion->skeleton.matrices[0].x);
 		glActiveTexture(GL_TEXTURE0);
 		glBindVertexArray(obj->model->vao);
 
@@ -208,9 +220,11 @@ Object *Minion_Create(Game *game, Model *model){
 	Minion *minion = (Minion *)character->data;
 	memset(minion, 0, sizeof(Minion));
 	
+		
 	minion->animDir = 1;
 	Object_SetModel(obj, model);
 	Skeleton_Copy(&minion->skeleton, &model->skeleton);
+	obj->skeleton = &minion->skeleton;
 	Object_SetSkeleton(obj,&minion->skeleton);
 	
 	minion->playingAnims[0] = (PlayingAnimation){
@@ -227,7 +241,7 @@ Object *Minion_Create(Game *game, Model *model){
 	obj->bb.renderDebug = 0;
 	obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,
 	(Vec3){ (-50 + rand()%100)/20.0f, 1, (-50 + rand()%100)/10.0f});
-	obj->bb.scale = (Vec3){0.3,0.3,0.3};
+	obj->bb.scale = (Vec3){0.14,0.14,0.14};
 	obj->bb.rot = (Vec3){0,0,0};
 	obj->bb.pos.z += 14;	
 	obj->bb.pos.x -= 5;	
