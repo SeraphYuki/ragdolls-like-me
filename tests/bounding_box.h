@@ -12,12 +12,26 @@ typedef struct Game Game;
 #define COLLISIONFLAG_RAY_WORLD 0x010
 #define COLLISIONFLAG_RAY_OBJ 0x020
 #define COLLISIONFLAG_RADIUS 0x040
+#define COLLISIONFLAG_POLYSOUP 0x080
+
+typedef struct {
+	int index;
+	Vec3 points[3];
+	Vec3 centroid;
+	float radius;
+} PolySoupTri;
+
+typedef struct {
+	PolySoupTri *tris;
+	int nTris;
+} PolySoup;
 
 typedef struct Object Object;
 
 typedef struct _BoundingBox {
 	struct _BoundingBox *parent;
 	struct _BoundingBox *children;
+	PolySoup soup;
 	short numChildren;
 	Cube cube;
 	Cube wsCube;
@@ -70,4 +84,6 @@ Vec3 BoundingBox_GetPosition(BoundingBox *bb);
 
 BoundingBox *BoundingBox_GetTop(BoundingBox *bb);
 
+void BoundingBox_LoadSoup(BoundingBox *soup, const char *path);
+	
 #endif

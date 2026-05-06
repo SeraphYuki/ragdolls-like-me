@@ -80,6 +80,68 @@ static int CheckCollision(Vec3 *axes, int nAxes, Vec3 *pointsA, int nPointsA, Ve
 	return 1;
 }
 
+void BoundingBox_LoadSoup(BoundingBox *bb, const char *path){
+
+	PolySoup *soup = &bb->soup;
+
+	int k;
+	u16 stride = sizeof(Vec3);
+	
+	void *offset = (void *)sizeof(Vec3);
+
+	FILE *fp = fopen(path, "rb");
+
+	fread(&soup->nTris, 1, sizeof(int), fp);
+
+	int size = stride * soup->nTris;
+
+	Vec3 *verts = (Vec3 *)Memory_StackAlloc(TEMP_STACK, size);
+	
+    soup->tris = (PolySoupTri *)Memory_StackAlloc(MAIN_STACK, sizeof(PolySoupTri) * 
+		soup->nTris);
+
+	fread(verts, 1, size, fp);
+
+
+	bb->cube.x = bb->cube.y = bb->cube.z = HUGE_VAL;
+	bb->cube.w = bb->cube.h = bb->cube.d = -HUGE_VAL;
+	for(k = 0; k < soup->nTris; k++){
+		  Vec3 *pos = &soup->tris[k].points[k];
+		*pos = verts[k];
+
+		printf("%f %f %f %f\n", pos->x, pos->y, pos->z);
+	     if(pos->x < bb->cube.x)
+	         bb->cube.x = pos->x;
+	     if(pos->x > bb->cube.w)
+	         bb->cube.w = pos->x;
+	     if(pos->y < bb->cube.y)
+	         bb->cube.y = pos->y;
+	     if(pos->y > bb->cube.h)
+	         bb->cube.h = pos->y;
+	     if(pos->z < bb->cube.z)
+	         bb->cube.z = pos->z;
+	     if(pos->z >  bb->cube.d)
+	         bb->cube.d = pos->y;
+	 }
+	 bb->cube.w -= bb->cube.x;
+	 bb->cube.h -= bb->cube.y;
+	 bb->cube.d -= bb->cube.z;
+
+	 fclose(fp);
+	
+	 for(k = 0; k < soup->nTris; k++){
+		//soup->tris[k].index = k;
+	     //soup->tris[k].centroid = Math_Vec3MultFloat(Math_Vec3AddVec3(
+						//Math_Vec3AddVec3(soup->tris[k].points[0],soup->tris[k].points[1]),
+									//soup->tris[k].points[0]), 1.0f/3);
+
+		//float mag1 = Math_Vec3Magnitude(Math_Vec3SubVec3(soup->tris[k].points[0],soup->tris[k].points[1]));
+		//float mag2 = Math_Vec3Magnitude(Math_Vec3SubVec3(soup->tris[k].points[0],soup->tris[k].points[2]));
+		//soup->tris[k].radius = mag1 > mag2 ? mag1 : mag2;
+	}
+	Memory_StackPop(1,TEMP_STACK);
+}
+
 float SAT_Collision(Vec3 *pointsA, Vec3 *pointsB, Vec3 *axesA, Vec3 *axesB, float *overlap, Vec3 *axis){
 
 		Vec3 axes[] = {

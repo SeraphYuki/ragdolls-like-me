@@ -153,13 +153,13 @@ typedef struct {
  void Math_PlaneNormalize(Plane *p);
 int Math_CheckFrustumCollision(Cube r, Plane *frustumPlanes);
 
+float Math_IntersectLineTriangle(Vec3 p, Vec3 q, Vec3 a, Vec3 b,Vec3 c, Vec3 *r);
 float Math_GetDistanceFloat(float min1, float max1, float min2, float max2);
 Vec2 Math_GetDistanceRect(Rect r1, Rect r2);
 Vec3 Math_GetDistanceCube(Cube r1, Cube r2);
 int Math_GetDistanceInt(int min1, int max1, int min2, int max2);
 float Math_RectCheckCollisionRay(Rect r, Ray ray);
 float Math_CubeCheckCollisionRay(Cube r, Ray ray);
-
 void Math_Ik_AddJoint(Arm *arm, float mag, Vec3 rotation);
 float Math_Ik_ArmLength(Arm arm);
 void Math_Ik_Solve(Arm *arm, Vec3 endPos);
@@ -170,6 +170,8 @@ char Math_QuatEqualToQuat(Quat q1, Quat q2);
 Quat Math_QuatMult(Quat q1, Quat q2);
 Vec3 Math_QuatRotate(Quat q, Vec3 v);
 Quat Math_Quat(Vec3 v, float a);
+float Math_TriangleArea(Vec2 a, Vec2 b, Vec2 c);
+Vec3 Math_Barycentric(Vec2 a, Vec2 b, Vec2 c, Vec2 p);
 Quat Math_QuatConj(Quat q);
 float Math_QuatMag(Quat q);
 Quat Math_QuatInv(Quat q);

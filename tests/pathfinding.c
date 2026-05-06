@@ -168,8 +168,6 @@ static void SetClosedBoundingBox(Pathfinder *pf, BoundingBox *bb,
 	//int tx = x+((bb->wsCube.x+bb->wsCube.w-pf->cube.x) / PATHFINDING_NODE_GRID_SIZE);
 	//int ty = y+((bb->wsCube.z+bb->wsCube.d-pf->cube.z) / PATHFINDING_NODE_GRID_SIZE);;
 	//int k;
-	//printf("%i %i\n", x, y);
-	//printf("%i %i\n", tx, ty);
 	//for(; x < tx; x++){
 		//for(; y < ty; y++){
 	
@@ -304,6 +302,7 @@ static int GetClosestNotClosed(Pathfinder *pf, int index){
 
 					return neighbors[f];
 				}
+				if(index > pf->w * pf->h) return 0;
 				index++;
 			}
 		}
@@ -331,11 +330,13 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 	curr->prev = NULL;
 	path->nPath = 0;
 
+
 	int goalIndex = GetClosestNotClosed(pf, gx + (gy * pf->w));
 	int attempts = 0;
+
 	
 	AStarNode current;
-	while(pf->openFirst && attempts < 300){
+	while(pf->openFirst && attempts < 1000){
 		attempts++;
 		curr = pf->openFirst;
 
@@ -354,7 +355,7 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 		if(current.index == goalIndex){ 
 			path->nPath = 0;
 			Vec3 pathReversed[MAX_PATHFINDING_PATH];
-			while(curr){
+			while(curr && path->nPath < MAX_PATHFINDING_PATH){
 				float nx = (float)((int)curr->index % pf->w);
 				float ny = (float)((int)curr->index / pf->w);
 		
@@ -392,14 +393,12 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 			return 0;
 		}
 		
-	
 		if(curr->next)curr->next->prev = curr->prev;
 		if(curr->prev)curr->prev->next = curr->next;
 
 		if(curr->prev == NULL){
 			pf->openFirst = NULL;
 		}
-
 
 		if(pf->closedFirst){
 			AStarNode *last = pf->closedFirst;
@@ -425,7 +424,6 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 			current.index - 1 - pf->w,
 			current.index - (pf->w - 1),
 		};
-		
 		int f;
 		for(f = 0; f < 8; f++){
 			if(neighbors[f] < 0 || neighbors[f] > pf->w * pf->h) continue;
@@ -499,6 +497,7 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 		}
 		pf->closedObstaclesLast->next = NULL;
 	}
+
 
 	return 0;
 }

@@ -409,6 +409,7 @@ void Skeleton_UpdateSprings(Skeleton *skeleton){
     BoneUpdateSprings(skeleton->root, skeleton->matrices);
 }
 
+
 static void LoadModel(Model *model, FILE *fp, u16 stride){
 
     fread(&model->nMaterials, 1, sizeof(int), fp);
@@ -469,7 +470,7 @@ static void LoadModel(Model *model, FILE *fp, u16 stride){
 	         model->materials[k].w = textures[model->materials[k].texture-1].w;
 	         model->materials[k].h = textures[model->materials[k].texture-1].h;
 	         model->materials[k].texture = textures[model->materials[k].texture-1].tex;
-	     }
+		}
 
         if(model->materials[k].normalTexture > 0 && model->materials[k].normalTexture < MAX_MODEL_MATERIALS){
 	         ++model->nNormalTextures;

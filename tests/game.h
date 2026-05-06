@@ -5,6 +5,7 @@
 #include "particles.h"
 #include "pathfinding.h"
 #include "mesh.h"
+#include "image_loader.h"
 
 typedef struct Object Object;
 #define MAX_CHARACTERS 100
@@ -15,6 +16,13 @@ enum {
 	MODEL_MINION,
 	MODEL_PLAYER,
 	NUM_MODELS,
+};
+
+enum {
+	IMAGE_PARTICLES = 1,
+	IMAGE_HEALTH,
+	IMAGE_GOLD,
+	NUM_IMAGES,
 };
 
 enum {
@@ -38,8 +46,8 @@ struct Game {
 	Ray ray;
 	Animation 		animations[NUM_ANIMATIONS];
 	Model 			models[NUM_MODELS];
+	Image			images[NUM_IMAGES];
 	ParticleSystem 	particleSystem;
-	Image 			healthImage;
 	int 			cs;
 };
 

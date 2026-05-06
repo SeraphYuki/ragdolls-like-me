@@ -81,8 +81,31 @@ static void onThrow(Object *obj, Object *obj2, BoundingBox *bb, BoundingBox *bb2
 
 static void onCube(Game *game, Object *obj, Object *obj1, 
 Object *obj2, BoundingBox *bb, BoundingBox *bb2, Vec3 axis, float overlap){
+	
+	if(bb2->collisionFlag & COLLISIONFLAG_POLYSOUP){
+		int k;
+		for(k = 0; k < bb2->soup.nTris; k++){
+			//Vec3 p0 = bb2->soup.tris[k].points[0];
+			//Vec3 p1 = bb2->soup.tris[k].points[1];
+			//Vec3 p2 = bb2->soup.tris[k].points[2];
+			//Vec3 point;
+			//p0 = Math_Vec3MultVec3(p0, bb2->scale);
+			//p1 = Math_Vec3MultVec3(p1, bb2->scale);
+			//p2 = Math_Vec3MultVec3(p2, bb2->scale);
+			//p0 = Math_Vec3AddVec3(p0, bb2->pos);
+			//p1 = Math_Vec3AddVec3(p1, bb2->pos);
+			//p2 = Math_Vec3AddVec3(p2, bb2->pos);
+			//if(Math_IntersectLineTriangle(Math_Vec3AddVec3(bb->pos,(Vec3){0,-4,0}),
+				//(Vec3){0,1,0}, p0,p1,p2,&point)!=0){
+				//printf("%f\n", point.y);
+				//bb->pos.y = point.y-0.5;
+				//obj->ObjUpdate(obj);
+			//}
+		}
+
+	}
+
 	//obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,Math_Vec3MultFloat(axis, -overlap));
-	//obj->ObjUpdate(obj);
 }
 
 static void Update(){
@@ -475,7 +498,7 @@ static char Draw(){
 	//UI_RenderRectTex(&ui, img, 0,0, img.w/2,img.h, 
 	//0,0, img.w/2,img.h, 255,255,255,255);
 
-	//Pathfinding_RenderDebug(&game.pf,&pfpath);
+	Pathfinding_RenderDebug(&game.pf,&pfpath);
 
 	UI_Render(&ui, &game);
 
@@ -489,6 +512,10 @@ static char Draw(){
 static void OnResize(){
 	//Thoth_Render(thoth); 
 
+}
+
+void PlayerDamage(Game *game, Object *this, Object *cause){
+	
 }
 
 int main(int argc, char **argv){
@@ -517,7 +544,7 @@ int main(int argc, char **argv){
 	particleImg.nFramesX = 5;
 	particleImg.nFramesY = 5;
 	billboardImg = ImageLoader_CreateImage("Resources/tex.png",1);	
-	game.healthImage = ImageLoader_CreateImage("Resources/health.png",1);	
+	game.images[IMAGE_HEALTH-1] = ImageLoader_CreateImage("Resources/health.png",1);	
 
 	World_InitOctree((Vec3){-100, -100, -100}, 200, 25);
 
@@ -542,17 +569,19 @@ int main(int argc, char **argv){
 
 	game.player = Object_Create();
 	game.player->skeleton = &playerSkel;
-	game.player->type = TYPE_PLAYER;
+	game.player->type = TYPE_CHARACTER;
 	game.player->data = malloc(sizeof(Character));
 	
 
 	((Character*)game.player->data)->type = CHARACTER_TYPE_PLAYER;
+	((Character*)game.player->data)->Damage = PlayerDamage;
 	memcpy(game.player->matrix, Math_Identity, sizeof(Math_Identity));
 	RiggedModel_Load(&game.models[MODEL_PLAYER-1], "Resources/figure.yuk");
 	Skeleton_Copy(&playerSkel, &game.models[MODEL_PLAYER-1].skeleton);
 	Animation_Load(&game.animations[ANIMATION_PLAYER-1], "Resources/figure_ArmatureAction.anm");
 	Animation_Load(&game.animations[ANIMATION_MINION-1], "Resources/minion_ArmatureAction.anm");
-	
+	game.images[IMAGE_GOLD-1] = ImageLoader_CreateImage("Resources/gold.png",1);
+	game.images[IMAGE_PARTICLES-1] = ImageLoader_CreateImage("Resources/smoke.png",1);;
 	Object_SetModel(game.player, &game.models[MODEL_PLAYER-1]);
 	game.player->bb.collisionFlag |= COLLISIONFLAG_SAT;
 	
@@ -575,6 +604,8 @@ int main(int argc, char **argv){
 	game.world = Object_Create();
 	Model_Load(&game.models[MODEL_WORLD-1], "Resources/room.yuk");
 	Model_LoadCollisions(&game.models[MODEL_WORLD-1], "Resources/room.col");
+	
+
 	Object_SetModel(game.world, &game.models[MODEL_WORLD-1]);
 	game.world->Draw = DrawModel;
 	game.world->AddUser(game.world);
@@ -594,10 +625,13 @@ int main(int argc, char **argv){
 		game.world->bb.children[k].collisionFlag |= COLLISIONFLAG_RAY_WORLD;
 		Pathfinding_SetClosedBoundingBoxStatic(&game.pf, &game.world->bb.children[k]);
 	}
-	game.world->bb.children[0].collisionFlag |= COLLISIONFLAG_AABB;
+	game.world->bb.children[0].collisionFlag = COLLISIONFLAG_AABB;
 	game.world->bb.collisionFlag |= COLLISIONFLAG_AABB;
 	game.world->bb.children[0].collisionFlag |= COLLISIONFLAG_RAY_WORLD;
+	game.world->bb.children[0].collisionFlag |= COLLISIONFLAG_POLYSOUP;
 	game.world->bb.collisionFlag |= COLLISIONFLAG_RAY_WORLD;
+
+	BoundingBox_LoadSoup(&game.world->bb.children[0], "Resources/roomsoup.yuk");
 	
 	RiggedModel_Load(&game.models[MODEL_MINION-1], "Resources/minion.yuk");
 

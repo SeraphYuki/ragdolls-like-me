@@ -135,6 +135,55 @@ float Math_DistanceToPlane(Plane p, Vec3 point) { return p.a*point.x + p.b*point
 double Math_PlaneMagnitude(Plane p){ return sqrt(p.a*p.a + p.b*p.b + p.c*p.c); }
 void Math_PlaneNormalize(Plane *p){ double mag = Math_PlaneMagnitude(*p); p->a /= mag; p->b /= mag; p->c /= mag; p->d /= mag;}
 
+float Math_TriangleAreaVec2(Vec2 a, Vec2 b, Vec2 c){
+	return (a.x - c.x) * (b.y - c.y) - (b.x - c.x) * (a.y - c.y);
+}
+
+Vec3 Math_BarycentricVec2(Vec2 a, Vec2 b, Vec2 c, Vec2 p) { 
+	 Vec3 u = Math_Vec3Cross((Vec3){c.x-a.x, b.x-a.x, a.x-p.x}, (Vec3){c.y-a.y, b.y-a.y, a.y-p.y});
+	 if(fabs(u.z)<1) return (Vec3){-1,1,1};
+	 return (Vec3){1.f-(u.x+u.y)/u.z, u.y/u.z, u.x/u.z}; 
+} 
+
+float Math_IntersectLineTriangle(Vec3 p, Vec3 q, Vec3 a, Vec3 b,Vec3 c, Vec3 *r) { 
+
+	Vec3 ab = Math_Vec3SubVec3(b,a);
+	Vec3 ac = Math_Vec3SubVec3(c,a);
+	Vec3 qp = Math_Vec3SubVec3(p,q);
+
+	Vec3 n = Math_Vec3Cross(ab, ac);
+	float d = Math_Vec3Dot(qp, n);
+	if(d <= 0.0f) return 0;
+	
+	Vec3 ap = Math_Vec3SubVec3(p,a);
+
+	float t = Math_Vec3Dot( ap,n);
+	if(t < 0.0f) return 0;
+	//if(t > d) return 0;
+
+	Vec3 e = Math_Vec3Cross(qp, ap);
+	float v = Math_Vec3Dot(ac, e);
+
+	if(v < 0.0f || v > d) return 0;
+	float w = -Math_Vec3Dot(ab,e);
+	if(w < 0.0f || v + w > d) return 0;
+
+	float ood = 1.0f/d;
+			
+	t *= ood;
+	v *= ood;
+	w *= ood;
+	float u = 1.0 - v - w;
+	
+	*r = Math_Vec3AddVec3(
+		Math_Vec3MultFloat(a,u), 
+		Math_Vec3AddVec3(Math_Vec3MultFloat(b,v),
+		Math_Vec3MultFloat(c,w)));
+	
+	return 1;
+}
+ 
+
 
 int Math_CheckFrustumCollision(Cube r, Plane *frustumPlanes);
 

@@ -95,7 +95,7 @@ Object *Spell_AutoAttack_Cast(Game *game, Object *cameFrom, Object *at){
 	
 	autoAttack->speed = 0.005;
 	// todo add all resources to game struct
-	autoAttack->particleImage = ImageLoader_CreateImage("Resources/smoke.png",1);
+	autoAttack->particleImage = game->images[IMAGE_PARTICLES-1];
 	autoAttack->particleImage.nFramesX = 5;
 	autoAttack->particleImage.nFramesY = 5;
 	Math_Identity(obj->matrix);

@@ -1,6 +1,7 @@
 #include "characters.h"
 #include "world.h"
 #include "shaders.h"
+#include "spells.h"
 #define GLEW_STATIC
 #include <GL/glew.h>
 
@@ -18,7 +19,6 @@ void Minion_OnCollision(Game *game, Object *obj,Object *obj1, Object *obj2, Boun
 		if(obj2->type == TYPE_CHARACTER ){
 			Character *character = (Character*)obj->data;
 			Character *character2 = (Character*)obj2->data;
-			printf("%i\n",character2->type);			
 			if(character2->type != CHARACTER_TYPE_MINION){
 				character->aggro = obj2;
 				character->aggro->AddUser(character->aggro);
@@ -42,9 +42,14 @@ void Minion_Update(Game *game, Object *obj){
 		BoundingBox bb;
 		memset(&bb,0,sizeof(bb));
 		bb.pos = obj->bb.pos;
-		bb.radius = 4;
+		bb.radius = character->aggroRadius;
 		bb.collisionFlag |= COLLISIONFLAG_RADIUS;
 		World_ResolveCollisions(game, obj, &bb);
+	} else {
+		if(Window_GetTicks() - character->lastAttack > 4000){
+			Spell_AutoAttack_Cast(game, obj, character->aggro);
+			character->lastAttack = Window_GetTicks();
+		}	
 	}
 
 	if(Window_GetTicks() - character->lastTime > 1000 && character->aggro != NULL){
@@ -52,7 +57,7 @@ void Minion_Update(Game *game, Object *obj){
 		Vec3 toPos = character->aggro->bb.pos;
 		toPos = Math_Vec3SubVec3(toPos, 
 		Math_Vec3MultFloat(
-		Math_Vec3Normalize(Math_Vec3SubVec3(toPos,obj->bb.pos)), 4));
+		Math_Vec3Normalize(Math_Vec3SubVec3(toPos,obj->bb.pos)), character->aggroRadius));
 		srand(character->index);
 		int randval = rand();
 		toPos = Math_Vec3AddVec3(toPos,
@@ -117,16 +122,16 @@ void Minion_Draw(Game *game, Object *obj){
 	
 
 	if(character->showGold){
-		Particles_DrawBillboard(character->goldImage, 
+		Particles_DrawBillboard(game->images[IMAGE_GOLD-1], 
 			&game->particleSystem, Math_Vec3AddVec3(obj->bb.pos,(Vec3){0,1,0}),
 			 (Vec2){1.5,1.5}, (Vec4){1,1,1,1},
 			(Rect2D){0,0,1,1});
 	}
 
 	if(!character->death){
-		Particles_DrawBillboard( game->healthImage, &game->particleSystem, 
+		Particles_DrawBillboard( game->images[IMAGE_HEALTH-1], &game->particleSystem, 
 		Math_Vec3AddVec3(obj->bb.pos,(Vec3){-0.2,1.4,0}), (Vec2){1*MIN(character->health,1),0.1},(Vec4){1,1,1,1},
-		(Rect2D){0,0,game->healthImage.w,game->healthImage.h});
+		(Rect2D){0,0,game->images[IMAGE_HEALTH-1].w,game->images[IMAGE_HEALTH-1].h});
 
 		minion->playingAnims[0].into += minion->animDir * Window_GetDeltaTime() / 40.1f;
 				
@@ -191,13 +196,13 @@ Object *Minion_Create(Game *game, Model *model){
 	obj->type = TYPE_CHARACTER;
 	Character *character = (Character*)obj->data;
 	memset(character, 0, sizeof(Character));
-
+	
+	character->aggroRadius = 4;
 	character->Damage = Minion_Damage;
 	character->data = malloc(sizeof(Minion));
 	character->type = CHARACTER_TYPE_MINION;
 	character->health = 1;
 	character->moveSpeed = 0.001;
-	character->goldImage = ImageLoader_CreateImage("Resources/gold.png",1);
 	character->death = 0;
 	character->deathTime = Window_GetTicks();	
 	Minion *minion = (Minion *)character->data;

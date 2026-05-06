@@ -28,9 +28,10 @@ struct Character {
 	int index;
 	int death;
 	int deathTime;
+	int lastAttack;
+	float aggroRadius;
 	float moveSpeed;
 	int showGold;
-	Image goldImage;
 	int onPath;
 	PathfinderPath path;
 	Vec3 moveToPos;
