@@ -3,6 +3,7 @@
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_opengl.h>
 #include <SDL2/SDL.h>
+//#include "thoth/thoth.h"
 
 #include "characters.h"
 #include "spells.h"
@@ -10,7 +11,6 @@
 #include "game.h"
 #include "particles.h"
 #include "freetype.h"
-//#include "thoth/thoth.h"
 #include "sound.h"
 #include "world.h"
 #include "mesh.h"
@@ -100,7 +100,7 @@ Object *obj2, BoundingBox *bb, BoundingBox *bb2, Vec3 axis, float overlap){
 			p2 = Math_Vec3AddVec3(p2, bb2->pos);
 			if(Math_IntersectLineTriangle(Math_Vec3AddVec3(bb->pos,(Vec3){0,0,0}),
 				(Vec3){0,-1,0}, p0, p1, p2, &point)){
-				bb->pos.y = point.y + (bb->wsCube.h/2);
+				bb->pos.y = point.y;
 				obj->ObjUpdate(obj);
 				World_UpdateObjectInOctree(obj);
 			}
@@ -498,10 +498,10 @@ static char Draw(){
 
 	//Thoth_RenderIntoTexture(thoth, &img.glTexture, &img.w, &img.h);
 
-	//UI_RenderRectTex(&ui, img, 0,0, img.w/2,img.h, 
+	//UI_RenderRectTex(&ui, img, 0,img.h, img.w/2,-img.h, 
 	//0,0, img.w/2,img.h, 255,255,255,255);
 
-	Pathfinding_RenderDebug(&game.pf,&pfpath);
+	//Pathfinding_RenderDebug(&game.pf,&pfpath);
 
 	UI_Render(&ui, &game);
 
@@ -513,7 +513,6 @@ static char Draw(){
 }
 
 static void OnResize(){
-	//Thoth_Render(thoth); 
 
 }
 
@@ -657,6 +656,8 @@ int main(int argc, char **argv){
 		((Character *)game.characters[j]->data)->lastTime = Window_GetTicks() + (j * 100);
 	}
 
+	//thoth = Thoth_Create(WINDOW_WIDTH, WINDOW_HEIGHT);
+	//Thoth_LoadFile(thoth,"main.c");
 	Window_MainLoop(Update, Event, Draw, Focus, OnResize, 1, 1);
 	 //Thoth_Destroy(thoth);
 
