@@ -87,7 +87,6 @@ void BoundingBox_LoadSoup(BoundingBox *bb, const char *path){
 	int k;
 	u16 stride = sizeof(Vec3);
 	
-	void *offset = (void *)sizeof(Vec3);
 
 	FILE *fp = fopen(path, "rb");
 
@@ -116,12 +115,17 @@ void BoundingBox_LoadSoup(BoundingBox *bb, const char *path){
 	     if(pos->z < bb->cube.z)
 	         bb->cube.z = pos->z;
 	     if(pos->z >  bb->cube.d)
-	         bb->cube.d = pos->y;
+	         bb->cube.d = pos->z;
 	 }
+
 	 bb->cube.w -= bb->cube.x;
 	 bb->cube.h -= bb->cube.y;
 	 bb->cube.d -= bb->cube.z;
 
+	bb->scale = (Vec3){1,1,1};
+	bb->rot = (Vec3){0,0,0};
+	bb->pos = (Vec3){0,0,0};
+	bb->wsCube = bb->cube;
 	 fclose(fp);
 	
 	
@@ -171,6 +175,7 @@ void BoundingBox_Copy(BoundingBox *into, BoundingBox *bb){
 
 	into->children = (BoundingBox *)malloc(bb->numChildren*sizeof(BoundingBox));
 	into->types = (char **)malloc(bb->nTypes*sizeof(char *));
+
 
 	int k;
 	for(k = 0; k < bb->nTypes; k++){
@@ -332,12 +337,12 @@ int BoundingBox_ResolveCollision(Game *game, Object *obj1, BoundingBox *bb, Obje
 	}
 
 	if((bb->collisionFlag & COLLISIONFLAG_NONE)|| (bb2->collisionFlag & COLLISIONFLAG_NONE)) return ret;
-	
+
 	Vec3 axis;
 	float overlap = 0;
 
-	if(!(bb->collisionFlag & COLLISIONFLAG_POLYSOUP) &&  
-		!(bb2->collisionFlag & COLLISIONFLAG_POLYSOUP)){
+	if(!(bb->soup.verts) &&  
+		!(bb2->soup.verts)){
 		
 		if(!(bb->collisionFlag & COLLISIONFLAG_RADIUS) && !(bb2->collisionFlag & COLLISIONFLAG_RADIUS)){
 					

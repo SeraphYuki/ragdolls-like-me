@@ -9,10 +9,10 @@ void Minion_OnCollision(Game *game, Object *obj,Object *obj1, Object *obj2, Boun
 	BoundingBox *bb2, Vec3 axis, float overlap){
 
 	if(!(bb2->collisionFlag & COLLISIONFLAG_INVISIBLE) && obj2->type == TYPE_CHARACTER){
-		//Vec3 resolve = Math_Vec3MultFloat(axis, -overlap);
-		//obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,resolve);
-		//obj->ObjUpdate(obj);
-		//World_UpdateObjectInOctree(obj);
+		Vec3 resolve = Math_Vec3MultFloat(axis, -overlap);
+		obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,resolve);
+		obj->ObjUpdate(obj);
+		World_UpdateObjectInOctree(obj);
 	}
 	
 	if(obj == obj1 && bb1->collisionFlag & COLLISIONFLAG_RADIUS){
@@ -146,13 +146,13 @@ void Minion_Draw(Game *game, Object *obj){
 
 
 		Skeleton_Update(&minion->skeleton, minion->playingAnims, 1);
-		Object_UpdateSkeleton(obj, &minion->skeleton);
+		//Object_UpdateSkeleton(obj, &minion->skeleton);
 		Skeleton_Apply(&minion->skeleton);
 
-	int j;
-	for(j = 0; j < obj->skelBb.numChildren; j++){
-		World_DrawSkeleton(&obj->skelBb.children[j]);
-	}
+		//int j;
+		//for(j = 0; j < obj->skelBb.numChildren; j++){
+			//World_DrawSkeleton(&obj->skelBb.children[j]);
+		//}
 
 		Shaders_UseProgram(SKELETAL_ANIMATION_SHADER);
 

@@ -82,26 +82,27 @@ static void onThrow(Object *obj, Object *obj2, BoundingBox *bb, BoundingBox *bb2
 static void onCube(Game *game, Object *obj, Object *obj1, 
 Object *obj2, BoundingBox *bb, BoundingBox *bb2, Vec3 axis, float overlap){
 	
-	if(bb2->collisionFlag & COLLISIONFLAG_POLYSOUP){
-		//bb->pos.y = 4;
+	if(bb2->soup.verts){
 		int k;
 		for(k = 0; k < bb2->soup.nTris*3; k+=3){
 			Vec3 p0 = bb2->soup.verts[k];
 			Vec3 p1 = bb2->soup.verts[k+1];
 			Vec3 p2 = bb2->soup.verts[k+2];
-
 			Vec3 point;
 			p0 = Math_Vec3MultVec3(p0, bb2->scale);
 			p1 = Math_Vec3MultVec3(p1, bb2->scale);
 			p2 = Math_Vec3MultVec3(p2, bb2->scale);
+			p0 = Math_Rotate(p0, bb2->rot);
+			p1 = Math_Rotate(p1, bb2->rot);
+			p2 = Math_Rotate(p2, bb2->rot);
 			p0 = Math_Vec3AddVec3(p0, bb2->pos);
 			p1 = Math_Vec3AddVec3(p1, bb2->pos);
 			p2 = Math_Vec3AddVec3(p2, bb2->pos);
-
-			if(Math_IntersectLineTriangle(Math_Vec3AddVec3(bb->pos,(Vec3){0,4,0}),
+			if(Math_IntersectLineTriangle(Math_Vec3AddVec3(bb->pos,(Vec3){0,0,0}),
 				(Vec3){0,-1,0}, p0, p1, p2, &point)){
-				bb->pos.y = point.y + (bb->wsCube.h/2) - 1;
+				bb->pos.y = point.y + (bb->wsCube.h/2);
 				obj->ObjUpdate(obj);
+				World_UpdateObjectInOctree(obj);
 			}
 		}
 
@@ -609,34 +610,41 @@ int main(int argc, char **argv){
 	
 
 	Object_SetModel(game.world, &game.models[MODEL_WORLD-1]);
+	game.world->ObjUpdate(game.world);
 	game.world->Draw = DrawModel;
 	game.world->AddUser(game.world);
 	
 	game.world->bb.rot = (Vec3){0,0,0};
 	moveToPos = game.player->bb.pos;
-	game.world->ObjUpdate(game.world);
-	
-	World_UpdateObjectInOctree(game.world);
 	
 	Pathfinding_Init(&game.pf, 200,200);
 	game.pf.cube.x = game.world->bb.wsCube.x;
 	game.pf.cube.z = game.world->bb.wsCube.z;
+	int index = game.world->bb.numChildren-1;
+
 	int k; // skip the ground
-	for(k = 1; k < game.world->bb.numChildren; k++ ){
+	for(k = 0; k < index; k++ ){
 		game.world->bb.children[k].collisionFlag |= COLLISIONFLAG_RAY_WORLD;
 		Pathfinding_SetClosedBoundingBoxStatic(&game.pf, &game.world->bb.children[k]);
 	}
+	
 
-	game.world->bb.children[0].rot = (Vec3){0,1,0};;
-	game.world->bb.children[0].collisionFlag = COLLISIONFLAG_AABB;
+	game.world->bb.children[index].rot = (Vec3){0,0,0};;
+	game.world->bb.children[index].collisionFlag = COLLISIONFLAG_AABB;
 	game.world->bb.collisionFlag |= COLLISIONFLAG_AABB;
-	game.world->bb.children[0].collisionFlag |= COLLISIONFLAG_RAY_WORLD;
-	game.world->bb.children[0].collisionFlag |= COLLISIONFLAG_POLYSOUP;
+	game.world->bb.children[index].collisionFlag |= COLLISIONFLAG_RAY_WORLD;
 	game.world->bb.collisionFlag |= COLLISIONFLAG_RAY_WORLD ;
-	game.world->bb.collisionFlag |= COLLISIONFLAG_POLYSOUP ;
-	
-	BoundingBox_LoadSoup(&game.world->bb.children[0], "Resources/roomsoup.yuk");
-	
+	//game.world->bb.collisionFlag |= COLLISIONFLAG_POLYSOUP ;
+
+	BoundingBox bb = BoundingBox_Create((Cube){0,0,0,0,0,0}, (Vec3){0,0,0});
+	BoundingBox_LoadSoup(&bb, "Resources/roomsoup.yuk");
+	bb.collisionFlag |= COLLISIONFLAG_POLYSOUP;
+	BoundingBox_AddChild(&game.world->bb,&bb);
+
+	index++;
+	// has to be after
+	World_UpdateObjectInOctree(game.world);
+
 	RiggedModel_Load(&game.models[MODEL_MINION-1], "Resources/minion.yuk");
 
 	int j;

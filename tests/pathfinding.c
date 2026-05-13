@@ -10,18 +10,8 @@
 #include "shaders.h"
 #include "memory.h"
 #include "game.h"
-
+#include "math.h"
 static int GetClosestNotClosed(Pathfinder *pf, int index);
-
-float triangleArea(Vec2 a, Vec2 b, Vec2 c){
-	return (a.x - c.x) * (b.y - c.y) - (b.x - c.x) * (a.y - c.y);
-}
-
-Vec3 barycentric(Vec2 a, Vec2 b, Vec2 c, Vec2 p) { 
-	 Vec3 u = Math_Vec3Cross((Vec3){c.x-a.x, b.x-a.x, a.x-p.x}, (Vec3){c.y-a.y, b.y-a.y, a.y-p.y});
-	 if(fabs(u.z)<1) return (Vec3){-1,1,1};
-	 return (Vec3){1.f-(u.x+u.y)/u.z, u.y/u.z, u.x/u.z}; 
-} 
 
 void Pathfinding_RenderDebug(Pathfinder *pf, PathfinderPath *path){
 
@@ -126,7 +116,9 @@ void Pathfinding_Init(Pathfinder *pf, int w, int h){
 	memset(pf, 0, sizeof(Pathfinder));
 	pf->w = w; 
 	pf->h = h;
-
+	pf->cube.x = -w/2;
+	pf->cube.y = -h/2;
+	
 
 	 glGenVertexArrays(1, &pf->vao);
 	 glBindVertexArray(pf->vao);
@@ -190,9 +182,9 @@ static void SetClosedBoundingBox(Pathfinder *pf, BoundingBox *bb,
 				Vec2 v1 = {p1.x-pf->cube.x,p1.z-pf->cube.z};
 				Vec2 v2 = {p2.x-pf->cube.x,p2.z-pf->cube.z};
 
-				float w0 =  triangleArea(v1, v0, p);
-				float w1 =  triangleArea(v2, v1, p);
-				float w2 =  triangleArea(v0, v2, p);
+				float w0 =  Math_TriangleAreaVec2(v1, v0, p);
+				float w1 =  Math_TriangleAreaVec2(v2, v1, p);
+				float w2 =  Math_TriangleAreaVec2(v0, v2, p);
 				float hasNeg = w0 < 0 || w1 < 0 || w2 < 0;
 				float hasPos = w0 > 0 || w1 > 0 || w2 > 0;
 				if((hasNeg && hasPos)) continue;
@@ -290,7 +282,7 @@ static int GetClosestNotClosed(Pathfinder *pf, int index){
 				int f;
 				
 				for(f = 0; f < 8; f++){
-					if(neighbors[f] < 0 || neighbors[f] > pf->w * pf->h) continue;
+					//if(neighbors[f] < 0 || neighbors[f] > pf->w * pf->h) continue;
 					AStarNode *tmp = pf->closedFirst;
 					while(tmp){
 						if(tmp->index == neighbors[f]){
@@ -316,7 +308,7 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 	int gx = (  goal.x - pf->cube.x) / PATHFINDING_NODE_GRID_SIZE;
 	int gy = (  goal.z - pf->cube.z) / PATHFINDING_NODE_GRID_SIZE;	
 
-
+	
 	pf->openFirst = malloc(sizeof(AStarNode));	
 	pf->openFirst->next = pf->openFirst->prev = NULL;
 	pf->openFirst->prev = pf->openFirst;
@@ -333,7 +325,6 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 
 	int goalIndex = GetClosestNotClosed(pf, gx + (gy * pf->w));
 	int attempts = 0;
-
 	
 	AStarNode current;
 	while(pf->openFirst && attempts < 1000){
@@ -426,7 +417,7 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 		};
 		int f;
 		for(f = 0; f < 8; f++){
-			if(neighbors[f] < 0 || neighbors[f] > pf->w * pf->h) continue;
+			//if(neighbors[f] < 0 || neighbors[f] > pf->w * pf->h) continue;
 			AStarNode *closed = pf->closedFirst;
 			while(closed) {
 				if(closed->index == neighbors[f]) break;

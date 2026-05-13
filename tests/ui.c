@@ -46,8 +46,8 @@ static void CreateFrameBuffer(UI *ui){
 void UI_Init(UI *ui, int w, int h){
 
 
-	UI_SliderCreate(ui, &ui->elements[ui->nElements++], (Rect2D){0,0,200,40});
-	UI_SliderCreate(ui, &ui->elements[ui->nElements++], (Rect2D){0,50,200,40});	
+	UI_SliderCreate(ui, &ui->elements[ui->nElements++], (Rect2D){w-200,0,200,40});
+	UI_SliderCreate(ui, &ui->elements[ui->nElements++], (Rect2D){w-200,50,200,40});	
 	
 	ui->mouserect = (Rect2D){0,0,1,1};
 	ui->stress = 0;
@@ -129,11 +129,11 @@ void UI_Render(UI *ui, Game *game){
 	}
 
 
-	UI_RenderRectTex(ui, ui->hudImg,ui->viewport.x + (ui->viewport.w/2) - 64, ui->viewport.h-64
-	, 64,64, 
-	0,0,
-	ui->hudImg.w,
-	ui->hudImg.h,255,255,255,255);
+	//UI_RenderRectTex(ui, ui->hudImg,ui->viewport.x + (ui->viewport.w/2) - 64, ui->viewport.h-64
+	//, 64,64, 
+	//0,0,
+	//ui->hudImg.w,
+	//ui->hudImg.h,255,255,255,255);
 
 	
 	char str[128];

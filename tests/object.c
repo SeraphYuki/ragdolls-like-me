@@ -120,7 +120,7 @@ void Object_UpdateModel(Object *obj, Model *model){
 	Vec3 scale = obj->bb.scale;
 	Vec3 pos = obj->bb.pos;
 	Vec3 rot = obj->bb.rot;
-		
+
 	memset(&obj->bb, 0, sizeof(BoundingBox));
 	
 	obj->bb.collisionFlag |= COLLISIONFLAG_NONE;

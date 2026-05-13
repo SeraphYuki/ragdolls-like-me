@@ -398,12 +398,11 @@ static void DrawBoundingBoxes(BoundingBox *bb){
 	//if(!bb->renderDebug) return;
 
 	 if(BoundingBox_IsSAT(bb)){
-		World_DrawSAT(bb);
-	 	return;
+		//World_DrawSAT(bb);
+	 	//return;
 	 }
 
 	if(bb->soup.verts){
-
 		Shaders_UseProgram(TEXTURELESS_SHADER);
 		
 		float matrix[16];

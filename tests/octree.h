@@ -3,8 +3,6 @@
 #include "object.h"
 #include "math.h"
 
-
-
 typedef struct _OctreeLeaf {
 	struct _OctreeLeaf *parent;
 	struct _OctreeLeaf *children[8];

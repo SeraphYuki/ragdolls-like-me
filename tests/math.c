@@ -170,8 +170,7 @@ float Math_IntersectLineTriangle(Vec3 p, Vec3 q, Vec3 a, Vec3 b,Vec3 c, Vec3 *r)
 
 
 	float t = inv_det * Math_Vec3Dot(edge2, s_cross_e1);
-	printf("%f %f %f\n", u, v, t);
-	if(t > EPSILON){
+	if(fabs(t) > EPSILON){
 		
 		*r = Math_Vec3AddVec3(p,
 			Math_Vec3MultFloat(q,t));

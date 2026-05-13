@@ -74,7 +74,6 @@ struct Object {
 Object *Object_Create();
 Object *Object_Copy(Object *obj);
 void Object_UpdateSkeleton(Object *obj, Skeleton *skel);
-
 int Object_SkeletonCollision(BoundingBox *bb1, BoundingBox *bb2, Vec3 *axis, float *overlap);
 void Object_Free(Object *obj);
 void Object_Freeze(Object *obj);
