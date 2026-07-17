@@ -21,7 +21,7 @@ SDLLIBS = $(shell pkg-config --libs sdl2)
 LIBS = -L. -lthoth -lm -lpng  $(GLEWLIBS) $(SDLLIBS) $(FREETYPELIBS) -pg
 
 SOURCES=main.c image_loader.c math.c shaders.c window.c mesh.c \
-bounding_box.c octree.c world.c skybox.c utils.c object.c deflate.c log.c memory.c \
+bounding_box.c octree.c world.c skybox.c utils.c object.c deflate.c log.c \
  ui.c freetype.c text.c particles.c pathfinding.c characters.c spells.c
 
 

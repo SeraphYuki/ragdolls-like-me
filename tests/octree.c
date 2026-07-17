@@ -1,6 +1,5 @@
 #include "octree.h"
 #include "shaders.h"
-#include "memory.h"
 #include "window.h"
 #include "object.h"
 
@@ -24,7 +23,7 @@ void OctreeLeaf_Init(OctreeLeaf *o, int index, int divisions){
 	int k;
 	if(o->level <= divisions){
 		for(k = 0; k < 8; k++){
-			o->children[k] = (OctreeLeaf *)Memory_StackAlloc(STACK_BOTTOM,sizeof(OctreeLeaf));
+			o->children[k] = (OctreeLeaf *)malloc(sizeof(OctreeLeaf));
 			memset(o->children[k], 0, sizeof(OctreeLeaf));
 			o->children[k]->parent = o;
 			OctreeLeaf_Init(o->children[k], k, divisions);

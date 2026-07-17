@@ -413,8 +413,7 @@ void Skeleton_UpdateSprings(Skeleton *skeleton){
 static void LoadModel(Model *model, FILE *fp, u16 stride){
 
     fread(&model->nMaterials, 1, sizeof(int), fp);
-
-    if(model->nMaterials >= MAX_MODEL_MATERIALS){
+	 if(model->nMaterials >= MAX_MODEL_MATERIALS){
 
         LOG(LOG_RED, "FATAL ERROR: NUM MATERIALS IN MODEL ARE MORE THAN MAX ALLOWED MATERIALS\n");
 	 }
@@ -431,36 +430,50 @@ static void LoadModel(Model *model, FILE *fp, u16 stride){
 
     int nTextures = 0;
 	 fread(&nTextures, 1, sizeof(int), fp);
+	
 	 for(k = 0; k < nTextures; k++){
 	 
 	     int w, h, channels;
+	
 	     fread(&w, 1, sizeof(int), fp);
 	     fread(&h, 1, sizeof(int), fp);
 	     fread(&channels, 1, sizeof(int), fp);
 
-        glGenTextures(1, &textures[k].tex);
-	     glBindTexture(GL_TEXTURE_2D, textures[k].tex);
 		textures[k].w = w;
 		textures[k].h = h;
 	     int size = w * h * channels;
+		
+		int len;
+		fread(&len, sizeof(int), 1, fp);
+		char path[512];
+		fread(path, 1, len, fp);
+		path[len] = 0;
+		char fullpath[512];
+		sprintf(fullpath, "Resources%s", &path[1]);
 
-        u8 *data = (u8 *)Memory_StackAlloc(TEMP_STACK, size);
-	      Deflate_Read(fp, data, size);
-	     //fread(data, sizeof(u8), size, fp);
+		Image img = ImageLoader_CreateImage(fullpath, 1);
+		textures[k].tex = img.glTexture;
+				
+	     //glGenTextures(1, &textures[k].tex);
+	     //glBindTexture(GL_TEXTURE_2D, textures[k].tex);
+	     //u8 *data = (u8 *)malloc(size);
 
-        if(channels == 3) channels = GL_RGB;
-	     else if(channels == 4) channels = GL_RGBA;
-	     else channels = GL_RED;
+	      ////Deflate_Read(fp, data, size);
+	     ////fread(data, sizeof(u8), size, fp);
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, channels, GL_UNSIGNED_BYTE, data);
-	     Memory_StackPop(TEMP_STACK, 1);
+        //if(channels == 3) channels = GL_RGB;
+	     //else if(channels == 4) channels = GL_RGBA;
+	     //else channels = GL_RED;
 
-        glGenerateMipmap(GL_TEXTURE_2D);
-	     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);//GL_NEAREST_MIPMAP_NEAREST));
-	     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);//GL_NEAREST_MIPMAP_NEAREST));
-	     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
-	     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
-	     glBindTexture(GL_TEXTURE_2D, 0);
+        //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, channels, GL_UNSIGNED_BYTE, data);
+	     ////Memory_StackPop(TEMP_STACK, 1);
+
+        //glGenerateMipmap(GL_TEXTURE_2D);
+	     //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);//GL_NEAREST_MIPMAP_NEAREST));
+	     //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);//GL_NEAREST_MIPMAP_NEAREST));
+	     //glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+	     //glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+	     //glBindTexture(GL_TEXTURE_2D, 0);
 	 }
 
     for(k = 0; k < model->nMaterials; k++){
@@ -484,8 +497,8 @@ static void LoadModel(Model *model, FILE *fp, u16 stride){
 
     int size = stride * model->nVerts;
 
-    u8 *vboData = (u8 *)Memory_StackAlloc(TEMP_STACK, size);
-	 model->verts = (Vec3 *)Memory_StackAlloc(MAIN_STACK, sizeof(Vec3) * model->nVerts);
+    u8 *vboData = (u8 *)malloc( size);
+	 model->verts = (Vec3 *)malloc( sizeof(Vec3) * model->nVerts);
 
     // Deflate_Read(fp, vboData, size);
 	 
@@ -522,7 +535,7 @@ static void LoadModel(Model *model, FILE *fp, u16 stride){
     glBindBuffer(GL_ARRAY_BUFFER, model->vbo);
 	 glBufferData(GL_ARRAY_BUFFER, size, vboData, GL_STATIC_DRAW);
 
-    Memory_StackPop(TEMP_STACK, 1);
+    free(vboData);
 
     int totalElements = 0;
 
@@ -535,16 +548,17 @@ static void LoadModel(Model *model, FILE *fp, u16 stride){
 		      // Deflate_Read(fp, model->elements[k], sizeof(u16) * model->nElements[k]);
 	 }
 
-    u32 *elements = (u32 *)Memory_StackAlloc(TEMP_STACK, sizeof(u32) * totalElements);
+    u32 *elements = (u32 *)malloc( sizeof(u32) * totalElements);
 
     fread(elements, totalElements, sizeof(u32), fp);
 	 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model->ebo);
 	 glBufferData(GL_ELEMENT_ARRAY_BUFFER, totalElements * sizeof(u32), elements, GL_STATIC_DRAW);
 
-    Memory_StackPop(TEMP_STACK, 1);
+    free(elements);
+
+	fread(&model->nShapeKeys,1, sizeof(int), fp);
 
     int totalShapeKeyElements = 0;
-	fread(&model->nShapeKeys,1, sizeof(int), fp);
 	for(k = 0; k < model->nShapeKeys; k++){
 
         fread(&model->nShapeKeyElements[k], 1, sizeof(int), fp);
@@ -552,18 +566,18 @@ static void LoadModel(Model *model, FILE *fp, u16 stride){
 	 }
 	
 	if(model->nShapeKeys){
-	    model->shapeKeyElements = (u32 *)Memory_StackAlloc(MAIN_STACK, sizeof(u32) * totalShapeKeyElements);
+	    model->shapeKeyElements = (u32 *)malloc( sizeof(u32) * totalShapeKeyElements);
 	    fread(model->shapeKeyElements, totalShapeKeyElements, sizeof(u32), fp);
 	}
 	
-	 model->shapeKeyVerts = (Vec3 *)Memory_StackAlloc(MAIN_STACK, sizeof(Vec3) * totalShapeKeyElements);
+	 model->shapeKeyVerts = (Vec3 *)malloc( sizeof(Vec3) * totalShapeKeyElements);
 	int totalShapeKeyVerts = 0;
 	for(k = 0; k < model->nShapeKeys; k++){
 		int nElements = model->nShapeKeyElements[k];
 		fread(&model->shapeKeyVerts[totalShapeKeyVerts], 1, nElements * sizeof(Vec3), fp);
 		totalShapeKeyVerts += nElements;
 	}
-	
+
 }
 
 void Model_SetShapeKey(Model *model, int index, float weight){
@@ -638,7 +652,6 @@ void Model_Load(Model *model, const char *path){
 	 
 	 // offset += sizeof(Vec3);
 
-
 	 FILE *fp = fopen(path, "rb");
 
     LoadModel(model, fp, model->stride);
@@ -682,7 +695,7 @@ static int LoadAnimation(Animation *anim, FILE *fp){
 	 
 	     ++nAllocations;
 
-        anim->keyframes[k] = Memory_StackAlloc(MAIN_STACK, sizeof(Keyframe) * anim->nKeyframes[k]);
+        anim->keyframes[k] = malloc( sizeof(Keyframe) * anim->nKeyframes[k]);
 
         memset(anim->keyframes[k], 0, sizeof(Keyframe) * anim->nKeyframes[k]);
 
@@ -709,21 +722,22 @@ void Animation_Free(Animation anim){
     int nAllocations = 0;
 
     int k;
-	 for(k = 0; k < MAX_BONES; k++)
-	     if(anim.keyframes[k])
-	         ++nAllocations;
+	 for(k = 0; k < MAX_BONES; k++){
+	     if(anim.keyframes[k]){
+			free(anim.keyframes[k]);
+		}
+	}
 
-    Memory_StackPop(MAIN_STACK, nAllocations);
 }
 
 static void InitBone(Skeleton *skeleton, Bone *bone){
 
-    float matrix[16];
+	 float matrix[16];
 	 Math_TranslateMatrix(matrix, bone->pos);
 	 Math_MatrixFromQuat(bone->rot, bone->absMatrix);
 	 Math_MatrixMatrixMult(bone->absMatrix, matrix, bone->absMatrix);
 
-    // bone->modelPos = bone->rest;
+	 // bone->modelPos = bone->rest;
 
     if(bone->parent){
 	     Math_MatrixMatrixMult(bone->absMatrix, bone->parent->absMatrix, bone->absMatrix); 
@@ -752,7 +766,7 @@ static void InitBone(Skeleton *skeleton, Bone *bone){
 	 skeleton->matrices[(bone->index*3)+2].z = 1;
 	 skeleton->matrices[(bone->index*3)+2].w = 0;
 
-    int k;
+	 int k;
 	 for(k = 0; k < bone->nChildren; k++)
 	     InitBone(skeleton, bone->children[k]);
 }
@@ -789,9 +803,7 @@ void Skeleton_Copy(Skeleton *skel, Skeleton *skel2){
 static void LoadSkeleton(Skeleton *skeleton, FILE *fp){
 
     memset(skeleton, 0, sizeof(Skeleton));
-
-    fread(&skeleton->nBones, 1, sizeof(int), fp);
-
+	 fread(&skeleton->nBones, 1, sizeof(int), fp);
 
 	 int k;
 	 for(k = 0; k < skeleton->nBones; k++){

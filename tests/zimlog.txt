@@ -1,0 +1,7 @@
+SAVEDCURSORS:
+SAVEDCURSORS:
+CURSOR:
+	selection: startPos: 0 len: 0 
+	addedLen: 0
+	pos: 0
+COMMAND AddCharacters  | (q) 0

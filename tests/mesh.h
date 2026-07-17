@@ -9,7 +9,7 @@
 #include "math.h"
 #include "memory.h"
 
-#define MAX_MODEL_MATERIALS 	1024
+#define MAX_MODEL_MATERIALS 	512
 #define MAX_MODEL_SHAPE_KEYS 	16
 #define MAX_BONES 				64
 #define BONE_MAX_CHILDREN 		6
@@ -96,9 +96,9 @@ typedef struct {
 } BoundingShape;
 
 typedef struct {
-	u8 				nMaterials;
-	u8 				nTextures;
-	u8 				nNormalTextures;
+	int 			nMaterials;
+	int 			nTextures;
+	int 			nNormalTextures;
 	u16			 stride;
 	u32		 	vao;
 	u32		 	vbo;

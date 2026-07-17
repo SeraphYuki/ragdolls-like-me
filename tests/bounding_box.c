@@ -100,7 +100,7 @@ void PolySoupLeaf_Init(PolySoupLeaf *o, int index, int divisions){
 	int k;
 	if(o->level <= divisions){
 		for(k = 0; k < 8; k++){
-			o->children[k] = (PolySoupLeaf *)Memory_StackAlloc(STACK_BOTTOM,sizeof(PolySoupLeaf));
+			o->children[k] = (PolySoupLeaf *)malloc(sizeof(PolySoupLeaf));
 			memset(o->children[k], 0, sizeof(PolySoupLeaf));
 			o->children[k]->parent = o;
 			PolySoupLeaf_Init(o->children[k], k, divisions);
@@ -190,7 +190,7 @@ void BoundingBox_LoadSoup(BoundingBox *bb, const char *path, int octantWidth){
 
 	int size = stride * soup->nTris * 3;
 
-	Vec3 *verts = (Vec3 *)Memory_StackAlloc(TEMP_STACK, size);
+	Vec3 *verts = (Vec3 *)malloc( size);
 	
 	fread(verts, 1, size, fp);
 
@@ -247,7 +247,7 @@ void BoundingBox_LoadSoup(BoundingBox *bb, const char *path, int octantWidth){
 
 	
 	
-	Memory_StackPop(1,TEMP_STACK);
+	free(verts);
 
 }
 

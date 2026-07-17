@@ -378,8 +378,8 @@ static void DrawModel(Game *game, Object *obj){
 	int k;
 	for(k = 0; k < obj->model->nMaterials; k++){
 		glBindTexture(GL_TEXTURE_2D, obj->model->materials[k].texture);
-		glUniform4fv(Shaders_GetDiffuseLocation(), 1, (float *)&obj->model->materials[k].diffuse);
-		glUniform4fv(Shaders_GetSpecularLocation(), 1, (float *)&obj->model->materials[k].specular);
+		//glUniform4fv(Shaders_GetDiffuseLocation(), 1, (float *)&obj->model->materials[k].diffuse);
+		//glUniform4fv(Shaders_GetSpecularLocation(), 1, (float *)&obj->model->materials[k].specular);
 		glDrawElements(GL_TRIANGLES, obj->model->nElements[k], GL_UNSIGNED_INT, (void *)(curr * sizeof(GLuint)));
 		curr += obj->model->nElements[k];
 	}
@@ -499,6 +499,7 @@ void PlayerDamage(Game *game, Object *this, Object *cause){
 
 int main(int argc, char **argv){
 	
+	
 	Window_Open("Editor", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,WINDOW_WIDTH, WINDOW_HEIGHT, 0);
 	
 	glEnable(GL_BLEND);
@@ -507,7 +508,6 @@ int main(int argc, char **argv){
 	glDepthFunc(GL_LESS);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
-	Memory_Init((0x01 << 20) * 64);
 	
 	
 	glClearColor(0,0,0,1);
@@ -572,6 +572,7 @@ int main(int argc, char **argv){
 	game.player->bb.rot = (Vec3){0,0,0};
 	game.player->bb.renderDebug = 0;
 	game.player->bb.cube = (Cube){-2.5,0.1,-2.5,5,10,5};
+	
 	World_UpdateObjectInOctree(game.player);
 	playingAnims[0] = (PlayingAnimation){
 		 .active = 1,
