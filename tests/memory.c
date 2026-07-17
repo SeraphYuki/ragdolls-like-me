@@ -4,7 +4,7 @@
 
 #define ALIGN_UP(T, offset) (T)(((uintptr_t)offset + ALIGNMENT - 1) & ~(ALIGNMENT-1))
 #define METADATA_SIZE ALIGNMENT
-// #define METADATA_SIZE ALIGN_UP(u32, sizeof(u32))
+//	#define METADATA_SIZE ALIGN_UP(u32, sizeof(u32))
 
 static void *memory;
 static void *stackEnds[2];
@@ -15,7 +15,7 @@ void Memory_Init(u32 size){
 	size = ALIGN_UP(u32, size) - ALIGNMENT;
 	
 	memory = malloc(size + ALIGNMENT);
-
+	assert(memory);
 	stack_caps[STACK_BOTTOM] = ALIGN_UP(void *, memory);
 	stack_caps[STACK_TOP] = ALIGN_UP(void *, memory + size);
 

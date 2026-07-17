@@ -448,7 +448,7 @@ static char Draw(){
 
 	Skeleton_Apply(&playerSkel);
 
-	World_Render(&game,1);
+	World_Render(&game,0);
 
 	if(castingAOE){
 		Math_Identity(idenity);
@@ -473,12 +473,12 @@ static char Draw(){
 	glDisable(GL_CULL_FACE);
 
 	Thoth_SetColorCfg(thoth, THOTH_COLOR_BG, 1,1,1,0.9);
-	Thoth_RenderIntoTexture(thoth, &img.glTexture, &img.w, &img.h);
+	//Thoth_RenderIntoTexture(thoth, &img.glTexture, &img.w, &img.h);
 
-	UI_RenderRectTex(&ui, img, 0,img.h, img.w/2,-img.h, 
-	0,0, img.w/2,img.h, 255,255,255,255);
+	//UI_RenderRectTex(&ui, img, 0,img.h, img.w/2,-img.h, 
+	//0,0, img.w/2,img.h, 255,255,255,255);
 
-	Pathfinding_RenderDebug(&game.pf,&pfpath);
+	//Pathfinding_RenderDebug(&game.pf,&pfpath);
 
 	UI_Render(&ui, &game);
 

@@ -110,7 +110,6 @@ void PolySoupLeaf_Init(PolySoupLeaf *o, int index, int divisions){
 
 int PolySoupLeaf_Insert(PolySoupLeaf *o, Vec3 v1, Vec3 v2, Vec3 v3){
 
-	printf("%f %f %f\n", o->cube.x, o->cube.y, o->cube.z);
 	if(!(((v1.x < o->cube.x + o->cube.w && v1.x > o->cube.x) &&
 		 (v1.y < o->cube.y + o->cube.h && v1.y > o->cube.y) &&
 		 (v1.z < o->cube.z + o->cube.d && v1.z > o->cube.z))
