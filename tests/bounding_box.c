@@ -80,8 +80,105 @@ static int CheckCollision(Vec3 *axes, int nAxes, Vec3 *pointsA, int nPointsA, Ve
 	return 1;
 }
 
-void BoundingBox_LoadSoup(BoundingBox *bb, const char *path){
+void PolySoupLeaf_Init(PolySoupLeaf *o, int index, int divisions){
 
+	o->numTris = 0;
+	o->level = 0;
+
+	if(o->parent != NULL){
+		o->width = o->parent->width / 2;
+		o->height = o->parent->height / 2;
+		o->depth = o->parent->depth / 2;
+		o->pos.x = o->parent->pos.x + ((index % 2) * o->width);
+		o->pos.y = o->parent->pos.y + (round((index % 4) / 2) * o->height);
+		o->pos.z = o->parent->pos.z + (round(index / 4) * o->depth);
+		o->level = o->parent->level+1;
+	}
+	
+	o->cube = (Cube){o->pos.x, o->pos.y, o->pos.z, o->width, o->height, o->depth};
+
+	int k;
+	if(o->level <= divisions){
+		for(k = 0; k < 8; k++){
+			o->children[k] = (PolySoupLeaf *)Memory_StackAlloc(STACK_BOTTOM,sizeof(PolySoupLeaf));
+			memset(o->children[k], 0, sizeof(PolySoupLeaf));
+			o->children[k]->parent = o;
+			PolySoupLeaf_Init(o->children[k], k, divisions);
+		}
+	}
+}
+
+int PolySoupLeaf_Insert(PolySoupLeaf *o, Vec3 v1, Vec3 v2, Vec3 v3){
+
+	printf("%f %f %f\n", o->cube.x, o->cube.y, o->cube.z);
+	if(!(((v1.x < o->cube.x + o->cube.w && v1.x > o->cube.x) &&
+		 (v1.y < o->cube.y + o->cube.h && v1.y > o->cube.y) &&
+		 (v1.z < o->cube.z + o->cube.d && v1.z > o->cube.z))
+	&&  ((v2.x < o->cube.x + o->cube.w && v2.x > o->cube.x) &&
+		 (v2.y < o->cube.y + o->cube.h && v2.y > o->cube.y) &&
+		 (v2.z < o->cube.z + o->cube.d && v2.z > o->cube.z))
+	&&  ((v3.x < o->cube.x + o->cube.w && v3.x > o->cube.x) &&
+		 (v3.y < o->cube.y + o->cube.h && v3.y > o->cube.y) &&
+		 (v3.z < o->cube.z + o->cube.d && v3.z > o->cube.z)))){
+			return 0;
+	}
+
+	if(o->children[0]){
+
+		int k;
+		for(k = 0; k < 8; k++)
+			if(PolySoupLeaf_Insert(o->children[k], v1, v2, v3))
+				return 1;
+
+	}
+
+	o->verts = (Vec3 *)realloc(o->verts, sizeof(Vec3) * ++o->numTris *  3);
+
+	o->verts[(o->numTris-1) * 3] = v1;
+	o->verts[((o->numTris-1) * 3) + 1] = v2;
+	o->verts[((o->numTris-1) * 3) + 2] = v3;
+	
+	return 1;
+}
+
+void PolySoupLeaf_ResolveCollisions(Game *game,
+	PolySoupLeaf *o, Object *obj, BoundingBox *box, Cube minCube){
+
+	if(!Math_CheckCollisionCube(o->cube, minCube))
+		return;
+
+	int k;
+	for(k = 0; k < o->numTris*3; k+=3){
+		Vec3 p0 = o->verts[k];
+		Vec3 p1 = o->verts[k+1];
+		Vec3 p2 = o->verts[k+2];
+		Vec3 point;
+
+		if(Math_IntersectLineTriangle(box->pos,
+			(Vec3){0,-1,0}, p0, p1, p2, &point)){
+				
+			box->pos.y = point.y;
+			obj->ObjUpdate(obj);
+		}
+	}
+
+	if(o->children[0])
+		for(k = 0; k < 8; k++)
+			PolySoupLeaf_ResolveCollisions(game, o->children[k], obj, box, minCube);
+}
+
+int BoundingBox_ResolveSoupY(Game *game ,Object *obj, BoundingBox *bb, BoundingBox *bb2){
+
+	PolySoupLeaf_ResolveCollisions(game,
+	&bb2->soup.root, obj, bb, bb->wsCube);
+
+	return 0;	
+}
+
+void BoundingBox_LoadSoup(BoundingBox *bb, const char *path, int octantWidth){
+	
+	// spatial partition this.
+	
 	PolySoup *soup = &bb->soup;
 
 	int k;
@@ -94,15 +191,14 @@ void BoundingBox_LoadSoup(BoundingBox *bb, const char *path){
 
 	int size = stride * soup->nTris * 3;
 
-	soup->verts = (Vec3 *)Memory_StackAlloc(MAIN_STACK, size);
+	Vec3 *verts = (Vec3 *)Memory_StackAlloc(TEMP_STACK, size);
 	
-	fread(soup->verts, 1, size, fp);
-
+	fread(verts, 1, size, fp);
 
 	bb->cube.x = bb->cube.y = bb->cube.z = HUGE_VAL;
 	bb->cube.w = bb->cube.h = bb->cube.d = -HUGE_VAL;
 	for(k = 0; k < soup->nTris*3; k++){
-		Vec3 *pos = &soup->verts[k];
+		Vec3 *pos = &verts[k];
 
 	     if(pos->x < bb->cube.x)
 	         bb->cube.x = pos->x;
@@ -130,7 +226,30 @@ void BoundingBox_LoadSoup(BoundingBox *bb, const char *path){
 	
 	
 	BoundingBox_UpdatePoints(bb);
-	//Memory_StackPop(1,TEMP_STACK);
+
+	int divisions = roundf(log2(MAX(MAX(bb->cube.w,bb->cube.h),bb->cube.d) / octantWidth));
+
+	memset(&soup->root, 0, sizeof(PolySoupLeaf));
+
+	soup->root.pos = bb->pos;
+	soup->root.pos.x -= size/2;
+	soup->root.pos.y -= size/2;
+	soup->root.pos.z -= size/2;
+	soup->root.width = size;
+	soup->root.height = size;
+	soup->root.depth = size;
+	soup->root.parent = NULL;
+
+	PolySoupLeaf_Init(&soup->root, 0, divisions);
+
+	for(k = 0; k < soup->nTris; k++){
+		PolySoupLeaf_Insert(&soup->root, verts[(k*3)], verts[(k*3)+1], verts[(k*3)+2]);
+	}
+
+	
+	
+	Memory_StackPop(1,TEMP_STACK);
+
 }
 
 float SAT_Collision(Vec3 *pointsA, Vec3 *pointsB, Vec3 *axesA, Vec3 *axesB, float *overlap, Vec3 *axis){
@@ -258,7 +377,7 @@ BoundingBox BoundingBox_Create(Cube cube, Vec3 pos){
 
 	BoundingBox bb;
 	memset(&bb, 0, sizeof(BoundingBox));
-
+	bb.radius = HUGE_VAL;
 	bb.cube = cube;
 	bb.pos = pos;
 	BoundingBox_UpdatePoints(&bb);

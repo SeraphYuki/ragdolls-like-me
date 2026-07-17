@@ -384,6 +384,33 @@ void World_DrawOctree(){
 
 	DrawOctant(octree, frustumPlanes);
 }
+//static void recurrsiveDraw(PolySoupLeaf *o){
+
+	//int k;
+		//float matrix[16];
+		//Math_TranslateMatrix(matrix,(Vec3){0,0.4,0});
+		//Shaders_SetModelMatrix(matrix);
+		//Shaders_UpdateModelMatrix();
+		//Shaders_UpdateViewMatrix();
+		//Shaders_UpdateProjectionMatrix();
+
+		//glDisable(GL_DEPTH_TEST);
+		 //glBindBuffer(GL_ARRAY_BUFFER, posVbo);
+		//glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+		 //glBufferData(GL_ARRAY_BUFFER, o->numTris * 3 * sizeof(Vec3), 
+		//(float *)&o->verts[0].x, GL_STATIC_DRAW);
+		//glDrawArrays(GL_TRIANGLES, 0, o->numTris * 3);
+		//glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+
+		//Shaders_SetUniformColor((Vec4){1,1,1,1});
+		//glBindVertexArray(0);
+		//glEnable(GL_DEPTH_TEST);
+	
+			//World_DrawCube(o->cube);
+			//if(o->children[0])
+				//for(k = 0; k < 8; k++)
+					//recurrsiveDraw(o->children[k]);
+	//}
 
 static void DrawBoundingBoxes(BoundingBox *bb){
 
@@ -398,35 +425,35 @@ static void DrawBoundingBoxes(BoundingBox *bb){
 	//if(!bb->renderDebug) return;
 
 	 if(BoundingBox_IsSAT(bb)){
-		//World_DrawSAT(bb);
-	 	//return;
+		World_DrawSAT(bb);
+	 	return;
 	 }
 
-	if(bb->soup.verts){
-		Shaders_UseProgram(TEXTURELESS_SHADER);
+	if(bb->soup.nTris){
+		//Shaders_UseProgram(TEXTURELESS_SHADER);
 		
-		float matrix[16];
-		Math_TranslateMatrix(matrix,(Vec3){0,0.4,0});
-		Shaders_SetModelMatrix(matrix);
-		Shaders_UpdateModelMatrix();
-		Shaders_UpdateViewMatrix();
-		Shaders_UpdateProjectionMatrix();
+		//Shaders_UpdateModelMatrix();
+		//Shaders_UpdateViewMatrix();
+		//Shaders_UpdateProjectionMatrix();
 
-		glBindVertexArray(vao);
-		glCullFace(GL_BACK);
+		//glBindVertexArray(vao);
+		//glCullFace(GL_BACK);
 
+		
+		
+		//recurrsiveDraw(&bb->soup.root);
 
-		glDisable(GL_DEPTH_TEST);
-		 glBindBuffer(GL_ARRAY_BUFFER, posVbo);
-		glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
-		 glBufferData(GL_ARRAY_BUFFER, bb->soup.nTris * 3 * sizeof(Vec3), 
-		(float *)&bb->soup.verts[0].x, GL_STATIC_DRAW);
-		glDrawArrays(GL_TRIANGLES, 0, bb->soup.nTris * 3);
-		glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+		////glDisable(GL_DEPTH_TEST);
+		 ////glBindBuffer(GL_ARRAY_BUFFER, posVbo);
+		////glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+		 ////glBufferData(GL_ARRAY_BUFFER, bb->soup.nTris * 3 * sizeof(Vec3), 
+		////(float *)&bb->soup.verts[0].x, GL_STATIC_DRAW);
+		////glDrawArrays(GL_TRIANGLES, 0, bb->soup.nTris * 3);
+		////glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
 
-		Shaders_SetUniformColor((Vec4){1,1,1,1});
-		glBindVertexArray(0);
-		glEnable(GL_DEPTH_TEST);
+		////Shaders_SetUniformColor((Vec4){1,1,1,1});
+		////glBindVertexArray(0);
+		////glEnable(GL_DEPTH_TEST);
 	}
 	
 	 World_DrawCube(bb->wsCube);

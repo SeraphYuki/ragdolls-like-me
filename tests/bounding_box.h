@@ -14,10 +14,24 @@ typedef struct Game Game;
 #define COLLISIONFLAG_RADIUS 0x040
 #define COLLISIONFLAG_POLYSOUP 0x080
 
+typedef struct _PolySoupLeaf {
+	struct _PolySoupLeaf *parent;
+	struct _PolySoupLeaf *children[8];
+	Vec3 *verts;
+	int numTris;
+	int numVerts;
+	Cube cube;
+	float height;
+	float width;
+	float depth;
+	Vec3 pos;
+	int level;
+} PolySoupLeaf;
 
 typedef struct {
 	Vec3 *verts;
 	int nTris;
+	PolySoupLeaf root;
 } PolySoup;
 
 typedef struct Object Object;
@@ -74,10 +88,10 @@ int BoundingBox_ResolveCollision(Game *game, Object *obj1, BoundingBox *bb, Obje
 
 Vec3 BoundingBox_GetPosition(BoundingBox *bb);
 
- int BoundingBox_CheckCollisionRay(BoundingBox *bb, Ray r, BoundingBox **b, float *dist);
-
+int BoundingBox_CheckCollisionRay(BoundingBox *bb, Ray r, BoundingBox **b, float *dist);
+int BoundingBox_ResolveSoupY(Game *game ,Object *obj, BoundingBox *bb, BoundingBox *bb2);
 BoundingBox *BoundingBox_GetTop(BoundingBox *bb);
-
-void BoundingBox_LoadSoup(BoundingBox *soup, const char *path);
+void BoundingBox_DebugSoup(BoundingBox *bb);
+void BoundingBox_LoadSoup(BoundingBox *bb, const char *path, int octantWidth);
 	
 #endif

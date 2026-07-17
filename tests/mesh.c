@@ -782,7 +782,8 @@ void Skeleton_Copy(Skeleton *skel, Skeleton *skel2){
 	     }
 	 }
 
-    InitBone(skel, skel->root);
+	if(skel->root)
+	    InitBone(skel, skel->root);
 }
 
 static void LoadSkeleton(Skeleton *skeleton, FILE *fp){

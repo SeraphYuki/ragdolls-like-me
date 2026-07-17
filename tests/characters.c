@@ -8,6 +8,31 @@
 void Minion_OnCollision(Game *game, Object *obj,Object *obj1, Object *obj2, BoundingBox *bb1,
 	BoundingBox *bb2, Vec3 axis, float overlap){
 
+	if(bb2->soup.verts){
+		int k;
+		for(k = 0; k < bb2->soup.nTris*3; k+=3){
+			Vec3 p0 = bb2->soup.verts[k];
+			Vec3 p1 = bb2->soup.verts[k+1];
+			Vec3 p2 = bb2->soup.verts[k+2];
+			Vec3 point;
+			p0 = Math_Vec3MultVec3(p0, bb2->scale);
+			p1 = Math_Vec3MultVec3(p1, bb2->scale);
+			p2 = Math_Vec3MultVec3(p2, bb2->scale);
+			p0 = Math_Rotate(p0, bb2->rot);
+			p1 = Math_Rotate(p1, bb2->rot);
+			p2 = Math_Rotate(p2, bb2->rot);
+			p0 = Math_Vec3AddVec3(p0, bb2->pos);
+			p1 = Math_Vec3AddVec3(p1, bb2->pos);
+			p2 = Math_Vec3AddVec3(p2, bb2->pos);
+			if(Math_IntersectLineTriangle(Math_Vec3AddVec3(obj->bb.pos,(Vec3){0,0,0}),
+				(Vec3){0,-1,0}, p0, p1, p2, &point)){
+				obj->bb.pos.y = point.y;
+				obj->ObjUpdate(obj);
+			}
+		}
+
+	}
+
 	if(!(bb2->collisionFlag & COLLISIONFLAG_INVISIBLE) && obj2->type == TYPE_CHARACTER){
 		Vec3 resolve = Math_Vec3MultFloat(axis, -overlap);
 		obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,resolve);
@@ -112,7 +137,7 @@ void Minion_Update(Game *game, Object *obj){
 
 		World_UpdateObjectInOctree(obj);
 	}
-	//World_ResolveCollisions(game, obj, &obj->bb);
+	World_ResolveCollisions(game, obj, &obj->bb);
 }
 
 void Minion_Draw(Game *game, Object *obj){

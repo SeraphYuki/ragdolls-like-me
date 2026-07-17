@@ -124,7 +124,7 @@ void Object_UpdateModel(Object *obj, Model *model){
 	memset(&obj->bb, 0, sizeof(BoundingBox));
 	
 	obj->bb.collisionFlag |= COLLISIONFLAG_NONE;
-		
+	obj->bb.radius = HUGE_VAL;		
 	obj->bb.scale = scale;
 	obj->bb.pos = pos;
 	obj->bb.rot = rot;
@@ -150,7 +150,7 @@ void Object_UpdateModel(Object *obj, Model *model){
 	     BoundingBox child;
 	     memset(&child, 0, sizeof(BoundingBox));
 	     child.cube = obj->model->bb[k].cube;
-
+		child.radius = HUGE_VAL;
 		child.pos = obj->model->bb[k].pos;
 		child.rot =  obj->model->bb[k].rot;
 		child.scale = obj->model->bb[k].scale;

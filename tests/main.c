@@ -3,8 +3,7 @@
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_opengl.h>
 #include <SDL2/SDL.h>
-//#include "thoth/thoth.h"
-
+#include "thoth/thoth.h"
 #include "characters.h"
 #include "spells.h"
 #include "pathfinding.h"
@@ -19,6 +18,7 @@
 #include "ui.h"
 #include "object.h"
 #include "skybox.h"
+
 #define WINDOW_WIDTH 960 
 #define WINDOW_HEIGHT 544
 
@@ -33,7 +33,7 @@ static float invPersp[16];
 static int onPath = 0;
 static PathfinderPath pfpath;
 
-//static Thoth_t *thoth;
+static Thoth_t *thoth;
 
 
 static Particle particles[100];
@@ -65,10 +65,10 @@ static void BeginCast(){
 	castingAOE = 1;
 }
 
-
 float GetDeltaTime(void){
 	  return Window_GetDeltaTime();
 }
+
 static void onThrow(Object *obj, Object *obj2, BoundingBox *bb, BoundingBox *bb2, Vec3 axis, float overlap){
 	obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,Math_Vec3MultFloat(axis, -overlap));
 	Vec3 satAxis;
@@ -82,30 +82,8 @@ static void onThrow(Object *obj, Object *obj2, BoundingBox *bb, BoundingBox *bb2
 static void onCube(Game *game, Object *obj, Object *obj1, 
 Object *obj2, BoundingBox *bb, BoundingBox *bb2, Vec3 axis, float overlap){
 	
-	if(bb2->soup.verts){
-		int k;
-		for(k = 0; k < bb2->soup.nTris*3; k+=3){
-			Vec3 p0 = bb2->soup.verts[k];
-			Vec3 p1 = bb2->soup.verts[k+1];
-			Vec3 p2 = bb2->soup.verts[k+2];
-			Vec3 point;
-			p0 = Math_Vec3MultVec3(p0, bb2->scale);
-			p1 = Math_Vec3MultVec3(p1, bb2->scale);
-			p2 = Math_Vec3MultVec3(p2, bb2->scale);
-			p0 = Math_Rotate(p0, bb2->rot);
-			p1 = Math_Rotate(p1, bb2->rot);
-			p2 = Math_Rotate(p2, bb2->rot);
-			p0 = Math_Vec3AddVec3(p0, bb2->pos);
-			p1 = Math_Vec3AddVec3(p1, bb2->pos);
-			p2 = Math_Vec3AddVec3(p2, bb2->pos);
-			if(Math_IntersectLineTriangle(Math_Vec3AddVec3(bb->pos,(Vec3){0,0,0}),
-				(Vec3){0,-1,0}, p0, p1, p2, &point)){
-				bb->pos.y = point.y;
-				obj->ObjUpdate(obj);
-				World_UpdateObjectInOctree(obj);
-			}
-		}
-
+	if(bb2->soup.nTris){
+		BoundingBox_ResolveSoupY(game,obj,bb,bb2);
 	}
 
 	//obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,Math_Vec3MultFloat(axis, -overlap));
@@ -203,7 +181,7 @@ static void Update(){
 static void Event(SDL_Event ev){
 	UI_Event(&ui, ev); 
 	
-	  //Thoth_Event(thoth, ev);
+	  Thoth_Event(thoth, ev);
 	if(ev.type == SDL_QUIT || ev.key.keysym.sym == SDLK_ESCAPE) exit(0);
 		
 	if(ev.type == SDL_MOUSEBUTTONDOWN){
@@ -263,8 +241,9 @@ static void Event(SDL_Event ev){
 				}
 			}
 		}
-		World_GetAllCollisionsRay(game.ray, &distance, &collision, &collisionObj, 
-		COLLISIONFLAG_RAY_OBJ);
+		World_GetAllCollisionsRay(game.ray, &distance, &collision, 
+			&collisionObj, COLLISIONFLAG_RAY_OBJ);
+			
 		if(collision && collisionObj){
 			if(collisionObj->type == TYPE_CHARACTER && collisionObj != game.player){
 				Spell_AutoAttack_Cast(&game, game.player, collisionObj);
@@ -294,8 +273,8 @@ static void Event(SDL_Event ev){
 			BoundingBox *collision;
 			game.ray = (Ray){renderpos,ray};
 			game.ray.pos = (Vec3){invView[3],invView[7],invView[11]};;
-			World_GetAllCollisionsRay(game.ray, &distance, &collision, &collisionObj,
-			COLLISIONFLAG_RAY_WORLD);
+			World_GetAllCollisionsRay(game.ray, &distance, &collision,
+				&collisionObj,COLLISIONFLAG_RAY_WORLD);
 			if(collision && collisionObj){
 				
 				castingPos = Math_Vec3AddVec3(
@@ -450,14 +429,13 @@ static char Draw(){
 		//World_DrawSkeleton(&game.player->skelBb.children[k]);
 	}
 
-
 	//ConeConstraint_Create(&figure.constraints[0],&figure.skel->bones[14],
-	//&figure.skel->bones[15],(Vec3){0,1,0},1);
+		//&figure.skel->bones[15],(Vec3){0,1,0},1);
 
-	Shaders_UseProgram(TEXTURELESS_SHADER);
-	Shaders_SetModelMatrix(game.player->bb.matrix);
+	//Shaders_UseProgram(TEXTURELESS_SHADER);
+	//Shaders_SetModelMatrix(game.player->bb.matrix);
 	//Physics_ApplyForces(&figure);
-
+	
 	if(pfpath.nPath > 0 && onPath < pfpath.nPath-1 && Math_Vec3Magnitude(Math_Vec3SubVec3(moveToPos,game.player->bb.pos)) < 0.1){
 		moveToPos = pfpath.path[onPath];
 		onPath++; 
@@ -489,19 +467,18 @@ static char Draw(){
 	img.h = game.player->model->materials[0].h;
 	img.nFramesX = img.nFramesY = 1;
 
-
-	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 
-	//Thoth_RenderIntoTexture(thoth, &img.glTexture, &img.w, &img.h);
+	Thoth_SetColorCfg(thoth, THOTH_COLOR_BG, 1,1,1,0.9);
+	Thoth_RenderIntoTexture(thoth, &img.glTexture, &img.w, &img.h);
 
-	//UI_RenderRectTex(&ui, img, 0,img.h, img.w/2,-img.h, 
-	//0,0, img.w/2,img.h, 255,255,255,255);
+	UI_RenderRectTex(&ui, img, 0,img.h, img.w/2,-img.h, 
+	0,0, img.w/2,img.h, 255,255,255,255);
 
-	//Pathfinding_RenderDebug(&game.pf,&pfpath);
+	Pathfinding_RenderDebug(&game.pf,&pfpath);
 
 	UI_Render(&ui, &game);
 
@@ -616,7 +593,7 @@ int main(int argc, char **argv){
 	game.world->bb.rot = (Vec3){0,0,0};
 	moveToPos = game.player->bb.pos;
 	
-	Pathfinding_Init(&game.pf, 200,200);
+	Pathfinding_Init(&game.pf, 300,300);
 	game.pf.cube.x = game.world->bb.wsCube.x;
 	game.pf.cube.z = game.world->bb.wsCube.z;
 	int index = game.world->bb.numChildren-1;
@@ -626,21 +603,19 @@ int main(int argc, char **argv){
 		game.world->bb.children[k].collisionFlag |= COLLISIONFLAG_RAY_WORLD;
 		Pathfinding_SetClosedBoundingBoxStatic(&game.pf, &game.world->bb.children[k]);
 	}
-	
-
+	//index = 0;	
 	game.world->bb.children[index].rot = (Vec3){0,0,0};;
 	game.world->bb.children[index].collisionFlag = COLLISIONFLAG_AABB;
 	game.world->bb.collisionFlag |= COLLISIONFLAG_AABB;
 	game.world->bb.children[index].collisionFlag |= COLLISIONFLAG_RAY_WORLD;
 	game.world->bb.collisionFlag |= COLLISIONFLAG_RAY_WORLD ;
 	//game.world->bb.collisionFlag |= COLLISIONFLAG_POLYSOUP ;
-
 	BoundingBox bb = BoundingBox_Create((Cube){0,0,0,0,0,0}, (Vec3){0,0,0});
-	BoundingBox_LoadSoup(&bb, "Resources/roomsoup.yuk");
+	BoundingBox_LoadSoup(&bb, "Resources/roomsoup.yuk", 25);
 	bb.collisionFlag |= COLLISIONFLAG_POLYSOUP;
 	BoundingBox_AddChild(&game.world->bb,&bb);
 
-	index++;
+
 	// has to be after
 	World_UpdateObjectInOctree(game.world);
 
@@ -656,10 +631,10 @@ int main(int argc, char **argv){
 		((Character *)game.characters[j]->data)->lastTime = Window_GetTicks() + (j * 100);
 	}
 
-	//thoth = Thoth_Create(WINDOW_WIDTH, WINDOW_HEIGHT);
-	//Thoth_LoadFile(thoth,"main.c");
+	thoth = Thoth_Create(WINDOW_WIDTH, WINDOW_HEIGHT);
+	Thoth_LoadFile(thoth,"main.c");
 	Window_MainLoop(Update, Event, Draw, Focus, OnResize, 1, 1);
-	 //Thoth_Destroy(thoth);
+	 Thoth_Destroy(thoth);
 
 	World_Free();
 	Shaders_Close();

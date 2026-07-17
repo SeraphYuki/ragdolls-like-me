@@ -282,7 +282,7 @@ static int GetClosestNotClosed(Pathfinder *pf, int index){
 				int f;
 				
 				for(f = 0; f < 8; f++){
-					//if(neighbors[f] < 0 || neighbors[f] > pf->w * pf->h) continue;
+					if(neighbors[f] < 0 || neighbors[f] > pf->w * pf->h) continue;
 					AStarNode *tmp = pf->closedFirst;
 					while(tmp){
 						if(tmp->index == neighbors[f]){
@@ -325,7 +325,6 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 
 	int goalIndex = GetClosestNotClosed(pf, gx + (gy * pf->w));
 	int attempts = 0;
-	
 	AStarNode current;
 	while(pf->openFirst && attempts < 1000){
 		attempts++;
@@ -372,7 +371,7 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 			}
 			pf->openFirst = NULL;
 
-			if(pf->closedObstaclesLast->next){
+			if(pf->closedObstaclesLast && pf->closedObstaclesLast->next){
 				curr = pf->closedObstaclesLast->next;
 				while(curr){
 					AStarNode *tmp = curr;
@@ -417,7 +416,7 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 		};
 		int f;
 		for(f = 0; f < 8; f++){
-			//if(neighbors[f] < 0 || neighbors[f] > pf->w * pf->h) continue;
+			if(neighbors[f] < 0 || neighbors[f] > pf->w * pf->h) continue;
 			AStarNode *closed = pf->closedFirst;
 			while(closed) {
 				if(closed->index == neighbors[f]) break;
@@ -470,7 +469,6 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 			open->parent = curr;
 		}
 	}
-	
 	curr = pf->openFirst;
 	while(curr){
 		AStarNode *tmp = curr;
@@ -479,7 +477,7 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 	}
 	pf->openFirst = NULL;
 		
-	if(pf->closedObstaclesLast->next){
+	if(pf->closedObstaclesLast && pf->closedObstaclesLast->next){
 		curr = pf->closedObstaclesLast->next;
 		while(curr){
 			AStarNode *tmp = curr;
