@@ -13,17 +13,17 @@ void Minion_OnCollision(Game *game, Object *obj,Object *obj1, Object *obj2, Boun
 	}
 
 	if(!(bb2->collisionFlag & COLLISIONFLAG_INVISIBLE) && obj2->type == TYPE_CHARACTER){
-		Vec3 resolve = Math_Vec3MultFloat(axis, -overlap);
+		Vec3 resolve = Math_Vec3MultFloat(axis, -overlap/2);
 		obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,resolve);
 		obj->ObjUpdate(obj);
-		World_UpdateObjectInOctree(obj);
-	}
+		World_UpdateObjectInOctree(obj);}
 	
 	if(obj == obj1 && bb1->collisionFlag & COLLISIONFLAG_RADIUS){
 		if(obj2->type == TYPE_CHARACTER ){
 			Character *character = (Character*)obj->data;
 			Character *character2 = (Character*)obj2->data;
-			if(character2->type != CHARACTER_TYPE_MINION){
+			if(character2->team != character->team && obj2 != character->aggro){
+				if(character->aggro){ character->aggro->RemoveUser(character->aggro); } 
 				character->aggro = obj2;
 				character->aggro->AddUser(character->aggro);
 			}
@@ -46,12 +46,16 @@ void Minion_Update(Game *game, Object *obj){
 		BoundingBox bb;
 		memset(&bb,0,sizeof(bb));
 		bb.pos = obj->bb.pos;
+		if(character->team == 0) obj->bb.pos.x -= 0.001 * GetDeltaTime();
+		if(character->team == 1) obj->bb.pos.x += 0.001 * GetDeltaTime();
+		
 		bb.radius = character->aggroRadius;
 		bb.collisionFlag |= COLLISIONFLAG_RADIUS;
 		World_ResolveCollisions(game, obj, &bb);
 	} else {
-		if(Window_GetTicks() - character->lastAttack > 8000){
+		if(Window_GetTicks() - character->lastAttack > 1000){
 			Spell_AutoAttack_Cast(game, obj, character->aggro);
+			character->aggro = NULL;
 			character->lastAttack = Window_GetTicks();
 		}	
 	}
@@ -61,11 +65,11 @@ void Minion_Update(Game *game, Object *obj){
 		Vec3 toPos = character->aggro->bb.pos;
 		toPos = Math_Vec3SubVec3(toPos, 
 		Math_Vec3MultFloat(
-		Math_Vec3Normalize(Math_Vec3SubVec3(toPos,obj->bb.pos)), character->aggroRadius));
+		Math_Vec3Normalize(Math_Vec3SubVec3(toPos,obj->bb.pos)), 1));
 		srand(character->index);
 		int randval = rand();
-		toPos = Math_Vec3AddVec3(toPos,
-			(Vec3){ (-50 + randval%100)/40.0f, 0, (-50 + randval%100)/40.0f});
+		//toPos = Math_Vec3AddVec3(toPos,
+			//(Vec3){ (-50 + randval%100)/40.0f, 0, (-50 + randval%100)/40.0f});
 
 		Pathfinding_FindPathGrid(&game->pf,obj->bb.pos, toPos, &character->path);
 		
@@ -73,8 +77,6 @@ void Minion_Update(Game *game, Object *obj){
 		// this doesnt work very well and is slow idk about it
 		//Pathfinding_SetClosedBoundingBoxDynamic(&game->pf, &obj->bb);
 	}
-	character->health -= 0.0001 * Window_GetDeltaTime();
-	character->Damage(game,obj,NULL);
 
 	if(character->health <=  0) return;
 	Vec3 pos = obj->bb.pos;
@@ -184,16 +186,23 @@ void Minion_Draw(Game *game, Object *obj){
 		glBindVertexArray(0);
 	}
 }
-void Minion_Damage(Game *game, Object *this, Object *cause){
+void Minion_Damage(Game *game, Object *this, Object *cause, float amount){
 
-	//Spell *spell = (Spell*)cause->data;
 	// handle custom logic
-
+	Spell *spell = (Spell*)cause->data;
+	
+	Character *cameFromChar = (Character*)spell->cameFrom->data;
+	
 	Character *character = (Character*)this->data;
+	
+	if(cameFromChar->team == character->team) return;
+
+	character->health -= amount;
+	
 	Minion *minion = (Minion *)character->data;
 
 	//if aggro
-	if(character->health < 0.4 && cause){
+	if(character->health <= 0.0 && cameFromChar){
 		game->cs += 100;
 		character->showGold = 1;
 	}
@@ -205,14 +214,14 @@ void Minion_Damage(Game *game, Object *this, Object *cause){
 	}		
 }
 
-Object *Minion_Create(Game *game, Model *model){
+Object *Minion_Create(Game *game, Model *model, int team){
 	Object *obj = Object_Create();
 	
 	obj->data = malloc(sizeof(Character));
 	obj->type = TYPE_CHARACTER;
 	Character *character = (Character*)obj->data;
 	memset(character, 0, sizeof(Character));
-	
+	character->team = team;
 	character->aggroRadius = 4;
 	character->Damage = Minion_Damage;
 	character->data = malloc(sizeof(Minion));
@@ -243,9 +252,17 @@ Object *Minion_Create(Game *game, Model *model){
 	obj->OnCollision = Minion_OnCollision;
 	obj->bb.collisionFlag |= COLLISIONFLAG_AABB | COLLISIONFLAG_RAY_OBJ;
 	obj->bb.renderDebug = 0;
-	obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,
-	(Vec3){ (-50 + rand()%100)/20.0f, 1, (-50 + rand()%100)/10.0f});
-	obj->bb.scale = (Vec3){0.14,0.14,0.14};
+	if(team == 0){
+		obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,
+		(Vec3){ (-50 + rand()%100)/20.0f, 1, (-50 + rand()%100)/10.0f});
+		obj->bb.pos.x += 10;
+	} else {
+		obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,
+		(Vec3){ (-50 + rand()%100)/20.0f, 1, (-50 + rand()%100)/10.0f});
+	}		
+	
+	
+	obj->bb.scale = (Vec3){0.1,0.1,0.1};
 	obj->bb.rot = (Vec3){0,0,0};
 	obj->bb.pos.z += 14;	
 	obj->bb.pos.x -= 5;	

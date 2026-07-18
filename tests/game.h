@@ -15,6 +15,7 @@ enum {
 	MODEL_WORLD=1,
 	MODEL_MINION,
 	MODEL_PLAYER,
+	MODEL_TOWER,
 	NUM_MODELS,
 };
 
@@ -37,7 +38,7 @@ struct Game {
 
 	Object *player;
 	Object *world;		
-
+	Object *tower;
 	Object *characters[MAX_CHARACTERS];
 	int 			nCharacters;		
 	Object 		*spells[MAX_SPELLS];

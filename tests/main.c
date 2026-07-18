@@ -52,7 +52,7 @@ static Vec3 moveToPos;
 float persp[16], view[16], model[16];
 static Vec3 rotation = {0,-1,0};
 static Vec2 mousepos = {0,0};
-static Vec3 position = {4,6,-4};
+static Vec3 position = {4,8,-4};
 static Vec3 renderpos = {-2,5,4};
 static Vec3 lookatPos = {0,2,0};
 
@@ -96,9 +96,8 @@ static void Update(){
 	for(j = 0; j < NUM_MINIONS; j++){
 		if(game.characters[j]->numUsers <= 1){
 			game.characters[j]->RemoveUser(game.characters[j]);
-			game.characters[j] = Minion_Create(&game,&game.models[MODEL_MINION-1]);
+			game.characters[j] = Minion_Create(&game,&game.models[MODEL_MINION-1],j/(NUM_MINIONS/2));
 			game.characters[j]->AddUser(game.characters[j]);
-			((Character *)game.characters[j]->data)->health += j * 0.5;
 			((Character *)game.characters[j]->data)->index = j;
 			((Character *)game.characters[j]->data)->lastTime = Window_GetTicks() + (j * 100);
 		}
@@ -444,8 +443,6 @@ static char Draw(){
 			moveToPos = pfpath.path[onPath];
 	}
 	
-
-
 	Skeleton_Apply(&playerSkel);
 
 	World_Render(&game,0);
@@ -493,12 +490,11 @@ static void OnResize(){
 
 }
 
-void PlayerDamage(Game *game, Object *this, Object *cause){
+void PlayerDamage(Game *game, Object *this, Object *cause, float amount){
 	
 }
 
 int main(int argc, char **argv){
-	
 	
 	Window_Open("Editor", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,WINDOW_WIDTH, WINDOW_HEIGHT, 0);
 	
@@ -509,7 +505,6 @@ int main(int argc, char **argv){
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	
-	
 	glClearColor(0,0,0,1);
 	Shaders_Init();
 
@@ -518,7 +513,6 @@ int main(int argc, char **argv){
 
 	Particles_Init(&game.particleSystem);
 	
-
 	particleImg = ImageLoader_CreateImage("Resources/smoke.png",1);
 	particleImg.nFramesX = 5;
 	particleImg.nFramesY = 5;
@@ -529,7 +523,7 @@ int main(int argc, char **argv){
 
 	glClearColor(0,0,0,1);
 
-	skybox = Skybox_Create(30, (Vec3){0,0,0}, "Resources/skybox.png");
+	skybox = Skybox_Create(50, (Vec3){0,0,0}, "Resources/skybox.png");
 
 	Math_Perspective(persp, 60.0f*(3.1415/180), (float)1920 / (float)1080, 0.1f, 100.0f);
 	memcpy(invPersp, persp, sizeof(persp));
@@ -545,13 +539,11 @@ int main(int argc, char **argv){
 	Shaders_UpdateViewMatrix();
 	Shaders_UpdateProjectionMatrix();
 
-
 	game.player = Object_Create();
 	game.player->skeleton = &playerSkel;
 	game.player->type = TYPE_CHARACTER;
 	game.player->data = malloc(sizeof(Character));
 	
-
 	((Character*)game.player->data)->type = CHARACTER_TYPE_PLAYER;
 	((Character*)game.player->data)->Damage = PlayerDamage;
 	memcpy(game.player->matrix, Math_Identity, sizeof(Math_Identity));
@@ -583,14 +575,13 @@ int main(int argc, char **argv){
 
 	game.world = Object_Create();
 	Model_Load(&game.models[MODEL_WORLD-1], "Resources/room.yuk");
+	Model_Load(&game.models[MODEL_TOWER-1], "Resources/tower.yuk");
 	Model_LoadCollisions(&game.models[MODEL_WORLD-1], "Resources/room.col");
-	
-
 	Object_SetModel(game.world, &game.models[MODEL_WORLD-1]);
 	game.world->ObjUpdate(game.world);
 	game.world->Draw = DrawModel;
 	game.world->AddUser(game.world);
-	
+
 	game.world->bb.rot = (Vec3){0,0,0};
 	moveToPos = game.player->bb.pos;
 	
@@ -624,13 +615,18 @@ int main(int argc, char **argv){
 
 	int j;
 	for(j = 0; j < NUM_MINIONS; j++){
-		game.characters[j] = Minion_Create(&game,&game.models[MODEL_MINION-1]);
-		//((Character *)game.characters[j]->data)->health += j * 0.5;
+		game.characters[j] = Minion_Create(&game,&game.models[MODEL_MINION-1],j/(NUM_MINIONS/2));
 		game.characters[j]->AddUser(game.characters[j]);
 
 		((Character *)game.characters[j]->data)->index = j;
 		((Character *)game.characters[j]->data)->lastTime = Window_GetTicks() + (j * 100);
 	}
+
+	((Character*)game.player->data)->team = 0;
+	game.characters[j++] = Tower_Create(&game,0);
+	game.characters[j-1]->AddUser(game.characters[j-1]);
+	((Character *)game.characters[j-1]->data)->index = j-1;
+	((Character *)game.characters[j-1]->data)->lastTime = Window_GetTicks() + (j-1 * 100);
 
 	thoth = Thoth_Create(WINDOW_WIDTH, WINDOW_HEIGHT);
 	Thoth_LoadFile(thoth,"main.c");

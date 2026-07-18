@@ -10,6 +10,7 @@ enum {
 	CHARACTER_NONE,
 	CHARACTER_TYPE_MINION=1,
 	CHARACTER_TYPE_PLAYER,
+	CHARACTER_TYPE_TOWER,
 };
 
 typedef struct {
@@ -19,12 +20,17 @@ typedef struct {
 	PlayingAnimation playingAnims[1];
 } Minion;
 
+typedef struct {
+	int lastAttack;
+} Tower;
 
 typedef struct Character Character;
 
 struct Character {
 	Object *aggro;
+
 	float health;	
+	int team;
 	int index;
 	int death;
 	int deathTime;
@@ -40,11 +46,12 @@ struct Character {
 
 	int type;	
 	
-	void (*Damage)(Game *game, Object *obj, Object *cause);
+	void (*Damage)(Game *game, Object *obj, Object *cause, float amount);
 	void *data;
 
 };
 
-Object *Minion_Create(Game *game, Model *model);
+Object *Minion_Create(Game *game, Model *model, int team);
+Object *Tower_Create(Game *game, int team);
 
 #endif

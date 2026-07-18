@@ -35,10 +35,7 @@ void SpellAutoAttack_Update(Game *game, Object *obj){
 		if(Math_Vec3Magnitude(path) < 1){
 
 
-			directedCharacter->health -= 0.3;
-		
-
-			if(directedCharacter->Damage) directedCharacter->Damage(game, spell->directedAt, obj);
+			if(directedCharacter->Damage) directedCharacter->Damage(game, spell->directedAt, obj, 0.3);
 			spell->directedAt->RemoveUser(spell->directedAt);
 			spell->cameFrom->RemoveUser(spell->cameFrom);
 			autoAttack->finished = 1;
@@ -143,8 +140,7 @@ void Spell_AOE_OnCollision(Game *game, Object *obj,Object *obj1, Object *obj2, B
 	// we caused it.
 	if(obj == obj1 && obj2->type == TYPE_CHARACTER){
 		Character *character = (Character*)obj2->data;
-		character->health -= 0.4;
-		character->Damage(game, obj2, spell->cameFrom);
+		character->Damage(game, obj2, obj, 0.4);
 	}
 }
 

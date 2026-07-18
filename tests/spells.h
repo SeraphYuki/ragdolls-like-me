@@ -6,6 +6,7 @@
 
 enum {
 	SPELL_TYPE_AUTOATTACK=1,
+	SPELL_TYPE_TOWERATTACK=1,
 	SPELL_TYPE_AOE,	
 };
 
@@ -18,6 +19,16 @@ typedef struct {
 	int finished;
 	Vec3 vel;
 } SpellAutoAttack;
+
+typedef struct {
+	Particle particles[100];
+	Image particleImage;
+	Vec3 pos;
+	float speed;
+	float dieTime;
+	int finished;
+	Vec3 vel;
+} SpellTowerAttack;
 
 typedef struct {
 	Particle particles[100];
@@ -40,6 +51,7 @@ struct Spell {
 };
 
 Object *Spell_AutoAttack_Cast(Game *game, Object *cameFrom, Object *at);
+Object *Spell_TowerAttack_Cast(Game *game, Object *cameFrom, Object *at);
 Object *Spell_AOE_Cast(Game *game, Object *cameFrom, Vec3 at);
 
 
