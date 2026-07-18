@@ -202,7 +202,7 @@ void Minion_Damage(Game *game, Object *this, Object *cause, float amount){
 	Minion *minion = (Minion *)character->data;
 
 	//if aggro
-	if(character->health <= 0.0 && cameFromChar){
+	if(character->health <= 0.0 && cameFromChar && cameFromChar->type == CHARACTER_TYPE_PLAYER){
 		game->cs += 100;
 		character->showGold = 1;
 	}

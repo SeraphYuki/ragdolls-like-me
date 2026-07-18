@@ -240,13 +240,17 @@ static void Event(SDL_Event ev){
 				}
 			}
 		}
-		World_GetAllCollisionsRay(game.ray, &distance, &collision, 
-			&collisionObj, COLLISIONFLAG_RAY_OBJ);
-			
-		if(collision && collisionObj){
-			if(collisionObj->type == TYPE_CHARACTER && collisionObj != game.player){
-				Spell_AutoAttack_Cast(&game, game.player, collisionObj);
 
+		if(ev.button.button == SDL_BUTTON_LEFT){
+			World_GetAllCollisionsRay(game.ray, &distance, &collision, 
+				&collisionObj, COLLISIONFLAG_RAY_OBJ);
+				
+			if(collision && collisionObj){
+				if(collisionObj->type == TYPE_CHARACTER && collisionObj != game.player
+				&& ((Character*)collisionObj->data)->team != ((Character*)game.player->data)->team){
+					Spell_AutoAttack_Cast(&game, game.player, collisionObj);
+
+				}
 			}
 		}
 	} else if(ev.type == SDL_MOUSEMOTION){

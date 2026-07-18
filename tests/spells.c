@@ -122,7 +122,7 @@ Object *Spell_AutoAttack_Cast(Game *game, Object *cameFrom, Object *at){
 		autoAttack->particles[j].lifeTime = 10000;
 		autoAttack->particles[j].pos = Math_Vec3AddVec3(cameFrom->bb.pos,
 		 (Vec3){ (-50 + rand()%100)/90.0f,(-50 + rand()%100)/90.0f,(-50 + rand()%100)/90.0f});
-		autoAttack->particles[j].size = (Vec2){1,1};
+		autoAttack->particles[j].size = (Vec2){0.5,0.5};
 		autoAttack->particles[j].color = (Vec4){0.1,0.1,0.1,0.1};
 		autoAttack->particles[j].vel = (Vec3){(-5 + (rand()%10))/20000.0f,(-5 + (rand()%10))/20000.0f,
 		(-5 + (rand()%10))/20000.0f};

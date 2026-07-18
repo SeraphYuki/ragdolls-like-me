@@ -36,16 +36,15 @@ void Tower_Update(Game *game, Object *obj){
 		BoundingBox bb;
 		memset(&bb,0,sizeof(bb));
 		bb.pos = obj->bb.pos;
-		if(character->team == 0) obj->bb.pos.x -= 0.001 * GetDeltaTime();
-		if(character->team == 1) obj->bb.pos.x += 0.001 * GetDeltaTime();
-		
 		bb.radius = character->aggroRadius;
 		bb.collisionFlag |= COLLISIONFLAG_RADIUS;
 		World_ResolveCollisions(game, obj, &bb);
 	} else {
 		if(Window_GetTicks() - character->lastAttack > 1000){
 			Spell_TowerAttack_Cast(game, obj, character->aggro);
+			character->aggro->RemoveUser(character->aggro);
 			character->aggro = NULL;
+
 			character->lastAttack = Window_GetTicks();
 		}	
 	}
@@ -113,7 +112,7 @@ Object *Tower_Create(Game *game, int team){
 	Character *character = (Character*)obj->data;
 	memset(character, 0, sizeof(Character));
 	character->team = team;
-	character->aggroRadius = 4;
+	character->aggroRadius = 10;
 	character->Damage = Tower_Damage;
 	character->data = malloc(sizeof(Tower));
 	character->type = CHARACTER_TYPE_TOWER;

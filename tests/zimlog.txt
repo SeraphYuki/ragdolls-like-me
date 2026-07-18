@@ -1,7 +1,51 @@
 SAVEDCURSORS:
 SAVEDCURSORS:
 CURSOR:
-	selection: startPos: 0 len: 0 
+	selection: startPos: 436 len: 0 
 	addedLen: 0
-	pos: 0
+	pos: 436
+COMMAND AddCharacters  | (f) 0
+SAVEDCURSORS:
+CURSOR:
+	selection: startPos: 436 len: 0 
+	addedLen: 1
+	pos: 437
+EXPAND ADD CHARACTERS | (a)
+SAVEDCURSORS:
+CURSOR:
+	selection: startPos: 436 len: 0 
+	addedLen: 2
+	pos: 438
+EXPAND ADD CHARACTERS | (a)
+SAVEDCURSORS:
+CURSOR:
+	selection: startPos: 436 len: 0 
+	addedLen: 3
+	pos: 439
+EXPAND ADD CHARACTERS | (a)
+SAVEDCURSORS:
+CURSOR:
+	selection: startPos: 436 len: 0 
+	addedLen: 4
+	pos: 440
+EXPAND ADD CHARACTERS | (q)
+SAVEDCURSORS:
+CURSOR:
+	selection: startPos: 436 len: 0 
+	addedLen: 5
+	pos: 441
+EXPAND ADD CHARACTERS | (q)
+SAVEDCURSORS:
+SAVEDCURSORS:
+CURSOR:
+	selection: startPos: 469 len: 26 
+	addedLen: 0
+	pos: 495
+COMMAND AddCharacters  | ( ) 0
+SAVEDCURSORS:
+SAVEDCURSORS:
+CURSOR:
+	selection: startPos: 333 len: 0 
+	addedLen: 0
+	pos: 333
 COMMAND AddCharacters  | (q) 0
