@@ -174,7 +174,7 @@ void SpellTowerAttack_Update(Game *game, Object *obj){
 		if(Math_Vec3Magnitude(path) < 1){
 
 			if(directedCharacter->Damage) directedCharacter->Damage(game, spell->directedAt, 
-			obj, 0.8);
+			obj, 0.3);
 			spell->directedAt->RemoveUser(spell->directedAt);
 			spell->cameFrom->RemoveUser(spell->cameFrom);
 			towerAtt->finished = 1;

@@ -121,8 +121,8 @@ Object *Spell_AutoAttack_Cast(Game *game, Object *cameFrom, Object *at){
 		autoAttack->particles[j].createTime = Window_GetTicks();
 		autoAttack->particles[j].lifeTime = 10000;
 		autoAttack->particles[j].pos = Math_Vec3AddVec3(cameFrom->bb.pos,
-		 (Vec3){ (-50 + rand()%100)/90.0f,(-50 + rand()%100)/90.0f,(-50 + rand()%100)/90.0f});
-		autoAttack->particles[j].size = (Vec2){0.5,0.5};
+		 (Vec3){ (-50 + rand()%100)/100.0f,(-50 + rand()%100)/100.0f,(-50 + rand()%100)/100.0f});
+		autoAttack->particles[j].size = (Vec2){1,1};
 		autoAttack->particles[j].color = (Vec4){0.1,0.1,0.1,0.1};
 		autoAttack->particles[j].vel = (Vec3){(-5 + (rand()%10))/20000.0f,(-5 + (rand()%10))/20000.0f,
 		(-5 + (rand()%10))/20000.0f};
@@ -206,5 +206,106 @@ Object *Spell_AOE_Cast(Game *game, Object *cameFrom, Vec3 pos){
 	
 	World_AddOffScreenUpdatedObject(obj);
 	World_UpdateObjectInOctree(obj);	
+	return obj;
+}
+
+void Spell_Grab_OnCollision(Game *game, Object *obj,Object *obj1, Object *obj2, BoundingBox *bb1,
+	BoundingBox *bb2, Vec3 axis, float overlap){
+
+	Spell  *spell = (Spell *)obj->data;
+	SpellGrab  *grab = (SpellGrab  *)spell->data;
+	if(spell->directedAt) return; 	
+
+	if(obj == obj1 && obj2->type == TYPE_CHARACTER && obj2 != spell->cameFrom){
+		Character *character = (Character*)obj2->data;
+		spell->directedAt = obj2;
+		obj2->AddUser(obj2);
+		SpellGrab  *grab = (SpellGrab  *)spell->data;
+	}
+}
+
+void Spell_Grab_Update(Game *game, Object *obj){
+	Spell  *spell = (Spell *)obj->data;
+	SpellGrab  *grab = (SpellGrab  *)spell->data;
+
+	
+	if(!spell->directedAt){
+		obj->bb.pos = Math_Vec3AddVec3(
+		Math_Vec3MultFloat(grab->vel,grab->speed * GetDeltaTime()), obj->bb.pos);
+	} else {
+		grab->vel = Math_Vec3Normalize(Math_Vec3SubVec3( spell->cameFrom->bb.pos, obj->bb.pos));
+		
+		obj->bb.pos = Math_Vec3AddVec3(
+		Math_Vec3MultFloat(grab->vel,grab->speed * GetDeltaTime()), obj->bb.pos);
+		if(Math_Vec3Magnitude(
+			Math_Vec3SubVec3(obj->bb.pos, spell->cameFrom->bb.pos)) < 1){
+				World_RemoveOffScreenUpdatedObject(obj);
+				World_RemoveObjectFromOctree(obj);
+				spell->cameFrom->RemoveUser(spell->cameFrom);
+				spell->directedAt->RemoveUser(spell->directedAt);
+				return;
+		}
+	}
+	
+	
+	obj->ObjUpdate(obj);
+	World_UpdateObjectInOctree(obj);
+	
+	if(!spell->directedAt){
+		World_ResolveCollisions(game, obj, &obj->bb);
+	} else {
+		
+		spell->directedAt->bb.pos = obj->bb.pos;
+		obj->ObjUpdate(spell->directedAt);
+		
+	}
+}
+void Spell_Grab_Draw(Game *game, Object *obj){
+	Spell  *spell = (Spell *)obj->data;
+	SpellGrab  *autoAttack = (SpellGrab  *)spell->data;
+
+	Shaders_SetModelMatrix(obj->matrix);
+	float invView[16];
+	Shaders_GetInvViewMatrix(invView);
+	Vec3 forward = (Vec3){invView[2], invView[6], invView[10]};
+	Vec3 camPos = (Vec3){invView[3], invView[7], invView[11]};
+}
+
+
+Object *Spell_Grab_Cast(Game *game, Object *cameFrom, Vec3 vec){
+	
+	cameFrom->AddUser(cameFrom);
+
+	Object *obj = Object_Create();
+	
+	obj->data = malloc(sizeof(Spell));
+	Spell *spell = (Spell*)obj->data;	
+	memset(spell, 0, sizeof(Spell));
+	
+	spell->data = malloc(sizeof(SpellGrab));
+	SpellGrab *grab = (SpellGrab*)spell->data;
+	memset(grab, 0, sizeof(SpellGrab));
+
+	grab->vel = Math_Vec3Normalize(Math_Vec3SubVec3(vec, cameFrom->bb.pos));	
+	grab->speed = 0.004;
+	Math_Identity(obj->matrix);
+	spell->cameFrom = cameFrom;
+	spell->type = SPELL_TYPE_GRAB;
+
+	obj->Draw = Spell_Grab_Draw;
+	obj->Update = Spell_Grab_Update;
+	obj->OnCollision = Spell_Grab_OnCollision;
+	obj->bb.collisionFlag |= COLLISIONFLAG_SAT;
+
+	grab->pos = cameFrom->bb.pos;
+	obj->bb.pos = cameFrom->bb.pos;
+	obj->bb.scale = (Vec3){0.3,0.3,0.3};
+	obj->bb.rot = (Vec3){0,0,0};
+	obj->type = TYPE_SPELL;
+	obj->bb.cube = (Cube){-2,-2,-2,4,4,4};
+	obj->ObjUpdate(obj);
+	World_UpdateObjectInOctree(obj);
+	World_AddOffScreenUpdatedObject(obj);
+
 	return obj;
 }

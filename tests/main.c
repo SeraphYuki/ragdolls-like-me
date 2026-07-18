@@ -60,10 +60,7 @@ static UI ui;
 
 static int castingAOE = 0;
 static Vec3 castingPos;
-
-static void BeginCast(){
-	castingAOE = 1;
-}
+static int castingGrab = 0;
 
 float GetDeltaTime(void){
 	  return Window_GetDeltaTime();
@@ -189,6 +186,10 @@ static void Event(SDL_Event ev){
 			Spell_AOE_Cast(&game, game.player, castingPos);
 			castingAOE = 0;
 		}
+		if(castingGrab){
+			Spell_Grab_Cast(&game, game.player, castingPos);
+			castingGrab = 0;
+		}
 
 		moveToPos = game.player->bb.pos;
 		game.player->model->materials[0].diffuse = (Vec4){0.8,0.6,0.6,1};
@@ -258,7 +259,7 @@ static void Event(SDL_Event ev){
 		mousepos.x = ev.motion.x;
 		mousepos.y = ev.motion.y;
 		
-		if(castingAOE){
+		if(castingAOE || castingGrab){
 			
 			Vec4 rayWorld = (Vec4){
 				(2.0 * (mousepos.x / WINDOW_WIDTH)) - 1.0, 
@@ -290,6 +291,9 @@ static void Event(SDL_Event ev){
 
 	   if(ev.key.keysym.sym == SDLK_q)
 			castingAOE = 1;;
+
+	   if(ev.key.keysym.sym == SDLK_w)
+			castingGrab = 1;;
 
 	} else if(ev.type == SDL_KEYUP){
 
@@ -449,7 +453,7 @@ static char Draw(){
 	
 	Skeleton_Apply(&playerSkel);
 
-	World_Render(&game,0);
+	World_Render(&game,1);
 
 	if(castingAOE){
 		Math_Identity(idenity);
@@ -457,6 +461,24 @@ static char Draw(){
 		Shaders_SetModelMatrix(idenity);
 		Shaders_UpdateModelMatrix();
 		Cube cube = (Cube){castingPos.x - 1.5,castingPos.y,castingPos.z - 1.5,3,0.1,3};
+		World_DrawX(cube);
+	}
+
+	if(castingGrab){
+		Shaders_UseProgram(TEXTURELESS_SHADER);
+		float matrix[16];
+		
+		Vec3 origin = game.player->bb.pos;
+		Vec3 anchor = (Vec3){castingPos.x,castingPos.y,castingPos.z};
+		Vec3 offset = (Vec3){ origin.x - anchor.x, 0, origin.z - anchor.z };
+		
+		float rotate[16];
+		Math_RotateMatrix(rotate, (Vec3){0, PI+atan2(offset.x, offset.z), 0});
+		Math_TranslateMatrix(matrix, origin);
+		Math_MatrixMatrixMult(matrix, matrix,rotate);
+		Shaders_SetModelMatrix(matrix);
+		Shaders_UpdateModelMatrix();
+		Cube cube = (Cube){0,0,0,1,0.1,6};
 		World_DrawX(cube);
 	}
 	
@@ -597,6 +619,7 @@ int main(int argc, char **argv){
 	int k; // skip the ground
 	for(k = 0; k < index; k++ ){
 		game.world->bb.children[k].collisionFlag |= COLLISIONFLAG_RAY_WORLD;
+		//game.world->bb.children[k].collisionFlag |= COLLISIONFLAG_SAT;
 		Pathfinding_SetClosedBoundingBoxStatic(&game.pf, &game.world->bb.children[k]);
 	}
 	//index = 0;	

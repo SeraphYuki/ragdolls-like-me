@@ -521,7 +521,7 @@ static void LoadModel(Model *model, FILE *fp, u16 stride){
 	     if(pos->z < model->bb[0].cube.z)
 	         model->bb[0].cube.z = pos->z;
 	     if(pos->z >  model->bb[0].cube.d)
-	         model->bb[0].cube.d = pos->y;
+	         model->bb[0].cube.d = pos->z;
 	 }
 	model->numBB = 1;
 	 model->bb[0].cube.w -= model->bb[0].cube.x;
