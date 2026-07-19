@@ -292,7 +292,7 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 	int goalIndex = GetClosestNotClosed(pf, gx + (gy * pf->w));
 	int attempts = 0;
 	AStarNode current;
-	while(pf->openFirst ){
+	while(pf->openFirst && attempts < 1000){
 		attempts++;
 		curr = pf->openFirst;
 
@@ -391,6 +391,7 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 			if(closed) continue; 
 
 			int tentative_gscore = current.g + 1;
+
 			int nx = neighbors[f] % pf->w;
 			int ny = neighbors[f] / pf->w;
 
@@ -401,9 +402,14 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 			}
 
 			if(open){
-				if(open->g < tentative_gscore){
+				if(open->diagnal != f/4){
+					tentative_gscore += 1;
+				}
+
+				if(tentative_gscore < open->g){ // this path is better
 					open->f = tentative_gscore + ((nx-gx)*(nx-gx)) + ((ny-gy)*(ny-gy));
 					open->g = tentative_gscore;
+					open->diagnal = f/4;
 					open->index = neighbors[f];
 					open->parent = curr;
 					continue;
@@ -431,6 +437,7 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 			if(open->prev) open->prev->next = open;
 			open->f = tentative_gscore + ((nx-gx)*(nx-gx)) + ((ny-gy)*(ny-gy));
 			open->g = tentative_gscore;
+			open->diagnal = f/4;
 			open->index = neighbors[f];
 			open->parent = curr;
 		}

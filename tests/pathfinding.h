@@ -8,9 +8,10 @@
 
 typedef struct AStarNode AStarNode;
 struct AStarNode {
-		int g;
-		int f;
+		float g;
+		float f;
 		int index;
+		int diagnal;
 		AStarNode *parent;
 		AStarNode *next;
 		AStarNode *prev;
@@ -34,6 +35,8 @@ typedef struct {
 	int vao;
 	int vbo;
 	int nVerts;
+	int nClosed;
+	int nOpen;
 	Cube cube;
 	Vec3 pos;
 } Pathfinder;
