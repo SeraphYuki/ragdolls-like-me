@@ -75,38 +75,6 @@ void Pathfinding_RenderDebug(Pathfinder *pf, PathfinderPath *path){
 		closed = closed->next;	
 	}
 	
-	//Shaders_SetUniformColor((Vec4){0,1,1,1});		
-	//for(; k < pf->nClosed; k++){
-		//float x = (float)((int)closed->index % pf->w);
-		//float y = (float)((int)closed->index / pf->w);
-		//Vec3 pos = (Vec3){(x * PATHFINDING_NODE_GRID_SIZE),1, 
-			//(y * PATHFINDING_NODE_GRID_SIZE)};
-		//pos.x += pf->cube.x;
-		//pos.z += pf->cube.z;
-		//pos.x -= PATHFINDING_NODE_GRID_SIZE/2;
-		//pos.y -= PATHFINDING_NODE_GRID_SIZE/2 - 0.3;
-		//pos.z -= PATHFINDING_NODE_GRID_SIZE/2;
-		//Cube cube = (Cube){pos.x, 0.01,pos.z,PATHFINDING_NODE_GRID_SIZE,PATHFINDING_NODE_GRID_SIZE,
-		//PATHFINDING_NODE_GRID_SIZE};
-		//World_DrawX(cube);
-	//}
-	//Shaders_SetUniformColor((Vec4){1,1,1,1});		
-
-	//Shaders_SetUniformColor((Vec4){1,1,0,1});		
-	//for(k=0; k < pf->nOpen; k++){
-		//float x = (float)((int)pf->open[k].index % pf->w);
-		//float y = (float)((int)pf->open[k].index / pf->w);
-		//Vec3 pos = (Vec3){(x * PATHFINDING_NODE_GRID_SIZE),1, 
-			//(y * PATHFINDING_NODE_GRID_SIZE)};
-		//pos.x += pf->cube.x;
-		//pos.z += pf->cube.z;
-		//pos.x -= PATHFINDING_NODE_GRID_SIZE/2;
-		//pos.y -= PATHFINDING_NODE_GRID_SIZE/2 - 0.3;
-		//pos.z -= PATHFINDING_NODE_GRID_SIZE/2;
-		//Cube cube = (Cube){pos.x, 0.01,pos.z,PATHFINDING_NODE_GRID_SIZE,PATHFINDING_NODE_GRID_SIZE,
-		//PATHFINDING_NODE_GRID_SIZE};
-		//World_DrawX(cube);
-	//}
 	glBindVertexArray(0);
 	glEnable(GL_DEPTH_TEST);
 }
@@ -324,7 +292,7 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 	int goalIndex = GetClosestNotClosed(pf, gx + (gy * pf->w));
 	int attempts = 0;
 	AStarNode current;
-	while(pf->openFirst && attempts < 1000){
+	while(pf->openFirst ){
 		attempts++;
 		curr = pf->openFirst;
 
@@ -332,7 +300,7 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 
 		AStarNode *first = pf->openFirst;
 		while(first){
-			if(first->f <= curr->f ){
+			if(first->f < curr->f ){
 				curr = first;
 			}
 			first = first->next;
@@ -433,7 +401,7 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 			}
 
 			if(open){
-				if(open->g >= tentative_gscore){
+				if(open->g < tentative_gscore){
 					open->f = tentative_gscore + ((nx-gx)*(nx-gx)) + ((ny-gy)*(ny-gy));
 					open->g = tentative_gscore;
 					open->index = neighbors[f];
