@@ -7,11 +7,15 @@
 
 void Minion_OnCollision(Game *game, Object *obj,Object *obj1, Object *obj2, BoundingBox *bb1,
 	BoundingBox *bb2, Vec3 axis, float overlap){
+	
+	//obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,Math_Vec3MultFloat(axis, -overlap));
 
 	if(bb2->soup.nTris){
 		BoundingBox_ResolveSoupY(game,obj,bb1,bb2);
 	}
-
+	obj->ObjUpdate(obj);
+	
+	
 	if(!(bb2->collisionFlag & COLLISIONFLAG_INVISIBLE) && obj2->type == TYPE_CHARACTER){
 		Vec3 resolve = Math_Vec3MultFloat(axis, -overlap/2);
 		obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,resolve);

@@ -157,7 +157,6 @@ void PolySoupLeaf_ResolveCollisions(Game *game,
 			(Vec3){0,-1,0}, p0, p1, p2, &point)){
 				
 			box->pos.y = point.y;
-			obj->ObjUpdate(obj);
 		}
 	}
 
@@ -562,6 +561,7 @@ void BoundingBox_UpdatePoints(BoundingBox *bb){
 
 	Math_ScalingMatrixXYZ(bb->matrix, bb->scale);
 	Math_MatrixMatrixMult(bb->matrix, bb->rmatrix, bb->matrix);	
+
 	//if(bb->parent){
 		//Math_MatrixMatrixMult(bb->rmatrix, bb->parent->rmatrix, bb->rmatrix); 
 	//}
@@ -574,16 +574,29 @@ void BoundingBox_UpdatePoints(BoundingBox *bb){
 		Math_MatrixMatrixMult(bb->rmatrix, bb->parent->rmatrix, bb->rmatrix); 
 		Math_MatrixMatrixMult(bb->matrix, bb->parent->matrix, bb->matrix); 
 	}
-
-	bb->points[0] = Math_MatrixMult(bb->points[0], bb->matrix);
-	bb->points[1] = Math_MatrixMult(bb->points[1], bb->matrix);
-	bb->points[2] = Math_MatrixMult(bb->points[2], bb->matrix);
-	bb->points[3] = Math_MatrixMult(bb->points[3], bb->matrix);
-	bb->points[4] = Math_MatrixMult(bb->points[4], bb->matrix);
-	bb->points[5] = Math_MatrixMult(bb->points[5], bb->matrix);
-	bb->points[6] = Math_MatrixMult(bb->points[6], bb->matrix);
-	bb->points[7] = Math_MatrixMult(bb->points[7], bb->matrix);
-
+	if(!(bb->collisionFlag & COLLISIONFLAG_AABB)){
+		bb->points[0] = Math_MatrixMult(bb->points[0], bb->matrix);
+		bb->points[1] = Math_MatrixMult(bb->points[1], bb->matrix);
+		bb->points[2] = Math_MatrixMult(bb->points[2], bb->matrix);
+		bb->points[3] = Math_MatrixMult(bb->points[3], bb->matrix);
+		bb->points[4] = Math_MatrixMult(bb->points[4], bb->matrix);
+		bb->points[5] = Math_MatrixMult(bb->points[5], bb->matrix);
+		bb->points[6] = Math_MatrixMult(bb->points[6], bb->matrix);
+		bb->points[7] = Math_MatrixMult(bb->points[7], bb->matrix);
+	} else {
+		float scale[16];
+		Math_ScalingMatrixXYZ(scale,bb->scale);
+		Math_MatrixMatrixMult(matrix, matrix, scale);
+		bb->points[0] = Math_MatrixMult(bb->points[0], matrix);
+		bb->points[1] = Math_MatrixMult(bb->points[1], matrix);
+		bb->points[2] = Math_MatrixMult(bb->points[2], matrix);
+		bb->points[3] = Math_MatrixMult(bb->points[3], matrix);
+		bb->points[4] = Math_MatrixMult(bb->points[4], matrix);
+		bb->points[5] = Math_MatrixMult(bb->points[5], matrix);
+		bb->points[6] = Math_MatrixMult(bb->points[6], matrix);
+		bb->points[7] = Math_MatrixMult(bb->points[7], matrix);
+	}
+	
 	BoundingBox_UpdateWorldSpaceCube(bb);
 
 	int k;	

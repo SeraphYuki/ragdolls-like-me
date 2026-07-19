@@ -135,7 +135,7 @@ Object *Tower_Create(Game *game, int team){
 	
 	obj->bb.scale = (Vec3){1,1,1};
 	obj->bb.rot = (Vec3){0,0,0};
-	obj->bb.pos = (Vec3){0,0,10};	
+	obj->bb.pos = (Vec3){0,0,17};	
 	obj->ObjUpdate(obj);
 	World_UpdateObjectInOctree(obj);
 	World_AddOffScreenUpdatedObject(obj);

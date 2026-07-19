@@ -218,8 +218,10 @@ void Spell_Grab_OnCollision(Game *game, Object *obj,Object *obj1, Object *obj2, 
 
 	if(obj == obj1 && obj2->type == TYPE_CHARACTER && obj2 != spell->cameFrom){
 		Character *character = (Character*)obj2->data;
-		spell->directedAt = obj2;
-		obj2->AddUser(obj2);
+		if(character->team != ((Character*)spell->cameFrom->data)->team){
+			spell->directedAt = obj2;
+			obj2->AddUser(obj2);
+		}
 		SpellGrab  *grab = (SpellGrab  *)spell->data;
 	}
 }
@@ -264,11 +266,10 @@ void Spell_Grab_Draw(Game *game, Object *obj){
 	Spell  *spell = (Spell *)obj->data;
 	SpellGrab  *autoAttack = (SpellGrab  *)spell->data;
 
-	Shaders_SetModelMatrix(obj->matrix);
-	float invView[16];
-	Shaders_GetInvViewMatrix(invView);
-	Vec3 forward = (Vec3){invView[2], invView[6], invView[10]};
-	Vec3 camPos = (Vec3){invView[3], invView[7], invView[11]};
+	float identity[16];
+	Math_Identity(identity);
+	Shaders_SetModelMatrix(identity);
+	World_DrawCube(obj->bb.wsCube);
 }
 
 

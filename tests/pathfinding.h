@@ -1,7 +1,6 @@
 
 #ifndef PATHFINDING_DEF
 #define PATHFINDING_DEF
-
 #define MAX_PATHFINDING_PATH 40
 #define PATHFINDING_NODE_GRID_SIZE 0.6
 #include "math.h"

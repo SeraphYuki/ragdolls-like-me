@@ -1,0 +1,31 @@
+SAVEDCURSORS:
+SAVEDCURSORS:
+CURSOR:
+	selection: startPos: 0 len: 0 
+	addedLen: 0
+	pos: 0
+COMMAND AddCharacters  | (q) 0
+SAVEDCURSORS:
+CURSOR:
+	selection: startPos: 0 len: 0 
+	addedLen: 1
+	pos: 1
+EXPAND ADD CHARACTERS | (w)
+SAVEDCURSORS:
+CURSOR:
+	selection: startPos: 0 len: 0 
+	addedLen: 2
+	pos: 2
+EXPAND ADD CHARACTERS | (q)
+SAVEDCURSORS:
+CURSOR:
+	selection: startPos: 0 len: 0 
+	addedLen: 3
+	pos: 3
+EXPAND ADD CHARACTERS | (q)
+SAVEDCURSORS:
+CURSOR:
+	selection: startPos: 0 len: 0 
+	addedLen: 4
+	pos: 4
+EXPAND ADD CHARACTERS | (q)

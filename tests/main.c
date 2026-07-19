@@ -83,7 +83,9 @@ Object *obj2, BoundingBox *bb, BoundingBox *bb2, Vec3 axis, float overlap){
 		BoundingBox_ResolveSoupY(game,obj,bb,bb2);
 	}
 
-	//obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,Math_Vec3MultFloat(axis, -overlap));
+	obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,Math_Vec3MultFloat(axis, -overlap*0.01));
+
+	obj->ObjUpdate(obj);
 }
 
 static void Update(){
@@ -589,7 +591,7 @@ int main(int argc, char **argv){
 	game.player->bb.scale = (Vec3){0.2,0.2,0.2};
 	game.player->bb.rot = (Vec3){0,0,0};
 	game.player->bb.renderDebug = 0;
-	game.player->bb.cube = (Cube){-2.5,0.1,-2.5,5,10,5};
+	game.player->bb.cube = (Cube){-2,0.1,-2,4,10,4};
 	
 	World_UpdateObjectInOctree(game.player);
 	playingAnims[0] = (PlayingAnimation){
@@ -619,7 +621,7 @@ int main(int argc, char **argv){
 	int k; // skip the ground
 	for(k = 0; k < index; k++ ){
 		game.world->bb.children[k].collisionFlag |= COLLISIONFLAG_RAY_WORLD;
-		//game.world->bb.children[k].collisionFlag |= COLLISIONFLAG_SAT;
+		game.world->bb.children[k].collisionFlag |= COLLISIONFLAG_SAT;
 		Pathfinding_SetClosedBoundingBoxStatic(&game.pf, &game.world->bb.children[k]);
 	}
 	//index = 0;	

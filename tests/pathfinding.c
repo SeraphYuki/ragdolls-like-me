@@ -137,6 +137,10 @@ void Pathfinding_Init(Pathfinder *pf, int w, int h){
 static void SetClosedBoundingBox(Pathfinder *pf, BoundingBox *bb,
 	void (*close)(Pathfinder *pf, int x, int y)){
 	
+	Vec3 oldscale = bb->scale;
+	bb->scale = Math_Vec3MultFloat(bb->scale, 1.3);
+	BoundingBox_UpdatePoints(bb); 
+
 	Vec3 tris[4][3];
 
 	tris[0][0] = bb->points[0];
@@ -155,20 +159,14 @@ static void SetClosedBoundingBox(Pathfinder *pf, BoundingBox *bb,
 	tris[3][1] = bb->points[2];
 	tris[3][2] = bb->points[1];
 	
-	//int x = (bb->wsCube.x-pf->cube.x) / PATHFINDING_NODE_GRID_SIZE;
-	//int y = (bb->wsCube.z-pf->cube.z) / PATHFINDING_NODE_GRID_SIZE;;	
-	//int tx = x+((bb->wsCube.x+bb->wsCube.w-pf->cube.x) / PATHFINDING_NODE_GRID_SIZE);
-	//int ty = y+((bb->wsCube.z+bb->wsCube.d-pf->cube.z) / PATHFINDING_NODE_GRID_SIZE);;
-	//int k;
-	//for(; x < tx; x++){
-		//for(; y < ty; y++){
-	
+	bb->scale = oldscale;
+	BoundingBox_UpdatePoints(bb); 		
 	int k;
 	int x = 0, y = 0;
 	for(x = 0; x < pf->w; x++){
 		for(y = 0; y < pf->h; y++){
 			Vec2 p = (Vec2){x*PATHFINDING_NODE_GRID_SIZE,y*PATHFINDING_NODE_GRID_SIZE};
-			for(k = 0; k < 4; k++){
+				for(k = 0; k < 4; k++){
 
 				Vec3 p0 = tris[k][0];
 				Vec3 p1 = tris[k][1];

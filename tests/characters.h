@@ -28,7 +28,8 @@ typedef struct Character Character;
 
 struct Character {
 	Object *aggro;
-
+	
+	int collisionResolve;
 	float health;	
 	int team;
 	int index;
