@@ -1,6 +1,21 @@
+/*
+Heuristic is squared distance: ((nx-gx)*(nx-gx)) + ((ny-gy)*(ny-gy)). Squaring makes it wildly overestimate the true cost, so it's inadmissible — you lose the optimality guarantee and it degenerates toward greedy best-first. Use plain Euclidean, or octile distance for 8-connected grids.
+Uniform step cost of 1 for diagonals too, plus that odd diagnal fudge that adds +1 only when re-examining an already-open node. Diagonals should cost ~1.414 consistently, not conditionally.
+Open list is a linked list with a linear min scan, and the closed list is a linear scan too. That's O(n) per operation where classic A* uses a binary heap plus a hash set / flag array.
+
+Actual bugs
+
+Removing the head destroys the open list: if(curr->prev == NULL) pf->openFirst = NULL; should be pf->openFirst = curr->next. When you pop the first node — which is common — every other open node is orphaned and leaked. This alone will make searches fail or wander.
+The popped node is never freed, only copied into current and into the closed list. Meanwhile open->parent = curr points at that unlinked open-list node, not at the closed-list copy. So parent chains point into memory that's leaked now and, in the cleanup loops at the end, may already have been freed — reconstruction reads dangling pointers.
+Duplicate open entries: if a node is already open and tentative_gscore >= open->g, the code falls through and appends a second node for the same index instead of skipping it.
+No row-wrap check on neighbors: index ± 1 at column 0 or w-1 wraps to the adjacent row. You need to reject neighbors where abs(nx - curr_x) > 1. Also neighbors[f] > pf->w * pf->h should be >=.
+Negative-coordinate truncation: (pos.x - pf->cube.x) / PATHFINDING_NODE_GRID_SIZE with ints truncates toward zero, so cells left/below the origin are off by one. Use floorf before the cast.
+*/
+
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <SDL2/SDL_opengl.h>
+#include "utils.h"
 #include "pathfinding.h"
 #include "world.h"
 #include <stdio.h>
@@ -269,11 +284,20 @@ static int GetClosestNotClosed(Pathfinder *pf, int index){
 
 int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*path){
 
-	int x =  ( pos.x - pf->cube.x) / PATHFINDING_NODE_GRID_SIZE;
-	int y =  ( pos.z - pf->cube.z) / PATHFINDING_NODE_GRID_SIZE;	
-	int gx = (  goal.x - pf->cube.x) / PATHFINDING_NODE_GRID_SIZE;
-	int gy = (  goal.z - pf->cube.z) / PATHFINDING_NODE_GRID_SIZE;	
+	pf->closed = HashTable_Create();
+	pf->open = HashTable_Create();
 
+	AStarNode *closed = pf->closedFirst;	
+	while(closed){
+		HashTable_Insert(pf->closed, (const char*)&closed->index, (char*)closed);
+		closed = closed->next;
+	}
+	
+	
+	int x =  abs( pos.x - pf->cube.x) / PATHFINDING_NODE_GRID_SIZE;
+	int y =  abs( pos.z - pf->cube.z) / PATHFINDING_NODE_GRID_SIZE;	
+	int gx = abs(  goal.x - pf->cube.x) / PATHFINDING_NODE_GRID_SIZE;
+	int gy = abs(  goal.z - pf->cube.z) / PATHFINDING_NODE_GRID_SIZE;	
 	
 	pf->openFirst = malloc(sizeof(AStarNode));	
 	pf->openFirst->next = pf->openFirst->prev = NULL;
@@ -288,9 +312,11 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 	curr->prev = NULL;
 	path->nPath = 0;
 
+	HashTable_Insert(pf->open, (char * ) &curr->index, (char *)curr);
 
 	int goalIndex = GetClosestNotClosed(pf, gx + (gy * pf->w));
 	int attempts = 0;
+
 	AStarNode current;
 	while(pf->openFirst && attempts < 1000){
 		attempts++;
@@ -346,14 +372,20 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 				}
 				pf->closedObstaclesLast->next = NULL;
 			}
+
+			HashTable_Free(pf->open);
+			HashTable_Free(pf->closed);
 			return 0;
 		}
+
+		HashTable_Delete(pf->open, (char * ) &curr->index);
+		HashTable_Insert(pf->closed, (char * ) &curr->index, (char *)curr);
 		
 		if(curr->next)curr->next->prev = curr->prev;
 		if(curr->prev)curr->prev->next = curr->next;
 
 		if(curr->prev == NULL){
-			pf->openFirst = NULL;
+			pf->openFirst = curr->next;
 		}
 
 		if(pf->closedFirst){
@@ -383,33 +415,22 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 		int f;
 		for(f = 0; f < 8; f++){
 			if(neighbors[f] < 0 || neighbors[f] > pf->w * pf->h) continue;
-			AStarNode *closed = pf->closedFirst;
-			while(closed) {
-				if(closed->index == neighbors[f]) break;
-				closed = closed->next;
-			}
+	
+			AStarNode *closed = (AStarNode *)HashTable_Search(pf->closed, (char *)&neighbors[f]);
 			if(closed) continue; 
 
-			int tentative_gscore = current.g + 1;
+			int tentative_gscore = current.g + f/4 ? 1.414 : 1;
 
 			int nx = neighbors[f] % pf->w;
 			int ny = neighbors[f] / pf->w;
 
-			AStarNode *open = pf->openFirst;
-			while(open) { 
-				if(open->index == neighbors[f]) break;			
-				open = open->next;
-			}
+			AStarNode *open = (AStarNode *)HashTable_Search(pf->open, (char *)&neighbors[f]);
 
 			if(open){
-				if(open->diagnal != f/4){
-					tentative_gscore += 1;
-				}
 
 				if(tentative_gscore < open->g){ // this path is better
-					open->f = tentative_gscore + ((nx-gx)*(nx-gx)) + ((ny-gy)*(ny-gy));
+					open->f = tentative_gscore + sqrt((float)((nx-gx)*(nx-gx)) + ((ny-gy)*(ny-gy)));
 					open->g = tentative_gscore;
-					open->diagnal = f/4;
 					open->index = neighbors[f];
 					open->parent = curr;
 					continue;
@@ -432,14 +453,16 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 				open = open->next;
 			}
 			
+				
 			open->prev = tmp;
 			open->next = NULL;
 			if(open->prev) open->prev->next = open;
-			open->f = tentative_gscore + ((nx-gx)*(nx-gx)) + ((ny-gy)*(ny-gy));
+			open->f = tentative_gscore + sqrt((float)((nx-gx)*(nx-gx)) + ((ny-gy)*(ny-gy)));
 			open->g = tentative_gscore;
-			open->diagnal = f/4;
 			open->index = neighbors[f];
 			open->parent = curr;
+
+			HashTable_Insert(pf->open, (char * ) &neighbors[f], (char *)open);
 		}
 	}
 	curr = pf->openFirst;
@@ -460,6 +483,8 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 		pf->closedObstaclesLast->next = NULL;
 	}
 
-
+	HashTable_Free(pf->open);
+	HashTable_Free(pf->closed);
+	
 	return 0;
 }
