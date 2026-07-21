@@ -5,13 +5,13 @@
 #define PATHFINDING_NODE_GRID_SIZE 0.6
 #include "math.h"
 #include "bounding_box.h"
+#include "utils.h"
 
 typedef struct AStarNode AStarNode;
 struct AStarNode {
 		float g;
 		float f;
 		int index;
-		int diagnal;
 		AStarNode *parent;
 		AStarNode *next;
 		AStarNode *prev;
@@ -26,6 +26,9 @@ typedef struct {
 typedef struct {
 	int w;
 	int h;
+	HashTable_t *open;
+	HashTable_t *closed;
+
 	AStarNode *openFirst;
 	AStarNode *closedFirst;
 	AStarNode *closedObstaclesLast;

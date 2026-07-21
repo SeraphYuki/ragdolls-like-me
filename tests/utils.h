@@ -1,14 +1,29 @@
 #ifndef UTILS_TABLE
 #define UTILS_TABLE
 
-typedef struct {
-	int *indicies;
-	char **data;
-	int size;
-} HashTable;
+#define TABLE_SIZE 10007 // must be prime
 
-HashTable HashTable_Create(int size);
-char *HashTable_Get(HashTable *h, unsigned char *label, int labelsize);
-void HashTable_Add(HashTable *h, unsigned char *label, int labelsize, unsigned char *data, int datasize);
-void HashTable_Free(HashTable *h);
+typedef struct Node {
+	char *key;
+	void *value;
+	struct Node *next;
+} Node;
+
+
+typedef struct {
+	Node * buckets[TABLE_SIZE];
+} HashTable_t;
+
+//typedef struct {
+	//int *indicies;
+	//char **data;
+	//int size;
+//} HashTable;
+
+int HashTable_Insert(HashTable_t *table, const char *key, void *value);
+HashTable_t *HashTable_Create();
+int HashTable_Delete(HashTable_t *table, const char *key);
+void HashTable_Free(HashTable_t *table);
+const char *HashTable_Search(HashTable_t *table, const char *key);
+
 #endif

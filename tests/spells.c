@@ -3,6 +3,7 @@
 #include "world.h"
 #include "math.h"
 #include "characters.h"
+#define NUM_PARTICLES_AUTOATTACK 100
 
 void SpellAutoAttack_Update(Game *game, Object *obj){
 	Spell  *spell = (Spell *)obj->data;
@@ -47,7 +48,7 @@ void SpellAutoAttack_Update(Game *game, Object *obj){
 		path = Math_Vec3Normalize(path);
 		path = Math_Vec3MultFloat(path, autoAttack->speed * Window_GetDeltaTime());
 		int j;
-		for(j = 0; j < 100; j++){
+		for(j = 0; j < NUM_PARTICLES_AUTOATTACK; j++){
 			autoAttack->particles[j].pos = Math_Vec3AddVec3(autoAttack->particles[j].pos,
 				path);
 		}
@@ -71,7 +72,7 @@ void SpellAutoAttack_Draw(Game *game, Object *obj){
 	Vec3 camPos = (Vec3){invView[3], invView[7], invView[11]};
 	
 	Particles_DrawParticles(autoAttack->particleImage, 
-		&game->particleSystem, autoAttack->particles, 100, 50, forward, camPos, 0);
+		&game->particleSystem, autoAttack->particles, NUM_PARTICLES_AUTOATTACK, 50, forward, camPos, 0);
 
 }
 
@@ -117,7 +118,7 @@ Object *Spell_AutoAttack_Cast(Game *game, Object *cameFrom, Object *at){
 
 
 	int j;
-	for(j = 0; j < 100; j++){
+	for(j = 0; j < NUM_PARTICLES_AUTOATTACK; j++){
 		autoAttack->particles[j].createTime = Window_GetTicks();
 		autoAttack->particles[j].lifeTime = 10000;
 		autoAttack->particles[j].pos = Math_Vec3AddVec3(cameFrom->bb.pos,
@@ -195,7 +196,7 @@ Object *Spell_AOE_Cast(Game *game, Object *cameFrom, Vec3 pos){
 	obj->OnCollision = Spell_AOE_OnCollision;
 	obj->Update = Spell_AOE_Update;
 	obj->Draw = Spell_AOE_Draw;
-	obj->bb.collisionFlag |= COLLISIONFLAG_SAT;
+	//obj->bb.collisionFlag |= COLLISIONFLAG_SAT;
 	obj->bb.collisionFlag |= COLLISIONFLAG_INVISIBLE;
 	obj->bb.pos = pos;
 	obj->bb.scale = (Vec3){1,1,1};

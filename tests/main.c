@@ -22,7 +22,7 @@
 #define WINDOW_WIDTH 960 
 #define WINDOW_HEIGHT 544
 
-#define NUM_MINIONS 20
+#define NUM_MINIONS 0
 
 
 static Game game;
@@ -83,7 +83,8 @@ Object *obj2, BoundingBox *bb, BoundingBox *bb2, Vec3 axis, float overlap){
 		BoundingBox_ResolveSoupY(game,obj,bb,bb2);
 	}
 
-	obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,Math_Vec3MultFloat(axis, -overlap*0.01));
+	if(!(bb2->collisionFlag & COLLISIONFLAG_INVISIBLE))
+		obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,Math_Vec3MultFloat(axis, -overlap*0.01));
 
 	obj->ObjUpdate(obj);
 }
@@ -172,7 +173,7 @@ static void Update(){
 	//throwObj->ObjUpdate(throwObj);
 	//World_ResolveCollisions(throwObj, &throwObj->bb);
 	
-	Pathfinding_ClearDynamic(&game.pf);
+	//Pathfinding_ClearDynamic(&game.pf);
 	
 }
 
@@ -455,7 +456,7 @@ static char Draw(){
 	
 	Skeleton_Apply(&playerSkel);
 
-	World_Render(&game,1);
+	World_Render(&game,0);
 
 	if(castingAOE){
 		Math_Identity(idenity);
@@ -503,7 +504,7 @@ static char Draw(){
 	//UI_RenderRectTex(&ui, img, 0,img.h, img.w/2,-img.h, 
 	//0,0, img.w/2,img.h, 255,255,255,255);
 
-	//Pathfinding_RenderDebug(&game.pf,&pfpath);
+	Pathfinding_RenderDebug(&game.pf,&pfpath);
 
 	UI_Render(&ui, &game);
 

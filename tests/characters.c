@@ -7,8 +7,9 @@
 
 void Minion_OnCollision(Game *game, Object *obj,Object *obj1, Object *obj2, BoundingBox *bb1,
 	BoundingBox *bb2, Vec3 axis, float overlap){
-	
-	//obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,Math_Vec3MultFloat(axis, -overlap));
+
+	if(!(bb2->collisionFlag & COLLISIONFLAG_INVISIBLE))
+		obj->bb.pos = Math_Vec3AddVec3(obj->bb.pos,Math_Vec3MultFloat(axis, -overlap * 0.01));
 
 	if(bb2->soup.nTris){
 		BoundingBox_ResolveSoupY(game,obj,bb1,bb2);
@@ -265,7 +266,7 @@ Object *Minion_Create(Game *game, Model *model, int team){
 		(Vec3){ (-50 + rand()%100)/20.0f, 1, (-50 + rand()%100)/10.0f});
 	}		
 	
-	
+	obj->bb.cube = (Cube){-3,0.1,-3,6,10,6};
 	obj->bb.scale = (Vec3){0.1,0.1,0.1};
 	obj->bb.rot = (Vec3){0,0,0};
 	obj->bb.pos.z += 14;	
