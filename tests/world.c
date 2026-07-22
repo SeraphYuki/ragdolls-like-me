@@ -191,7 +191,6 @@ void World_DrawLines(Vec3 *lines, int num){
 	glBindVertexArray(0);
 }
 void World_DrawLinesColor(Vec3 *lines, int num, Vec4 color){
-
 	Shaders_UseProgram(TEXTURELESS_SHADER);
 	Shaders_SetUniformColor(color);
 
@@ -201,7 +200,7 @@ void World_DrawLinesColor(Vec3 *lines, int num, Vec4 color){
 	Shaders_UpdateModelMatrix();
 	Shaders_UpdateProjectionMatrix();
 
-	glLineWidth(1);
+	glLineWidth(4);
 
 	glBindBuffer(GL_ARRAY_BUFFER, posVbo);
 	glBufferData(GL_ARRAY_BUFFER, num*sizeof(Vec3), &lines[0], GL_STATIC_DRAW);

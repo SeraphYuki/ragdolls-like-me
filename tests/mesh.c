@@ -317,6 +317,11 @@ static void BoneUpdateVelocities(Bone *bone,Vec4 *matrices){
 
     }
 
+	memcpy(matrix, bone->absMatrix, sizeof(matrix));
+	bone->worldPos = (Vec3){matrix[3], matrix[7], matrix[11]};
+	matrix[3] = matrix[7] = matrix[11] = 0;
+	bone->worldRot = Math_MatrixToQuat(matrix);
+	
     Math_MatrixMatrixMult(matrix, bone->absMatrix, bone->invBindMatrix);
 
     bone->axes[0] = (Vec3){1,0,0};

@@ -6,6 +6,7 @@
 #include "thoth/thoth.h"
 #include "characters.h"
 #include "spells.h"
+#include "physics.h"
 #include "pathfinding.h"
 #include "game.h"
 #include "particles.h"
@@ -18,6 +19,7 @@
 #include "ui.h"
 #include "object.h"
 #include "skybox.h"
+
 
 #define WINDOW_WIDTH 960 
 #define WINDOW_HEIGHT 544
@@ -35,7 +37,7 @@ static PathfinderPath pfpath;
 
 static Thoth_t *thoth;
 
-
+static PhysicsFigure_t figure;
 static Particle particles[100];
 static Image particleImg, billboardImg;
 
@@ -52,8 +54,8 @@ static Vec3 moveToPos;
 float persp[16], view[16], model[16];
 static Vec3 rotation = {0,-1,0};
 static Vec2 mousepos = {0,0};
-static Vec3 position = {4,8,-4};
-static Vec3 renderpos = {-2,5,4};
+static Vec3 position = {1,4,-4};
+static Vec3 renderpos = {-2,4,4};
 static Vec3 lookatPos = {0,2,0};
 
 static UI ui;
@@ -180,8 +182,8 @@ static void Update(){
 static void Event(SDL_Event ev){
 	UI_Event(&ui, ev); 
 	
-	  Thoth_Event(thoth, ev);
-	if(ev.type == SDL_QUIT || ev.key.keysym.sym == SDLK_ESCAPE) exit(0);
+	  //Thoth_Event(thoth, ev);
+	if(ev.type == SDL_QUIT ) exit(0);
 		
 	if(ev.type == SDL_MOUSEBUTTONDOWN){
 
@@ -439,12 +441,13 @@ static char Draw(){
 		//World_DrawSkeleton(&game.player->skelBb.children[k]);
 	}
 
-	//ConeConstraint_Create(&figure.constraints[0],&figure.skel->bones[14],
-		//&figure.skel->bones[15],(Vec3){0,1,0},1);
+	figure.skel = &playerSkel;
+	ConeConstraint_Create(&figure.constraints[0],&figure.skel->bones[14],
+		&figure.skel->bones[15],(Vec3){0,1,0}, PI/8);
 
-	//Shaders_UseProgram(TEXTURELESS_SHADER);
-	//Shaders_SetModelMatrix(game.player->bb.matrix);
-	//Physics_ApplyForces(&figure);
+	Shaders_UseProgram(TEXTURELESS_SHADER);
+	Shaders_SetModelMatrix(game.player->bb.matrix);
+	Physics_ApplyForces(&figure);
 	
 	if(pfpath.nPath > 0 && onPath < pfpath.nPath-1 && Math_Vec3Magnitude(Math_Vec3SubVec3(moveToPos,game.player->bb.pos)) < 0.1){
 		moveToPos = pfpath.path[onPath];
@@ -498,13 +501,13 @@ static char Draw(){
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 
-	Thoth_SetColorCfg(thoth, THOTH_COLOR_BG, 1,1,1,0.9);
+	//Thoth_SetColorCfg(thoth, THOTH_COLOR_BG, 1,1,1,0.9);
 	//Thoth_RenderIntoTexture(thoth, &img.glTexture, &img.w, &img.h);
 
 	//UI_RenderRectTex(&ui, img, 0,img.h, img.w/2,-img.h, 
 	//0,0, img.w/2,img.h, 255,255,255,255);
 
-	Pathfinding_RenderDebug(&game.pf,&pfpath);
+	//Pathfinding_RenderDebug(&game.pf,&pfpath);
 
 	UI_Render(&ui, &game);
 
@@ -658,10 +661,10 @@ int main(int argc, char **argv){
 	((Character *)game.characters[j-1]->data)->index = j-1;
 	((Character *)game.characters[j-1]->data)->lastTime = Window_GetTicks() + (j-1 * 100);
 
-	thoth = Thoth_Create(WINDOW_WIDTH, WINDOW_HEIGHT);
-	Thoth_LoadFile(thoth,"main.c");
+	//thoth = Thoth_Create(WINDOW_WIDTH, WINDOW_HEIGHT);
+	//Thoth_LoadFile(thoth,"main.c");
 	Window_MainLoop(Update, Event, Draw, Focus, OnResize, 1, 1);
-	 Thoth_Destroy(thoth);
+	 //Thoth_Destroy(thoth);
 
 	World_Free();
 	Shaders_Close();

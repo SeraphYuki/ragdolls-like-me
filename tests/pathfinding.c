@@ -1,36 +1,3 @@
-/*
-Heuristic is squared distance: ((nx-gx)*(nx-gx)) + ((ny-gy)*(ny-gy)). 
-Squaring makes it wildly overestimate the true cost, so it's inadmissible — you lose 
-the optimality guarantee and it degenerates toward greedy best-first. Use plain Euclidean, 
-or octile distance for 8-connected grids.
-Uniform step cost of 1 for diagonals too, plus that odd diagnal fudge that adds +1 only when
- re-examining an already-open node. Diagonals should cost ~1.414 consistently, not conditionally.
-Open list is a linked list with a linear min scan, and the closed list is a linear scan too. 
-That's O(n) per operation where classic A* uses a binary heap plus a hash set / flag array.
-
-Actual bugs
-
-Removing the head destroys the open list: if(curr->prev == NULL) pf->openFirst = NULL; 
-should be pf->openFirst = curr->next.
-
-When you pop the first node — which is common —
- every other open node is orphaned and leaked. This alone will make searches fail or wander.
-
-The popped node is never freed, only copied into current and into the closed list. Meanwhile 
-open->parent = curr points at that unlinked open-list node, not at the closed-list copy. 
-So parent chains point into memory that's leaked now and, in the cleanup loops at the end, 
-may already have been freed — reconstruction reads dangling pointers.
-
-Duplicate open entries: if a node is already open and tentative_gscore >= open->g, the code falls
- through and appends a second node for the same index instead of skipping it.
-No row-wrap check on neighbors: index ± 1 at column 0 or w-1 wraps to the adjacent row. 
-You need to reject neighbors where abs(nx - curr_x) > 1. Also neighbors[f] > pf->w * pf->h 
-should be >=.
-Negative-coordinate truncation: (pos.x - pf->cube.x) / PATHFINDING_NODE_GRID_SIZE with 
-ints truncates toward zero, so cells left/below the origin are off by one. Use floorf 
-before the cast.
-*/
-
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <SDL2/SDL_opengl.h>
@@ -132,7 +99,6 @@ void Pathfinding_RenderDebug(Pathfinder *pf, PathfinderPath *path){
 		World_DrawX(cube);
 		closed = closed->next;
 	}
-	printf("%i\n", num);
 
 	glBindVertexArray(0);
 	glEnable(GL_DEPTH_TEST);
@@ -475,7 +441,6 @@ int Pathfinding_FindPathGrid(Pathfinder *pf, Vec3 pos, Vec3 goal,PathfinderPath*
 			sprintf(indexstr, "%i", neighbors[f]);
 			AStarNode *closed = (AStarNode *)HashTable_Search(pf->closed, (char *)indexstr);
 			if(closed){
-				printf("%i %p\n", numClosed++, closed);
 				continue; 
 			}
 
