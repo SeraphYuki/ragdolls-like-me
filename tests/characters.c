@@ -169,7 +169,11 @@ void Minion_Draw(Game *game, Object *obj){
 
 		Shaders_SetModelMatrix(obj->bb.matrix);
 		Shaders_UpdateModelMatrix();
-
+		if(character->team == 1)
+			Shaders_SetUniformColor((Vec4){1,0,0,1});
+		else 
+			Shaders_SetUniformColor((Vec4){1,1,1,1});
+			
 		glUniform4fv(Shaders_GetBonesLocation(), obj->skeleton->nBones * 3, 
 		&minion->skeleton.matrices[0].x);
 		glActiveTexture(GL_TEXTURE0);

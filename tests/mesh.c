@@ -280,17 +280,14 @@ static void BoneUpdate(Bone *parent, Bone *bone, PlayingAnimation *anims, int nA
 
 	 if(bone->parent){
 	     Math_MatrixMatrixMult(bone->absMatrix, bone->parent->absMatrix, bone->absMatrix); 
-		memcpy(matrix, bone->absMatrix, sizeof(matrix));
-		bone->worldPos = (Vec3){matrix[3], matrix[7], matrix[11]};
-		matrix[3] = matrix[7] = matrix[11] = 0;
-		bone->worldRot = Math_MatrixToQuat(matrix);
 	 } else if(parent){
 	     Math_MatrixMatrixMult(bone->absMatrix, parent->absMatrix, bone->absMatrix); 
-		memcpy(matrix, bone->absMatrix, sizeof(matrix));
-		bone->worldPos = (Vec3){matrix[3], matrix[7], matrix[11]};
-		matrix[3] = matrix[7] = matrix[11] = 0;
-		bone->worldRot = Math_MatrixToQuat(matrix);
 	}
+	
+	memcpy(matrix, bone->absMatrix, sizeof(matrix));
+	bone->worldPos = (Vec3){matrix[3], matrix[7], matrix[11]};
+	matrix[3] = matrix[7] = matrix[11] = 0;
+	bone->worldRot = Math_MatrixToQuat(matrix);
 
 	for(j = 0; j < bone->nChildren; j++)
 		BoneUpdate(parent, bone->children[j], anims, nAnims, matrices);
@@ -314,7 +311,6 @@ static void BoneUpdateVelocities(Bone *bone,Vec4 *matrices){
     Math_MatrixMatrixMult(bone->absMatrix, matrix, bone->absMatrix);
 	 if(bone->parent){
 	     Math_MatrixMatrixMult(bone->absMatrix, bone->parent->absMatrix, bone->absMatrix); 
-
     }
 
 	memcpy(matrix, bone->absMatrix, sizeof(matrix));

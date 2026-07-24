@@ -6,7 +6,6 @@
 #include "thoth/thoth.h"
 #include "characters.h"
 #include "spells.h"
-#include "physics.h"
 #include "pathfinding.h"
 #include "game.h"
 #include "particles.h"
@@ -24,7 +23,7 @@
 #define WINDOW_WIDTH 960 
 #define WINDOW_HEIGHT 544
 
-#define NUM_MINIONS 0
+#define NUM_MINIONS 20
 
 
 static Game game;
@@ -37,7 +36,6 @@ static PathfinderPath pfpath;
 
 static Thoth_t *thoth;
 
-static PhysicsFigure_t figure;
 static Particle particles[100];
 static Image particleImg, billboardImg;
 
@@ -54,7 +52,7 @@ static Vec3 moveToPos;
 float persp[16], view[16], model[16];
 static Vec3 rotation = {0,-1,0};
 static Vec2 mousepos = {0,0};
-static Vec3 position = {1,4,-4};
+static Vec3 position = {4,8,-4};
 static Vec3 renderpos = {-2,4,4};
 static Vec3 lookatPos = {0,2,0};
 
@@ -362,6 +360,7 @@ static void DrawRigged(Game *game, Object *obj){
 	int k;
 	for(k = 0; k < obj->model->nMaterials; k++){
 
+		Shaders_SetUniformColor((Vec4){1,1,1,1});
 		glBindTexture(GL_TEXTURE_2D, obj->model->materials[k].texture);
 		glUniform4fv(Shaders_GetDiffuseLocation(), 1, (float *)&obj->model->materials[k].diffuse);
 		glUniform4fv(Shaders_GetSpecularLocation(), 1, (float *)&obj->model->materials[k].specular);
@@ -436,18 +435,18 @@ static char Draw(){
 	Skybox_Draw(&skybox);
 
 
-	int k;
-	for(k = 0; k < game.player->skelBb.numChildren; k++){
+	//int k;
+	//for(k = 0; k < game.player->skelBb.numChildren; k++){
 		//World_DrawSkeleton(&game.player->skelBb.children[k]);
-	}
+	//}
 
-	figure.skel = &playerSkel;
-	ConeConstraint_Create(&figure.constraints[0],&figure.skel->bones[14],
-		&figure.skel->bones[15],(Vec3){0,1,0}, PI/8);
+	//figure.skel = &playerSkel;
+	//ConeConstraint_Create(&figure.constraints[0],&figure.skel->bones[15],
+		//&figure.skel->bones[14],(Vec3){0,1,0},0);
 
-	Shaders_UseProgram(TEXTURELESS_SHADER);
-	Shaders_SetModelMatrix(game.player->bb.matrix);
-	Physics_ApplyForces(&figure);
+	//Shaders_UseProgram(TEXTURELESS_SHADER);
+	//Shaders_SetModelMatrix(game.player->bb.matrix);
+	//Physics_ApplyForces(&figure);
 	
 	if(pfpath.nPath > 0 && onPath < pfpath.nPath-1 && Math_Vec3Magnitude(Math_Vec3SubVec3(moveToPos,game.player->bb.pos)) < 0.1){
 		moveToPos = pfpath.path[onPath];
@@ -499,7 +498,6 @@ static char Draw(){
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
 
 	//Thoth_SetColorCfg(thoth, THOTH_COLOR_BG, 1,1,1,0.9);
 	//Thoth_RenderIntoTexture(thoth, &img.glTexture, &img.w, &img.h);
@@ -509,9 +507,9 @@ static char Draw(){
 
 	//Pathfinding_RenderDebug(&game.pf,&pfpath);
 
+	// not causing blackout
 	UI_Render(&ui, &game);
 
-	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	
 
